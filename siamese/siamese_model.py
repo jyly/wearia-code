@@ -180,14 +180,14 @@ def siamese_feature(train_data,test_data, train_target, test_target,num_classes)
 
 
     # test_pairs, test_label = create_pairs(test_data, test_target,num_classes)
-    # test_pairs, test_label = create_pairs_incre_1(test_data, test_target,num_classes)
+    test_pairs, test_label = create_pairs_incre_1(test_data, test_target,num_classes)
     # test_pairs, test_label = create_pairs_incre_2(test_data, test_target,num_classes)
-    test_pairs, test_label = create_test_pair(test_data, test_target,num_classes)
+    # test_pairs, test_label = create_test_pair(test_data, test_target,num_classes)
 
-    print(train_pairs.shape)
-    print(test_pairs.shape)
+    print("训练集对数：",train_pairs.shape)
+    print("测试集对数：",test_pairs.shape)
 
-    input_shape = (1,len(train_data[0]))
+    input_shape = (len(train_data[0]))
     # input_shape = (2,300,1)
 
     #配对数，对子内部数据段个数，数据段的长，数据段的宽，数据段的高
@@ -209,8 +209,7 @@ def siamese_feature(train_data,test_data, train_target, test_target,num_classes)
 
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=512,  
-           epochs=100, verbose=2,
+           batch_size=8192, epochs=200, 
            validation_split=0.2)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
@@ -243,19 +242,22 @@ def siamese_feature(train_data,test_data, train_target, test_target,num_classes)
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
 
     #对样本对进行额外处理
-    temp_pred=[]
-    temp_label=[]
-    for i in range(int(len(test_label)/5)):
-        temp_pred+=[0]
-        temp_label.append(test_label[i*5])
-        for j in range(5):
-            temp_pred[i]+=test_pred[i*5+j]
-        temp_pred[i]=temp_pred[i]/5
-
-    test_label=temp_label
-    test_pred=temp_pred
+    # temp_pred=[]
+    # for i in range(int(len(test_label))):
+    #     temppred=0
+    #     # temp_label.append(test_label[i*5])
+    #     for j in range(5):
+    #         temppred+=test_pred[i*5+j]
+    #     temp_pred.append(temppred/5)
+    # test_pred=temp_pred
+    # print("len(test_pred):",len(test_pred))
+    # print("len(test_label):",len(test_label))
+    
+    train_label=np.array(train_label)
+    train_pred=np.array(train_pred)
     test_label=np.array(test_label)
     test_pred=np.array(test_pred)
+
     tr_acc = compute_accuracy(train_label, train_pred)
     te_acc = compute_accuracy(test_label, test_pred)
 
@@ -286,7 +288,8 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
 
     print("train_pairs.shape:",train_pairs.shape)
 
-    input_shape = (1,len(train_data[0]))
+    # input_shape = (1,len(train_data[0]))
+    input_shape = (len(train_data[0]))
 
     #配对数，对子内部数据段个数，数据段的长，数据段的宽，数据段的高
     # train_pairs = train_pairs.reshape(train_pairs.shape[0], 2, 8, 300, 1)  
@@ -297,7 +300,7 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
     
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=2048,epochs=50)  
+           batch_size=8192,epochs=50)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
     #       batch_size=128,
@@ -309,7 +312,8 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
     #   epochs=50,steps_per_epoch=(int(len(train_pairs)/batch_size)+1)
     #   )
 
-    model.save_weights('my_model_weights.h5')
+    model.save_weights('model_weights.h5')
+
     train_pred = model.predict([train_pairs[:, 0], train_pairs[:, 1]])
 
     #计算训练集中的判定分数的均值
@@ -334,26 +338,25 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
 def siamese_feature_final(data,target,num_classes):
     # test_pairs, test_label = create_pairs_incre_1(data, target,num_classes)
     test_pairs, test_label = create_test_pair(data, target,num_classes)
-    input_shape = (1,len(data[0]))
+    input_shape = (len(data[0]))
     print(input_shape)
    
     model=create_siamese_network(input_shape)
-    model.load_weights('my_model_weights.h5')
+    model.load_weights('model_weights.h5')
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
 
     #对样本对进行额外处理
     temp_pred=[]
-    temp_label=[]
-    for i in range(int(len(test_label)/5)):
-        temp_pred+=[0]
+    for i in range(int(len(test_label))):
+        temppred=0
         # temp_label.append(test_label[i*5])
-        temp_label.append(test_label[i*5])
         for j in range(5):
-            temp_pred[i]+=test_pred[i*5+j]
-        temp_pred[i]=temp_pred[i]/5
-
-    test_label=temp_label
+            temppred+=test_pred[i*5+j]
+        temp_pred.append(temppred/5)
     test_pred=temp_pred
+    print("len(test_pred):",len(test_pred))
+    print("len(test_label):",len(test_label))
+
     test_label=np.array(test_label)
     test_pred=np.array(test_pred)
 

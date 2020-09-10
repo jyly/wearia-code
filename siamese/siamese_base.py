@@ -139,35 +139,39 @@ def create_test_pair(test_data, test_target,num_classes):
         for j in range(len(test_target)):
             if test_target[j]==i:
                 tempdata[i-1].append(test_data[j])
-    test_data_anchor=[]
-    test_data=[]
-    for i in range(num_classes):
-        test_data_anchor.append([])
-        test_data.append([])
-        rangek=list(range(len(tempdata[i])))
-        selectk = random.sample(rangek, 5)
-        for j in range(len(tempdata[i])):
-            if j in selectk:
-                test_data_anchor[i].append(tempdata[i][j])
-            else:
-                test_data[i].append(tempdata[i][j])
-    
     pairs = []
-    labels = []                
-    for i in range(num_classes):
-        for j in range(len(test_data[i])):
-            # 添加合法样本对
-            for k in range(5):
-                pairs+=[[test_data_anchor[i][k],test_data[i][j]]]
+    labels = []   
+    for t in range(3):            
+        test_data_anchor=[]
+        test_data=[]
+        #选择样本的锚和对比样本
+        for i in range(num_classes):
+            test_data_anchor.append([])
+            test_data.append([])
+            rangek=list(range(len(tempdata[i])))
+            selectk = random.sample(rangek, 5)
+            for j in range(len(tempdata[i])):
+                if j in selectk:
+                    test_data_anchor[i].append(tempdata[i][j])
+                else:
+                    test_data[i].append(tempdata[i][j])
+        
+        for i in range(num_classes):
+            for j in range(len(test_data[i])):
+                # 添加合法样本对
+                for k in range(5):
+                    pairs+=[[test_data_anchor[i][k],test_data[i][j]]]
                 labels += [1]
-            #添加impost样本对
-            np.random.seed(i*10+j)
-            inc_1 = np.random.randint(1, num_classes)
-            dn = (i + inc_1) % num_classes
-            inc_2 =np.random.randint(0, len(test_data[dn]))
-            for k in range(5):
-                pairs += [[test_data_anchor[i][k],test_data[dn][inc_2]]]
-                labels += [0]
+                #添加impost样本对
+                for t in range(1):
+                    inc_1 = random.randrange(1, num_classes)
+                    dn = (i + inc_1) % num_classes
+                    inc_2 =np.random.randint(0, len(tempdata[dn]))
+                    for k in range(5):
+                        pairs += [[test_data_anchor[i][k],tempdata[dn][inc_2]]]
+                    labels += [0]
+    # print("len(test_pairs):",len(pairs))
+    # print("len(test_labels):",len(labels))            
     return np.array(pairs), np.array(labels)
 
 
@@ -202,11 +206,11 @@ def mlp_network_incre(input_shape):
     input = Input(shape=input_shape)
     x = Flatten()(input)
     #全连接层
-    x = Dense(32, activation='relu')(x)
+    x = Dense(16, activation='relu')(x)
     #遗忘层
     x = Dropout(0.1)(x)
     x = Dense(32, activation='relu')(x)
-    x = Dropout(0.1)(x)
+    x = Dropout(0.2)(x)
     x = Dense(32, activation='relu')(x)
     x = Dropout(0.2)(x)
     x = Dense(128, activation='relu')(x)
@@ -289,8 +293,8 @@ def vgg_16_base(input_shape):
 def create_siamese_network(input_shape):
     
     # base_network = conv_network(input_shape)
-    base_network = mlp_network(input_shape)
-    # base_network = mlp_network_incre(input_shape)
+    # base_network = mlp_network(input_shape)
+    base_network = mlp_network_incre(input_shape)
     # base_network = cwt_network(input_shape)
     # base_network = vgg_16_base(input_shape)
     # base_network = resnet_keras.ResNet50(input_shape)

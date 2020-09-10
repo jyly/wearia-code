@@ -17,12 +17,12 @@ if __name__ == "__main__":
 
 	#数据预处理
 	# wear_data_preprocess.all_data(wear_datadir)
-	# wear_data_preprocess.all_feature(wear_datadir)
-	# phone_data_preprocess.all_data(phone_datadir)
+	wear_data_preprocess.all_feature(wear_datadir)
+	# # phone_data_preprocess.all_data(phone_datadir)
 	# other_phone_data_preprocess.all_data(other_phone_datadir)
 
 
-	# 将预处理后的数据从文件读到内存
+	# 将预处理后的数据从文件读到内存==
 	# dataset,target,targetnum=filecontrol.dataread()
 	feature,target,targetnum=filecontrol.featureread()
 	# dataset,target,targetnum=filecontrol.phone_dataread()
@@ -54,3 +54,4 @@ if __name__ == "__main__":
 	# tripletloss
 	# tripletloss_classifier.tripletloss_oridata_classifier(dataset[:,0:2],target,targetnum)
 	# tripletloss_classifier.tripletloss_feature_classifier(feature,target,targetnum)
+	# tripletloss_classifier.tripletloss_feature_divide_classifier(feature,target,targetnum)

@@ -82,7 +82,7 @@ def ldapro(train_data,test_data,train_target):
 
 def pcapro(train_data,test_data):
 	# pca = PCA(n_components=12,whiten=True)
-	pca = PCA(n_components=12)
+	pca = PCA(n_components=20)
 	pca = pca.fit(train_data)
 	train_data=pca.transform(train_data)
 	# print(np.dot(test_data[0]-lda.xbar_,lda.scalings_))

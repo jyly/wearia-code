@@ -196,13 +196,12 @@ def tripletloss_ori(train_data,test_data, train_target, test_target,num_classes)
 
 
 def tripletloss_feature(train_data,test_data, train_target, test_target,num_classes):
-	print(train_data.shape)
-
-	input_shape = (1,len(train_data[0]))
-	train_data_flat = train_data.reshape(-1, len(train_data[0]))
-	train_triplet, train_label = generate_triplet(train_data_flat, train_target, ap_pairs=50, an_pairs=50)
-	print(train_triplet.shape)
 	le = LabelBinarizer()
+
+	input_shape = (len(train_data[0]))
+	train_triplet, train_label = generate_triplet(train_data, train_target, ap_pairs=50, an_pairs=50)
+	print("训练集组数：",train_triplet.shape)
+	
 
 	model=create_tripletloss_network(input_shape,num_classes)
 
@@ -210,10 +209,9 @@ def tripletloss_feature(train_data,test_data, train_target, test_target,num_clas
 	
 	# train_triplet,val_triplet, train_label, val_label = train_test_split(train_triplet,train_label,test_size = 0.2,random_state = 30,stratify=train_label)
 
-
-	anchor = train_triplet[:, 0].reshape(-1, 1, len(train_data[0]), 1)
-	positive = train_triplet[:, 1].reshape(-1, 1, len(train_data[0]), 1)
-	negative = train_triplet[:, 2].reshape(-1, 1, len(train_data[0]), 1)
+	anchor = train_triplet[:, 0]
+	positive = train_triplet[:, 1]
+	negative = train_triplet[:, 2]
 	y_anchor = le.fit_transform(train_label[:, 0])
 	y_positive = le.fit_transform(train_label[:, 1])
 	y_negative = le.fit_transform(train_label[:, 2])
@@ -238,15 +236,12 @@ def tripletloss_feature(train_data,test_data, train_target, test_target,num_clas
 
 
 	model.fit(x=[anchor, positive, negative], y=[traintarget, traintarget],
-          batch_size=1024, epochs=100, 
+          batch_size=8192, epochs=100, 
           validation_split=0.2)
 
 	# model.fit([anchor, positive, negative], y=[traintarget, traintarget],
  #      batch_size=512, epochs=50, 
  #      validation_data=([valanchor, valpositive, valnegative], [valtarget, valtarget]))
-
-
-
 
 	# batch_size=1024
 
@@ -262,18 +257,102 @@ def tripletloss_feature(train_data,test_data, train_target, test_target,num_clas
 
 	model.save("triplet_loss_model.h5")
 
-	base_network = mlp(input_shape,num_classes)
+	base_network = mlp_network_incre(input_shape,num_classes)
 	input_a = Input(shape=input_shape, name='input_a')
 	soft_a, pre_logits_a = base_network([input_a])
 	model = Model(inputs=[input_a], outputs=[soft_a, pre_logits_a])
 	model.load_weights("triplet_loss_model.h5")
 
 
-	test_pairs, test_label = create_pairs(test_data, test_target,num_classes)
+	# test_pairs, test_label = create_pairs(test_data, test_target,num_classes)
+	test_pairs, test_label = create_test_pair(test_data, test_target,num_classes)
 	test_soft_1, test_embed_1 = model.predict([test_pairs[:,0]])
 	test_soft_2, test_embed_2 = model.predict([test_pairs[:,1]])
 
-	score=[]
-	for i in range(len(test_label)):
-		score.append(K.sqrt(K.sum(K.square(test_embed_1[i] - test_embed_2[i]))))
-	return score,test_label
+	test_pred=[]
+	for i in range(len(test_pairs)):
+		test_pred.append(K.sqrt(K.sum(K.square(test_embed_1[i] - test_embed_2[i]))))
+	
+	print("len(test_pred):",len(test_pred))
+	print("len(test_label):",len(test_label))
+    #对样本对进行额外处理
+	temp_pred=[]
+	for i in range(int(len(test_label))):
+		temppred=0
+        # temp_label.append(test_label[i*5])
+		for j in range(5):
+			temppred+=test_pred[i*5+j]
+		temp_pred.append(temppred/5)
+	test_pred=temp_pred
+	print("len(test_pred):",len(test_pred))
+	print("len(test_label):",len(test_label))
+
+
+	return test_pred,test_label
+
+
+def tripletloss_feature_buildmodel(train_data, train_target,num_classes):
+	le = LabelBinarizer()
+
+	input_shape = (len(train_data[0]))
+	train_triplet, train_label = generate_triplet(train_data, train_target, ap_pairs=50, an_pairs=50)
+	print("训练集组数：",train_triplet.shape)
+
+	model=create_tripletloss_network(input_shape,num_classes)
+
+	train_triplet, train_label = shuffle(train_triplet, train_label, random_state=0)
+	
+
+	anchor = train_triplet[:, 0]
+	positive = train_triplet[:, 1]
+	negative = train_triplet[:, 2]
+	y_anchor = le.fit_transform(train_label[:, 0])
+	y_positive = le.fit_transform(train_label[:, 1])
+	y_negative = le.fit_transform(train_label[:, 2])
+	# traintarget = np.concatenate((y_anchor, y_positive, y_negative), -1)
+	target1=np.zeros((len(train_label),10*3))
+	# target2=np.zeros((len(train_label),384))
+	traintarget=target1
+
+	model.fit(x=[anchor, positive, negative], y=[traintarget, traintarget],
+          batch_size=8192, epochs=50)
+
+	model.save("triplet_loss_model.h5")
+
+
+def tripletloss_feature_final(test_data,test_target,num_classes):
+	input_shape = (len(test_data[0]))
+
+	base_network = mlp_network_incre(input_shape,num_classes)
+	input_a = Input(shape=input_shape, name='input_a')
+	soft_a, pre_logits_a = base_network([input_a])
+	model = Model(inputs=[input_a], outputs=[soft_a, pre_logits_a])
+	model.load_weights("triplet_loss_model.h5")
+
+
+	# test_pairs, test_label = create_pairs(test_data, test_target,num_classes)
+	test_pairs, test_label = create_test_pair(test_data, test_target,num_classes)
+	test_soft_1, test_embed_1 = model.predict([test_pairs[:,0]])
+	test_soft_2, test_embed_2 = model.predict([test_pairs[:,1]])
+
+	test_pred=[]
+	for i in range(len(test_pairs)):
+		test_pred.append(K.sqrt(K.sum(K.square(test_embed_1[i] - test_embed_2[i]))))
+
+	# print("len(test_pred):",len(test_pred))
+	# print("len(test_label):",len(test_label))
+	#对样本对进行额外处理
+	temp_pred=[]
+	for i in range(int(len(test_label))):
+		temppred=0
+	    # temp_label.append(test_label[i*5])
+		for j in range(5):
+			temppred+=test_pred[i*5+j]
+		temp_pred.append(temppred/5)
+	test_pred=temp_pred
+	print("len(test_pred):",len(test_pred))
+	print("len(test_label):",len(test_label))
+
+
+	return test_pred,test_label
+

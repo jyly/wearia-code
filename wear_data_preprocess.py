@@ -8,6 +8,8 @@ import MAfind
 
 def single_data(filepath):
 	ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime=filecontrol.orisegmentread(filepath)
+	
+	# indexpicshow(ppgx)
 
 	orippgx=meanfilt(ppgx,20)
 	orippgy=meanfilt(ppgy,20)
@@ -155,7 +157,7 @@ def single_feature(filepath):
 		temp=featurecontrol.ppg_feature(orippgx[pointstartindex:pointendindex])
 		for i in temp:
 			tempfeature.append(i)
-		temp=featurecontrol.ppg_feature(orippgx[pointstartindex:pointendindex])
+		temp=featurecontrol.ppg_feature(orippgy[pointstartindex:pointendindex])
 		for i in temp:
 			tempfeature.append(i)
 
