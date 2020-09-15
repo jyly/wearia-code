@@ -1,0 +1,9 @@
+svm_type one_class
+kernel_type rbf
+gamma 0.01
+nr_class 2
+total_sv 2
+rho 0.40632809281349191
+SV
+0.23000000000000004 0:-3.4806407 
+0.22999999999999998 0:1.6742881 

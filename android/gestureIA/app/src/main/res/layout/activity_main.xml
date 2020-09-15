@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_grey"
+    android:padding="15dp"
+    tools:context=".MainActivity"
+    tools:deviceIds="wear">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="5dp"
+        app:layout_box="all">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="GESTURE IA"
+            android:textColor="@color/white"
+            android:textSize="30sp" />
+
+        <Spinner android:id="@+id/gestureSpinner"
+            android:layout_width="160dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:entries="@array/spinnervalue"
+            android:textSize="12sp">
+        </Spinner>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/start"
+                android:layout_width="170dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:text="开始登记数据"
+                android:textSize="17sp" />
+            <Button
+                android:id="@+id/listen"
+                android:layout_width="170dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:text="开始手势认证"
+                android:textSize="17sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+    </FrameLayout>
+</androidx.wear.widget.BoxInsetLayout>

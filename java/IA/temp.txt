@@ -1,0 +1,80 @@
+String dirpath = "./raw-2020-05-01-17-41-48.csv";
+//			String dirpath="./raw-2020-05-01-17-22-00.csv"; 
+
+		File dirFile = new File(dirpath);
+		System.out.println(dirFile);
+		// 前后截取间隔，均值滤波窗口
+		ppg ppgs = files.dataextra(dirFile, 0, 30);
+
+		files.ppgwrrite(ppgs);
+
+		ppgs = tools.fastica(ppgs);
+		// 根据峰值判断那条手势信号和脉冲信号
+		ppgs = tools.machoice(ppgs);
+
+		files.icawrrite(ppgs);
+		tools.cal_corr(ppgs.x, ppgs.y);
+
+		int tag = ma.MAsearch(ppgs.x, 200);
+
+		if (0 == tag) {
+			System.out.println("当前片段不存在手势");
+		} else {
+			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+			ppgs = ma.setMAsegment(ppgs);
+
+			features.featureextra(ppgs.x);
+			features.featureextra(ppgs.y);
+
+		}
+		String modelpath = "./test.model";
+		String informscoreString = "[32,34,33,39,35,36,38,37,50,10,68,73,11,51,67,1,2,52,59,20]";
+		String ldamatrixString = "[[6.04079303e+03],[-4.41543626e+03],[-6.62634335e+02],[-8.38821195e+02],[1.97501034e+03],[2.25793830e+03],[ 2.74099152e+03],[-3.65587825e+03],[-2.35520457e+04],[ 5.87755757e+05],[ 1.75773472e+03],[ 6.98597705e+01],[-5.93221556e+05],[ 2.07077389e+04],[-2.63030546e+01],[ 8.30488278e+04],[-8.28362445e+04],[-1.44930568e-01],[ 1.72691035e+02],[-1.39858221e+02]]";
+
+		// 转为数字矩阵
+		String[] tempinformscore = new String[20];
+		String[] templdamatrixString = new String[20 * 1];
+
+		int[] informscore = new int[20];
+		double[][] ldamatrix = new double[20][1];
+
+		tempinformscore = informscoreString.replace("[", "").replace("]", "").split(",");
+		templdamatrixString = ldamatrixString.replace("[", "").replace("]", "").split(",");
+		System.out.println("特征选择：" + tempinformscore[0]);
+		for (int i = 0; i < 20; i++) {
+			informscore[i] = Integer.valueOf(tempinformscore[i]);
+		}
+
+		for (int i = 0; i < 20; i++) {
+			for (int j = 0; j < 1; j++) {
+				ldamatrix[i][j] = Double.valueOf(templdamatrixString[i * 1 + j]);
+			}
+		}
+
+		double[] selsectfeature = new double[20];
+		for (int i = 0; i < 20; i++) {
+			selsectfeature[i] = features.features.get(informscore[i]);
+		}
+		svm_node[] finalfeature = new svm_node[1];
+		for (int i = 0; i < 1; i++) {
+			double temp = 0;
+			for (int j = 0; j < 20; j++) {
+				temp += selsectfeature[j] * ldamatrix[j][i];
+			}
+			finalfeature[i] = new svm_node();
+			finalfeature[i].index=i;
+
+			finalfeature[i].value = temp;
+		}
+
+		svm_predict p = new svm_predict();
+		svm svms = new svm();
+		svm_model models = new svm_model();
+		try {
+			models = svms.svm_load_model(modelpath);
+			double result = svms.svm_predict(models, finalfeature);
+			System.out.println("result：" + result);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
