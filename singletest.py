@@ -1,71 +1,119 @@
-
-# -*- coding=utf-8 -*-
 import numpy as np
-import os
-import IAtool 
-import filecontrol 
-import MAfind
-import featurecontrol
-from normal_tool import *
+a=[[1,2],[3,4]]
+b=[[5,6],[7,8]]
+c=np.concatenate([a,b],-1)
+print(c)
+c=[a,b]
+print(c)
+import random
 
-# 单文件测试
+rangek=list(range(0,10))
+selectk = random.sample(rangek, 2)
+print(rangek)
+print(selectk)
+oldk=[]
+for i in rangek:
+	if i not in selectk:
+		oldk.append(i)
+print(oldk)
+from itertools import combinations
+com=list(combinations(rangek,2))
 
-filepath='./testdata/2020-09-06-10-07-41.csv'
-print(filepath)
-ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime=filecontrol.orisegmentread(filepath)
+print(com)
+
+selectk = random.sample(com, 2)
+print(selectk)
+oldk=[]
+for i in rangek:
+	if i not in selectk[0]:
+		oldk.append(i)
+print(oldk)
 
 
-orippgx=meanfilt(ppgx,20)
-orippgy=meanfilt(ppgy,20)
+import random
+print(random.randrange(1, 100))
+print(random.randrange(1, 100))
+print(random.randrange(1, 100))
+print(random.randrange(1, 100))
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
 
-butterppgx=highpass(5,200,orippgx)
-butterppgy=highpass(5,200,orippgy)
+from sklearn.decomposition import FastICA, PCA
 
-# butterppgx=lowpass(1,200,orippgx)
-# butterppgy=lowpass(1,200,orippgy)
+# #############################################################################
+# Generate sample data
+np.random.seed(0)
+n_samples = 2000
+time = np.linspace(0, 8, n_samples)
+
+s1 = np.sin(2 * time)  # Signal 1 : sinusoidal signal
+s2 = np.sign(np.sin(3 * time))  # Signal 2 : square signal
+s3 = signal.sawtooth(2 * np.pi * time)  # Signal 3: saw tooth signal
+
+S = np.c_[s1, s2, s3]
+S += 0.2 * np.random.normal(size=S.shape)  # Add noise
+
+S /= S.std(axis=0)  # Standardize data
+# Mix data
+A = np.array([[1, 1, 1], [0.5, 2, 1.0], [1.5, 1.0, 2.0]])  # Mixing matrix
+X = np.dot(S, A.T)  # Generate observations
+
+# Compute ICA
+ica = FastICA(n_components=3)
+S_ = ica.fit_transform(X)  # Reconstruct signals
+A_ = ica.mixing_  # Get estimated mixing matrix
+print("mean:",ica.mean_)
+print("components:",ica.components_)
+# print("S_：",S_)
+# print("G:",G)
+# print("lda_bar:",lda_bar)
+# print("lda_scaling:",lda_scaling)
+# print("F:",F)
+# We can `prove` that the ICA model applies by reverting the unmixing.
+assert np.allclose(X, np.dot(S_, A_.T) + ica.mean_)
+
+# For comparison, compute PCA
+# pca = PCA(n_components=3,whiten=True)
+pca = PCA(n_components=2)
+H = pca.fit_transform(X)  # Reconstruct signals based on orthogonal components
+
+print("X:",X)
+print("mean:",pca.mean_)
+print("components:",pca.components_)
+print("H:",H)
+G=np.dot(X-pca.mean_, pca.components_.T)
+print("G:",G)
+# plt.figure()
+
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+scaler = scaler.fit(X)
+D=scaler.transform(X)
+print("D:",D)
+print("mean:",scaler.mean_)
+print("scale:",scaler.scale_)
+K=(X-scaler.mean_)/scaler.scale_
+print("K:",K)
 
 
 
 
-icappgx,icappgy=IAtool.ppgfica(butterppgx,butterppgy)
 
+# models = [X, S, S_, H]
+# names = ['Observations (mixed signal)',
+#          'True Sources',
+#          'ICA recovered signals',
+#          'PCA recovered signals']
+# colors = ['red', 'steelblue', 'orange']
 
-tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#python 的ica是0.03,android的是1
+# for ii, (model, name) in enumerate(zip(models, names), 1):
+#     plt.subplot(4, 1, ii)
+#     plt.title(name)
+#     for sig, color in zip(model.T, colors):
+#         plt.plot(sig, color=color)
 
-print(tag,pointstartindex,pointendindex,pointendindex-pointstartindex)
-plt.plot(range(len(butterppgx)), butterppgx, 'blue')
-plt.show()
-plt.plot(range(len(icappgx)), icappgx, 'blue')
-# plt.axvline(994,label='start point')#纵
-# plt.axvline(1288,label='end point',color='grey')#纵
-# plt.legend(loc ='upper right')
-plt.show()
-
-# # score=IAtool.short_time_energy(butterppgx)
-# tempppgx=minmaxscale(butterppgx)
-# score=IAtool.energy(tempppgx)
-# score=IAtool.short_time_energy(butterppgx)
-
-# plt.rc('font',family='Times New Roman') 
-# plt.subplot(211)
-# # plt.plot(range(len(butterppgx[120:-120])), butterppgx[120:-120], 'red',label='ppg data')
-# plt.plot(range(len(butterppgx[1000:-200])), butterppgx[1000:-200], 'red',label='ppg data')
-
-# plt.ylabel('PPG Reading') 
-# plt.axvline(994,label='start point')#纵
-# plt.axvline(1288,label='end point',color='grey')#纵
-# plt.legend(loc ='upper right')
-
-# plt.subplot(212)
-# plt.plot(range(len(score[900:-300])), score[900:-300], 'blue' ,label='energy')
-
-# plt.ylabel('Short Time Energy') 
-# plt.xlabel('Sample index')
-# # plt.axvline(284,label='undetected real start point')#纵
-# # plt.axvline(727,color='grey',linestyle="-." ,label='undetected error start point')#纵
-# plt.legend(loc ='upper right')
+# plt.tight_layout()
 # plt.show()
-# tempppgx=minmaxscale(orippgx)
-# indexpicshow(orippgx)
-# tag=MAfind.coarse_grained_detect(tempppgx)
-# print(tag)
