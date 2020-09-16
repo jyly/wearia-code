@@ -320,7 +320,7 @@ def tripletloss_feature_buildmodel(train_data, train_target,num_classes):
 	model.save("triplet_loss_model.h5")
 
 
-def tripletloss_feature_final(test_data,test_target,num_classes):
+def tripletloss_feature_final(test_data,test_target,num_classes,anchornum=5):
 	input_shape = (len(test_data[0]))
 
 	base_network = mlp_network_incre(input_shape,num_classes)
@@ -331,7 +331,7 @@ def tripletloss_feature_final(test_data,test_target,num_classes):
 
 
 	# test_pairs, test_label = create_pairs(test_data, test_target,num_classes)
-	test_pairs, test_label = create_test_pair(test_data, test_target,num_classes)
+	test_pairs, test_label = create_test_pair(test_data, test_target,num_classes,anchornum)
 	test_soft_1, test_embed_1 = model.predict([test_pairs[:,0]])
 	test_soft_2, test_embed_2 = model.predict([test_pairs[:,1]])
 

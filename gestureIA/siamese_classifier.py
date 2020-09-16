@@ -65,7 +65,7 @@ def siamese_oridata_classifier(dataset,target,targetnum):
 			frr=(fn)/(fn+tp)
 			# print("i=",i)
 			# print("accuracy:",accuracy,"far:",far,"frr:",frr)
-			if (frr-far)<0.02:
+			if frr<far:
 				break
 			i=i+0.005
 		print("i=",i)
@@ -172,16 +172,18 @@ def siamese_cwt_classifier(dataset,target,targetnum):
 		score=[i[0] for i in score]
 		print('原结果：',test_label)
 		print('预测分数：',score)
-		i=0.1
+		i=0.001
 		while i<5:
 			tp,tn,fp,fn=siamese_accuracy_score(test_label,score,i)
-			print(tp,tn,fp,fn)
 			accuracy=(tp+tn)/(tp+tn+fp+fn)
 			far=(fp)/(fp+tn)
 			frr=(fn)/(fn+tp)
+			# print(tp,tn,fp,fn)
 			# print("i=",i)
 			# print("accuracy:",accuracy,"far:",far,"frr:",frr)
-			i=i+0.05
+			if frr<far:
+				break
+			i=i+0.005
 		print("i=",i)
 		print("accuracy:",accuracy,"far:",far,"frr:",frr)
 		meanacc.append(accuracy)
@@ -334,6 +336,9 @@ def siamese_feature_final_class(test_data,test_target,targetnum,featurenum,ancho
 		i=i+0.005
 	print("i=",i)
 	print("accuracy:",accuracy,"far:",far,"frr:",frr)
+	return accuracy,far,frr
+
+
 
 def siamese_feature_divide_class(feature,target,targetnum):
 
@@ -409,14 +414,20 @@ def siamese_feature_divide_class(feature,target,targetnum):
 
 		featurenum=30
 
-
+		anchornum=5
 	
 		#以上利用所有训练集数据建立模型
 
 
 		siamese_feature_build_class(train_data,train_target,trainindex,featurenum)
-		siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
+		accuracy,far,frr=siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
 
-
+		meanacc.append(accuracy)
+		meanfar.append(far)
+		meanfrr.append(frr)
+	print("meanacc:",np.mean(meanacc),"meanfar:",np.mean(meanfar),"meanfrr:",np.mean(meanfrr))
+	for i in range(len(meanacc)):
+		print("被选择的测试集序号：",selectk[i])
+		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
 
 		

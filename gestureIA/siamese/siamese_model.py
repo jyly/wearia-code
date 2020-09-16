@@ -290,7 +290,7 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
 
     # input_shape = (1,len(train_data[0]))
     input_shape = (len(train_data[0]))
-    print(input_shape)
+
     #配对数，对子内部数据段个数，数据段的长，数据段的宽，数据段的高
     # train_pairs = train_pairs.reshape(train_pairs.shape[0], 2, 8, 300, 1)  
     # test_pairs = test_pairs.reshape(test_pairs.shape[0], 2, 8, 300, 1) 

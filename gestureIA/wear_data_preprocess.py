@@ -195,6 +195,7 @@ def single_feature(filepath):
 def all_feature(datadir):
 	oridataspace=os.listdir(datadir)
 	objnum=0
+	featurenumset=[]
 	for filedirs in oridataspace:	
 		featureset=[]
 		filedir=datadir+str(filedirs)+'/'
@@ -206,7 +207,9 @@ def all_feature(datadir):
 			if tag==1:
 				featureset.append(tempfeature)
 		print("第",(objnum+1),"个手势的样本数：",len(featureset))
+		featurenumset.append(len(featureset))
 		objnum=objnum+1
 		filecontrol.featurewrite(featureset,filedirs)
 
+	print("每个类别的样本数：",featurenumset)
 

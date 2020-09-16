@@ -186,7 +186,7 @@ def create_pairs(x, y,num_classes):
 
     return np.array(pairs), np.array(labels)
 
-def create_test_pair(test_data, test_target,num_classes):
+def create_test_pair(test_data, test_target,num_classes,anchornum):
     tempdata=[]
     for i in range(1,num_classes+1):
         tempdata.append([])
@@ -203,7 +203,7 @@ def create_test_pair(test_data, test_target,num_classes):
             test_data_anchor.append([])
             test_data.append([])
             rangek=list(range(len(tempdata[i])))
-            selectk = random.sample(rangek, 5)
+            selectk = random.sample(rangek, anchornum)
             for j in range(len(tempdata[i])):
                 if j in selectk:
                     test_data_anchor[i].append(tempdata[i][j])
@@ -213,7 +213,7 @@ def create_test_pair(test_data, test_target,num_classes):
         for i in range(num_classes):
             for j in range(len(test_data[i])):
                 # 添加合法样本对
-                for k in range(5):
+                for k in range(anchornum):
                     pairs+=[[test_data_anchor[i][k],test_data[i][j]]]
                 labels += [1]
                 #添加impost样本对
@@ -221,12 +221,13 @@ def create_test_pair(test_data, test_target,num_classes):
                     inc_1 = random.randrange(1, num_classes)
                     dn = (i + inc_1) % num_classes
                     inc_2 =np.random.randint(0, len(tempdata[dn]))
-                    for k in range(5):
+                    for k in range(anchornum):
                         pairs += [[test_data_anchor[i][k],tempdata[dn][inc_2]]]
                     labels += [0]
-    # print("len(pairs):",len(pairs))
-    # print("len(labels):",len(labels))            
+    # print("len(test_pairs):",len(pairs))
+    # print("len(test_labels):",len(labels))            
     return np.array(pairs), np.array(labels)
+
 
 def create_tripletloss_network(input_shape,num_classes):
     # base_network = mlp(input_shape,num_classes)
