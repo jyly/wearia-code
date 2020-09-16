@@ -19,7 +19,7 @@ def fine_grained_segment(dn,fre,threshold=1):
 	while i >lens:
 		i=i-1
 		# print(i)
-		#从后往前判断，当大于阈值时，认为可能存在手势
+		#从后往前判断，当大于阈值时，认为可能存在手势，阈值根据经验判断，不同的滤波器的波动变化不同
 		if oristd[i]>threshold:	
 			flag=0
 			#从后往前的一定区间内的值都大于阈值时，认为存在手势

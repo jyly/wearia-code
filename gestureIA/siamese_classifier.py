@@ -234,7 +234,7 @@ def siamese_feature_classifier(dataset,target,targetnum):
 			accuracy=(tp+tn)/(tp+tn+fp+fn)
 			far=(fp)/(fp+tn)
 			frr=(fn)/(fn+tp)
-			if (frr-far)<0.02:
+			if frr<far:
 				break
 
 			i=i+0.001
@@ -263,7 +263,7 @@ def siamese_ori_final_class(dataset,target,targetnum):
 		accuracy=(tp+tn)/(tp+tn+fp+fn)
 		far=(fp)/(fp+tn)
 		frr=(fn)/(fn+tp)
-		if abs(far-frr)<0.02:
+		if frr<far:
 			break
 		i=i+0.001
 	print("i=",i)
@@ -271,44 +271,65 @@ def siamese_ori_final_class(dataset,target,targetnum):
 
 
 
-def siamese_feature_final_class(dataset,target,targetnum):
+def siamese_feature_build_class(train_data,train_target,trainindex,featurenum):
+
+	temp=[]
+	train_data,temp,sort=IAtool.minepro(train_data,temp,train_target,featurenum)
+
+	# train_data,temp,lda_bar,lda_scaling=IAtool.ldapro(train_data,temp,train_target)
+	# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
+	
+	# train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
+	# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
+
+	train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
+	IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
+
+	train_data=np.array(train_data)
+	train_target=np.array(train_target)
+	print("train_data.shape:",train_data.shape)
+	siamese_feature_buildmodel(train_data,train_target,trainindex)
 
 
-	dataset=np.array(dataset)
-	target=np.array(target)
+
+
+def siamese_feature_final_class(test_data,test_target,targetnum,featurenum,anchornum):
+
+	test_data=np.array(test_data)
+	test_target=np.array(test_target)
 
 	# sort,lda_bar,lda_scaling=IAtool.filterparameterread('./ldapropara.txt')
 	# lda_bar=np.array(lda_bar)
 	# lda_scaling=np.array(lda_scaling)
 
-	sort,pca_mean,pca_components=IAtool.filterparameterread('./pcapropara.txt')
-	pca_mean=np.array(pca_mean)
-	pca_components=np.array(pca_components)
+	# sort,pca_mean,pca_components=IAtool.filterparameterread('./pcapropara.txt')
+	# pca_mean=np.array(pca_mean)
+	# pca_components=np.array(pca_components)
 
 	sort,scale_mean,scale_scale=IAtool.filterparameterread('./stdpropara.txt')
 	scale_mean=np.array(scale_mean)
 	scale_scale=np.array(scale_scale)
 
-	dataset=IAtool.scoreselect(dataset,sort,30)
-	# dataset=np.dot(dataset-lda_bar,lda_scaling)
-	dataset=np.dot(dataset-pca_mean, pca_components.T)
-	dataset=(dataset-scale_mean)/scale_scale
+	test_data=IAtool.scoreselect(test_data,sort,featurenum)
+	# test_data=np.dot(test_data-lda_bar,lda_scaling)
+	# test_data=np.dot(test_data-pca_mean, pca_components.T)
+	test_data=(test_data-scale_mean)/scale_scale
 
-	score,label= siamese_feature_final(dataset,target,targetnum)
+	score,label= siamese_feature_final(test_data,test_target,targetnum,anchornum)
 
 	score=[i[0] for i in score]
 	label=[i for i in label]
 	print('原结果：',label)
 	print('预测分数：',score)
-	i=0.1
-	while i<5:
+	i=0.001
+	while i<3:
 		tp,tn,fp,fn=siamese_accuracy_score(label,score,i)
 		accuracy=(tp+tn)/(tp+tn+fp+fn)
 		far=(fp)/(fp+tn)
 		frr=(fn)/(fn+tp)
-		print("i=",i)
-		print("accuracy:",accuracy,"far:",far,"frr:",frr)
-		if abs(far-frr)<0.02:
+		# print("i=",i)
+		# print("accuracy:",accuracy,"far:",far,"frr:",frr)
+		if frr<far:
 			break
 		i=i+0.005
 	print("i=",i)
@@ -375,7 +396,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 				for k in range(len(test_data[i][j])):
 					temptestdata.append(test_data[i][j][k])
 					temptesttarget.append(testindex)
-				testindex=testindex+1
+				testindex=testindex+1		
 		testindex=testindex-1
 		print("测试集项目数：",testindex)
 
@@ -387,68 +408,15 @@ def siamese_feature_divide_class(feature,target,targetnum):
 
 
 		featurenum=30
-		temp=[]
-		train_data,temp,sort=IAtool.minepro(train_data,temp,train_target,featurenum)
-
-		# train_data,temp,lda_bar,lda_scaling=IAtool.ldapro(train_data,temp,train_target)
-		# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
-		
-		# train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
-		# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
-
-		train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
-		IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
 
 
-		train_data=np.array(train_data)
-		train_target=np.array(train_target)
-		print("train_data.shape:",train_data.shape)
-		siamese_feature_buildmodel(train_data,train_target,trainindex)
+	
 		#以上利用所有训练集数据建立模型
 
-		test_data=np.array(test_data)
-		test_target=np.array(test_target)
 
-		# sort,lda_bar,lda_scaling=IAtool.filterparameterread('./ldapropara.txt')
-		# lda_bar=np.array(lda_bar)
-		# lda_scaling=np.array(lda_scaling)
-
-		# sort,pca_mean,pca_components=IAtool.filterparameterread('./pcapropara.txt')
-		# pca_mean=np.array(pca_mean)
-		# pca_components=np.array(pca_components)
-
-		sort,scale_mean,scale_scale=IAtool.filterparameterread('./stdpropara.txt')
-		scale_mean=np.array(scale_mean)
-		scale_scale=np.array(scale_scale)
-
-		test_data=IAtool.scoreselect(test_data,sort,featurenum)
-		# test_data=np.dot(test_data-lda_bar,lda_scaling)
-		# test_data=np.dot(test_data-pca_mean, pca_components.T)
-		test_data=(test_data-scale_mean)/scale_scale
+		siamese_feature_build_class(train_data,train_target,trainindex,featurenum)
+		siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
 
 
-		score,label= siamese_feature_final(test_data,test_target,testindex)
-	
-		score=[i[0] for i in score]
-		print('原结果：',label)
-		print('预测分数：',score)
-		i=0.001
-		while i<3:
-			tp,tn,fp,fn=siamese_accuracy_score(label,score,i)
-			accuracy=(tp+tn)/(tp+tn+fp+fn)
-			far=(fp)/(fp+tn)
-			frr=(fn)/(fn+tp)
-			# print("i=",i)
-			# print("accuracy:",accuracy,"far:",far,"frr:",frr)
-			if (frr-far)<0.02:
-				break
-			i=i+0.001
-		print("i=",i)
-		print("accuracy:",accuracy,"far:",far,"frr:",frr)
-		meanacc.append(accuracy)
-		meanfar.append(far)
-		meanfrr.append(frr)
-	print("meanacc:",np.mean(meanacc),"meanfar:",np.mean(meanfar),"meanfrr:",np.mean(meanfrr))
-	for i in range(len(meanacc)):
-		print("被选择的测试集序号：",selectk[i])
-		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
+
+		

@@ -2,6 +2,7 @@
 import os
 import numpy as np
 
+#从文件中将所有数据按传感器进行分类
 def orisegmentread(path):
 	ppgx=[]
 	ppgy=[]

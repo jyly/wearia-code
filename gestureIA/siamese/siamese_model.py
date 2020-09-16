@@ -283,7 +283,6 @@ def siamese_ori_final(data,target,num_classes):
 
 
 def siamese_feature_buildmodel(train_data, train_target,num_classes):
-
     # train_pairs, train_label = create_pairs_incre_1(train_data, digit_indices,num_classes)
     train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
 
@@ -291,7 +290,7 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
 
     # input_shape = (1,len(train_data[0]))
     input_shape = (len(train_data[0]))
-
+    print(input_shape)
     #配对数，对子内部数据段个数，数据段的长，数据段的宽，数据段的高
     # train_pairs = train_pairs.reshape(train_pairs.shape[0], 2, 8, 300, 1)  
     # test_pairs = test_pairs.reshape(test_pairs.shape[0], 2, 8, 300, 1) 
@@ -336,9 +335,8 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
 
 
 
-def siamese_feature_final(data,target,num_classes):
+def siamese_feature_final(data,target,num_classes,anchornum=5):
     # test_pairs, test_label = create_pairs_incre_1(data, target,num_classes)
-    anchornum=5
     test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
     input_shape = (len(data[0]))
     print(input_shape)

@@ -22,15 +22,19 @@ def single_data(filepath):
 	# origyry=meanfilt(gyry,20)
 	# origyrz=meanfilt(gyrz,20)
 
+	#滤波滤除低频的信号
 	butterppgx=highpass(2,200,orippgx)
 	butterppgy=highpass(2,200,orippgy)
 
+	#将手势数据和心跳数据分割开
 	icappgx,icappgy=IAtool.ppgfica(butterppgx,butterppgy)
 
+	#判断是否存在手势和提取出手势段
 	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#python 的ica是0.03,android的是1
-
+	#是否有手势，手势开始点，手势结束点，手势长度
 	print(tag,pointstartindex,pointendindex,pointendindex-pointstartindex)
 	if tag==1:
+		# 将100hz的行为传感器数据拓展为200hz
 		accx=IAtool.sequence_incre(accx)
 		accy=IAtool.sequence_incre(accy)
 		accz=IAtool.sequence_incre(accz)
@@ -47,6 +51,7 @@ def single_data(filepath):
 		# gyry=meanfilt(gyry,20)
 		# gyrz=meanfilt(gyrz,20)
 
+		#数据标准化
 		accx=standardscale(accx)
 		accy=standardscale(accy)
 		accz=standardscale(accz)
@@ -85,7 +90,7 @@ def single_data(filepath):
 	return tag,ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz
 
 
-
+#提取手势的具体数据段
 def all_data(datadir):
 	oridataspace=os.listdir(datadir)
 	objnum=0
@@ -186,7 +191,7 @@ def single_feature(filepath):
 		# 	tempfeature.append(i)
 	return tag,tempfeature
 
-# 提取多个文件的特征
+# #提取手势具体数据段的特征
 def all_feature(datadir):
 	oridataspace=os.listdir(datadir)
 	objnum=0

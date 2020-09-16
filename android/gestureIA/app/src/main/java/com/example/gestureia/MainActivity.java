@@ -90,14 +90,14 @@ public class MainActivity extends WearableActivity {
         button_listen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startService(new Intent(getBaseContext(), sensorlisten.class));
+//                startService(new Intent(getBaseContext(), sensorlisten.class));
             }
         });
         //注册样本
         button_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopService(new Intent(getBaseContext(), sensorlisten.class));
+//                stopService(new Intent(getBaseContext(), sensorlisten.class));
 
                 final String gesture_item = gesture_spinner.getSelectedItem().toString();
                 int lens = gesture_item.length();
@@ -301,7 +301,7 @@ public class MainActivity extends WearableActivity {
                     sb.append(LINE_END);
                     JSONObject data = new JSONObject();
 
-                    data.put("username", "zl");
+                    data.put("username", "clx");
                     data.put("sensor", tag);
                     data.put("gesture_item", item);
 
