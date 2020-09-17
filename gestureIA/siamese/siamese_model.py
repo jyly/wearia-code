@@ -48,7 +48,7 @@ def siamese_oridata(train_data,test_data, train_target, test_target,num_classes)
     input_shape = (len(train_data[0]),len(train_data[0][0]))
     # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
 
-	#配对数，对子内部数据段个数，数据段的长，数据段的宽，数据段的高
+    #配对数，对子内部数据段个数，数据段的长，数据段的宽，数据段的高
     # train_pairs = train_pairs.reshape(train_pairs.shape[0], 2, len(train_data[0]), len(train_data[0][0]), 1)  
     # test_pairs = test_pairs.reshape(test_pairs.shape[0], 2, len(train_data[0]), len(train_data[0][0]), 1) 
   
@@ -173,16 +173,16 @@ def siamese_cwt(train_data,test_data, train_target, test_target,num_classes):
 
 
 
-def siamese_feature(train_data,test_data, train_target, test_target,num_classes):
+def siamese_feature(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
 
-    train_pairs, train_label = create_pairs_incre_1(train_data, train_target,num_classes)
+    train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)
     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
 
 
     # test_pairs, test_label = create_pairs(test_data, test_target,num_classes)
-    test_pairs, test_label = create_pairs_incre_1(test_data, test_target,num_classes)
+    # test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
     # test_pairs, test_label = create_pairs_incre_2(test_data, test_target,num_classes)
-    # test_pairs, test_label = create_test_pair(test_data, test_target,num_classes)
+    test_pairs, test_label = create_test_pair(test_data, test_target,testindex,anchornum)
 
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
@@ -209,8 +209,7 @@ def siamese_feature(train_data,test_data, train_target, test_target,num_classes)
 
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=8192, epochs=200, 
-           validation_split=0.2)  
+           batch_size=8192, epochs=50)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
     #       batch_size=128,
@@ -242,17 +241,16 @@ def siamese_feature(train_data,test_data, train_target, test_target,num_classes)
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
 
     #对样本对进行额外处理
-    # anchornum=10
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     # temp_label.append(test_label[i*anchornum])
-    #     for j in range(anchornum):
-    #         temppred+=test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # test_pred=temp_pred
-    # print("len(test_pred):",len(test_pred))
-    # print("len(test_label):",len(test_label))
+    temp_pred=[]
+    for i in range(int(len(test_label))):
+        temppred=0
+        # temp_label.append(test_label[i*anchornum])
+        for j in range(anchornum):
+            temppred+=test_pred[i*anchornum+j]
+        temp_pred.append(temppred/anchornum)
+    test_pred=temp_pred
+    print("len(test_pred):",len(test_pred))
+    print("len(test_label):",len(test_label))
     
     train_label=np.array(train_label)
     train_pred=np.array(train_pred)

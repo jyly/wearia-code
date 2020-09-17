@@ -2,12 +2,15 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 from siamese.siamese_model import *
+from siamese.siamese_base import *
+
 from classifier_tool import *
 from normal_tool import *
 import IAtool
 import random
 import filecontrol 
 from itertools import combinations
+from multiprocessing import Process, Queue
 
 #对原始序列输入到孪生网络中
 def siamese_oridata_classifier(dataset,target,targetnum):
@@ -224,7 +227,7 @@ def siamese_feature_classifier(dataset,target,targetnum):
 		# train_data=train_data.astype('float32')
 		# test_data=test_data.astype('float32')
 
-		score,test_label= siamese_feature(train_data,test_data, train_target, test_target,targetnum)
+		score,test_label= siamese_feature(train_data,test_data, train_target, test_target,targetnum,targetnum)
 		print('原结果：',test_label)
 		score=[i[0] for i in score]
 		print('预测分数：',score)
@@ -338,8 +341,6 @@ def siamese_feature_final_class(test_data,test_target,targetnum,featurenum,ancho
 	print("accuracy:",accuracy,"far:",far,"frr:",frr)
 	return accuracy,far,frr
 
-
-
 def siamese_feature_divide_class(feature,target,targetnum):
 
 	#将特征分为不同的人和手势类
@@ -359,15 +360,16 @@ def siamese_feature_divide_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#循环次数
-	iternum=20
+	iternum=30
 	#组合内序号个数
-	comnum=6
+	comnum=8
 
 	rangek=list(range(0,maxusernum))
 	#得出用户数在2之间的组合
 	com=list(combinations(rangek,comnum))
-	#在组合间，随机选其中的10个
+	#在组合间，随机选其中的iternum个
 	selectk = random.sample(com, iternum)
+
 	for t in range(iternum):
 		print("周期：",t)
 		train_data=[]
@@ -412,15 +414,54 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		#将所需的不同手势类别划分为训练集和测试集
 
 
-		featurenum=30
+		featurenum=40
 
 		anchornum=5
-	
-		#以上利用所有训练集数据建立模型
 
 
-		siamese_feature_build_class(train_data,train_target,trainindex,featurenum)
-		accuracy,far,frr=siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
+
+		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
+		# train_data,temp,lda_bar,lda_scaling=IAtool.ldapro(train_data,temp,train_target)
+		# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
+		
+		# train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
+		# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
+		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		train_data=np.array(train_data)
+		train_target=np.array(train_target)
+		test_data=np.array(test_data)
+		test_target=np.array(test_target)
+
+		print("train_data.shape:",train_data.shape)
+		print("test_data.shape:",test_data.shape)
+
+
+		score,label= siamese_feature(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		score=[i[0] for i in score]
+		label=[i for i in label]
+		print('原结果：',label)
+		print('预测分数：',score)
+		i=0.01
+		while i<3:
+			tp,tn,fp,fn=siamese_accuracy_score(label,score,i)
+			accuracy=(tp+tn)/(tp+tn+fp+fn)
+			far=(fp)/(fp+tn)
+			frr=(fn)/(fn+tp)
+			# print("i=",i)
+			# print("accuracy:",accuracy,"far:",far,"frr:",frr)
+			if frr<far:
+				break
+			i=i+0.01
+		print("i=",i)
+		print("accuracy:",accuracy,"far:",far,"frr:",frr)
+
+
+
+		# siamese_feature_build_class(train_data,train_target,trainindex,featurenum)
+		# accuracy,far,frr=siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
+
+
+
 
 		meanacc.append(accuracy)
 		meanfar.append(far)
@@ -430,4 +471,188 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		print("被选择的测试集序号：",selectk[i])
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
 
+
+
+
+
+
+
+
+def eercal(label_score,finalacc,iternum):
+	print('计算EER进程: %s' % os.getpid())
+	while finalacc.qsize()!=(iternum+1):
+
+		# if finalacc.qsize()==iternum:
+			# break
+		if label_score.qsize()>0:
+			score,label=label_score.get()
+			score=[i[0] for i in score]
+			label=[i for i in label]
+			print('原结果：',label)
+			print('预测分数：',score)
+			i=0.01
+			while i<3:
+				tp,tn,fp,fn=siamese_accuracy_score(label,score,i)
+				accuracy=(tp+tn)/(tp+tn+fp+fn)
+				far=(fp)/(fp+tn)
+				frr=(fn)/(fn+tp)
+				# print("i=",i)
+				# print("accuracy:",accuracy,"far:",far,"frr:",frr)
+				if frr<far:
+					break
+				i=i+0.01
+			print("i=",i)
+			print("accuracy:",accuracy,"far:",far,"frr:",frr)
+			finalacc.put([accuracy,far,frr])
+			print("finalacc.qsize():",finalacc.qsize())
+	print('eercal is over: %s' % os.getpid())
+
+
+def modeltrain(dataset,label_score,anchornum,finalacc,iternum):
+	print('训练模型并得出测试集结果: %s' % os.getpid())
+	while finalacc.qsize()!=iternum:
+		# if finalacc.qsize()==iternum:
+			# break
+		if dataset.qsize()>0 and label_score.qsize()<1:
+			train_data,test_data,train_target,test_target,trainindex,testindex=dataset.get()
+			score,label= siamese_feature(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+			label_score.put([score,label])
+	print('modeltrain is over: %s' % os.getpid())
+
+
+
+def datapre(dataset,tempfeature,selectk):
+	print('构建测试对和训练对: %s' % os.getpid())
+	iternum=len(selectk)
+	t=0
+	while t!=iternum:
+		# if t==iternum:
+			# break
+		# if dataset.qsize()<1:
+		print("周期：",t)
+		train_data=[]
+		test_data=[]
+		print("被选择的测试集序号：",selectk[t])
+		for i in range(len(tempfeature)):
+			if i in selectk[t]:
+				test_data.append(tempfeature[i])
+			# if i in selectks:
+			else:
+				train_data.append(tempfeature[i])	
+		t=t+1
+		print("t:",t)
+
+		temptraindata=[]
+		temptraintarget=[]
+		trainindex=1
+		for i in range(len(train_data)):
+			for j in range(8,9):
+				for k in range(len(train_data[i][j])):
+					temptraindata.append(train_data[i][j][k])
+					temptraintarget.append(trainindex)
+				trainindex=trainindex+1
+		trainindex=trainindex-1
+		print("训练集项目数：" ,trainindex)
+
+		temptestdata=[]
+		temptesttarget=[]
+		testindex=1
+		for i in range(len(test_data)):
+			for j in range(8,9):
+				for k in range(len(test_data[i][j])):
+					temptestdata.append(test_data[i][j][k])
+					temptesttarget.append(testindex)
+				testindex=testindex+1		
+		testindex=testindex-1
+		print("测试集项目数：",testindex)
+		train_data=temptraindata
+		train_target=temptraintarget
+		test_data=temptestdata
+		test_target=temptesttarget
 		
+		featurenum=30
+		
+
+		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
+		# train_data,temp,lda_bar,lda_scaling=IAtool.ldapro(train_data,temp,train_target)
+		# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
+		
+		# train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
+		# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
+		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		train_data=np.array(train_data)
+		train_target=np.array(train_target)
+		test_data=np.array(test_data)
+		test_target=np.array(test_target)
+
+		print("train_data.shape:",train_data.shape)
+		print("train_data.shape:",test_data.shape)
+
+
+		
+		dataset.put([train_data,test_data,train_target,test_target,trainindex,testindex])
+	print('datapre is over: %s' % os.getpid())
+
+
+
+def siamese_feature_inidivide_class(feature,target,targetnum):
+	#将特征分为不同的人和手势类
+	tempfeature=[]
+	maxusernum=int(targetnum/9)
+	print("数据集中的用户数：",maxusernum)
+	for i in range(maxusernum):
+		tempfeature.append([])
+		for j in range(9):
+			tempfeature[i].append([])
+	for i in range(len(target)):
+		t1=int((target[i]-1)/9)
+		t2=(target[i]-1)%9
+		tempfeature[t1][t2].append(feature[i])
+	meanacc=[]
+	meanfar=[]
+	meanfrr=[]
+
+	#循环次数
+	iternum=5
+	#组合内序号个数
+	comnum=8
+
+	rangek=list(range(0,maxusernum))
+	#得出用户数在2之间的组合
+	com=list(combinations(rangek,comnum))
+	#在组合间，随机选其中的iternum个
+	selectk = random.sample(com, iternum)
+	anchornum=5
+
+	print("进入多进程模式")
+	#测试对和训练对的序列
+	dataset = Queue()
+	#测试集的标签和分数
+	label_score = Queue()
+	#最终训练分数
+	finalacc= Queue()
+	#数据预处理进程
+	dataprepro = Process(target=datapre, args=(dataset,tempfeature,selectk))
+	#模型训练及得出测试集结果进程
+	modeltrainpro = Process(target=modeltrain, args=(dataset,label_score,anchornum,finalacc,iternum))
+	#计算EER进程
+	eercalpro1 = Process(target=eercal, args=(label_score,finalacc,iternum))
+
+	dataprepro.start()
+	modeltrainpro.start()
+	eercalpro1.start()
+	# eercalpro2.start()
+
+	dataprepro.join()
+	modeltrainpro.join()
+	eercalpro1.join()
+	# eercalpro2.join()
+
+	for i in range(finalacc.qsize()):
+		accuracy,far,frr=finalacc.get()
+		meanacc.append(accuracy)
+		meanfar.append(far)
+		meanfrr.append(frr)
+		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
+	print("meanacc:",np.mean(meanacc),"meanfar:",np.mean(meanfar),"meanfrr:",np.mean(meanfrr))
+

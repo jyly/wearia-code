@@ -127,22 +127,3 @@ def tripletloss_accuracy_score(target,scores,threshold):#目标，结果，第i�
 				tn=tn+1
 	return tp,tn,fp,fn
 
-def siamese_accuracy_score(target,scores,threshold):#目标，结果，第i个对象是正确对象
-	tp=0
-	tn=0
-	fp=0
-	fn=0
-
-	for j in range(len(scores)):
-
-		if scores[j]<threshold:
-			if target[j]==1:
-				tp=tp+1
-			else:
-				fp=fp+1
-		else:
-			if target[j]==1:
-				fn=fn+1
-			else:
-				tn=tn+1
-	return tp,tn,fp,fn

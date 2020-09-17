@@ -69,6 +69,8 @@ def featureread(dirpath='./selected_feature/'):
 		index=index+1
 	#获取特征对应的用户数	
 	targetnum=index-1
+	feature=np.array(feature)
+	target=np.array(target)
 	return feature,target,targetnum
 
 
