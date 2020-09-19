@@ -183,18 +183,14 @@ def mlp_network(input_shape):
     input = Input(shape=input_shape)
     x = Flatten()(input)
     #全连接层
-    x = Dense(128, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
     #遗忘层
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
+    # x = Dropout(0.1)(x)
+    # x = Dense(128, activation='relu')(x)
+    # x = Dropout(0.1)(x)
+    # x = Dense(128, activation='relu')(x)
     x = Dropout(0.2)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.2)(x)
-    x = Dense(128, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
 
 
     return Model(input, x)
@@ -206,7 +202,7 @@ def mlp_network_incre(input_shape):
     input = Input(shape=input_shape)
     x = Flatten()(input)
     #全连接层
-    x = Dense(16, activation='relu')(x)
+    x = Dense(32, activation='relu')(x)
     #遗忘层
     x = Dropout(0.1)(x)
     x = Dense(32, activation='relu')(x)
@@ -293,8 +289,8 @@ def vgg_16_base(input_shape):
 def create_siamese_network(input_shape):
     
     # base_network = conv_network(input_shape)
-    # base_network = mlp_network(input_shape)
-    base_network = mlp_network_incre(input_shape)
+    base_network = mlp_network(input_shape)
+    # base_network = mlp_network_incre(input_shape)
     # base_network = cwt_network(input_shape)
     # base_network = vgg_16_base(input_shape)
     # base_network = resnet_keras.ResNet50(input_shape)

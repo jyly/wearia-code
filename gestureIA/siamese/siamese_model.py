@@ -77,7 +77,7 @@ def siamese_oridata(train_data,test_data, train_target, test_target,num_classes)
     #   epochs=50,steps_per_epoch=(int(len(train_pairs)/batch_size)+1)
     #   )
 
-    model.save_weights('my_model_weights.h5')
+    model.save_weights('model_weights.h5')
 
     train_pred = model.predict([train_pairs[:, 0], train_pairs[:, 1]])
     #计算训练集中的判定分数的均值
@@ -144,7 +144,7 @@ def siamese_cwt(train_data,test_data, train_target, test_target,num_classes):
     #       validation_data=([val_pairs[:, 0], val_pairs[:, 1]], val_label))
     
 
-    model.save_weights('my_model_weights.h5')
+    model.save_weights('model_weights.h5')
 
     train_pred = model.predict([train_pairs[:, 0], train_pairs[:, 1]])
 
@@ -176,12 +176,12 @@ def siamese_cwt(train_data,test_data, train_target, test_target,num_classes):
 def siamese_feature(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
 
     train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)
-    # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
+    # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,trainindex)
 
 
-    # test_pairs, test_label = create_pairs(test_data, test_target,num_classes)
+    # test_pairs, test_label = create_pairs(test_data, test_target,testindex)
     # test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
-    # test_pairs, test_label = create_pairs_incre_2(test_data, test_target,num_classes)
+    # test_pairs, test_label = create_pairs_incre_2(test_data, test_target,testindex)
     test_pairs, test_label = create_test_pair(test_data, test_target,testindex,anchornum)
 
     print("训练集对数：",train_pairs.shape)
@@ -209,7 +209,7 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
 
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=8192, epochs=50)  
+           batch_size=8192, epochs=40)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
     #       batch_size=128,
@@ -222,7 +222,7 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
     #   )
 
 
-    model.save_weights('my_model_weights.h5')
+    model.save_weights('model_weights.h5')
 
     train_pred = model.predict([train_pairs[:, 0], train_pairs[:, 1]])
     #计算训练集中的判定分数的均值
@@ -272,7 +272,7 @@ def siamese_ori_final(data,target,num_classes):
     input_shape = (len(data[0]),len(data[0][0]))
    
     model=create_siamese_network(input_shape)
-    model.load_weights('my_model_weights.h5')
+    model.load_weights('model_weights.h5')
     
     pred = model.predict([pairs[:, 0], pairs[:, 1]])
     return pred,label
@@ -298,7 +298,7 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
     
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=8192,epochs=50)  
+           batch_size=8192,epochs=200)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
     #       batch_size=128,

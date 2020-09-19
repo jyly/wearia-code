@@ -360,20 +360,31 @@ def siamese_feature_divide_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#循环次数
-	iternum=30
+	iternum=20
 	#组合内序号个数
 	comnum=8
+
+	# traincomnum=28
 
 	rangek=list(range(0,maxusernum))
 	#得出用户数在2之间的组合
 	com=list(combinations(rangek,comnum))
 	#在组合间，随机选其中的iternum个
 	selectk = random.sample(com, iternum)
+	
 
 	for t in range(iternum):
 		print("周期：",t)
 		train_data=[]
 		test_data=[]
+
+		# selectks=[]
+		# for i in rangek:
+		# 	if i not in selectk[t]:
+		# 		selectks.append(i)
+		# selectks = random.sample(selectks, traincomnum)
+	
+		# print("被选择的训练集序号：",selectks)
 
 		print("被选择的测试集序号：",selectk[t])
 		for i in range(maxusernum):
@@ -387,7 +398,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		temptraintarget=[]
 		trainindex=1
 		for i in range(len(train_data)):
-			for j in range(8,9):
+			for j in range(0,1):
 				for k in range(len(train_data[i][j])):
 					temptraindata.append(train_data[i][j][k])
 					temptraintarget.append(trainindex)
@@ -399,7 +410,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		temptesttarget=[]
 		testindex=1
 		for i in range(len(test_data)):
-			for j in range(8,9):
+			for j in range(0,1):
 				for k in range(len(test_data[i][j])):
 					temptestdata.append(test_data[i][j][k])
 					temptesttarget.append(testindex)
@@ -413,20 +424,28 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		test_target=temptesttarget
 		#将所需的不同手势类别划分为训练集和测试集
 
+		train_data=np.array(train_data)
+		train_target=np.array(train_target)
+		test_data=np.array(test_data)
+		test_target=np.array(test_target)
+		print("train_data.shape:",train_data.shape)
+		print("test_data.shape:",test_data.shape)
 
-		featurenum=40
+		featurenum=30
 
-		anchornum=5
+		anchornum=1
 
 
 
 		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
-		# train_data,temp,lda_bar,lda_scaling=IAtool.ldapro(train_data,temp,train_target)
+		# train_data,test_data,lda_bar,lda_scaling=IAtool.ldapro(train_data,test_data,train_target)
 		# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
 		
 		# train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
 		# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
 		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
+
 		train_data=np.array(train_data)
 		train_target=np.array(train_target)
 		test_data=np.array(test_data)
@@ -442,7 +461,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		print('原结果：',label)
 		print('预测分数：',score)
 		i=0.01
-		while i<3:
+		while i<5:
 			tp,tn,fp,fn=siamese_accuracy_score(label,score,i)
 			accuracy=(tp+tn)/(tp+tn+fp+fn)
 			far=(fp)/(fp+tn)

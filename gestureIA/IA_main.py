@@ -45,8 +45,9 @@ if __name__ == "__main__":
 	# siamese分类（基于特征）
 	# siamese_classifier.siamese_feature_classifier(feature,target,targetnum)
 	# siamese_classifier.siamese_feature_final_class(feature,target,targetnum)
-	# siamese_classifier.siamese_feature_divide_class(feature[:,0:45],target,targetnum)
 	siamese_classifier.siamese_feature_divide_class(feature,target,targetnum)
+	# siamese_classifier.siamese_feature_divide_class(feature[:,0:45],target,targetnum)
+	# siamese_classifier.siamese_feature_divide_class(feature[:,45:202],target,targetnum)
 	# siamese_classifier.siamese_feature_inidivide_class(feature,target,targetnum)
 
 	# tripletloss
