@@ -159,12 +159,12 @@ def single_feature(filepath):
 	tempfeature=[]
 	if tag==1:
 		
-		# temp=featurecontrol.ppg_feature(orippgx[pointstartindex:pointendindex])
-		# for i in temp:
-		# 	tempfeature.append(i)
-		# temp=featurecontrol.ppg_feature(orippgy[pointstartindex:pointendindex])
-		# for i in temp:
-		# 	tempfeature.append(i)
+		temp=featurecontrol.ppg_feature(orippgx[pointstartindex:pointendindex])
+		for i in temp:
+			tempfeature.append(i)
+		temp=featurecontrol.ppg_feature(orippgy[pointstartindex:pointendindex])
+		for i in temp:
+			tempfeature.append(i)
 
 		temp=featurecontrol.motion_feature(accx[int((pointstartindex)/2):int((pointendindex)/2)])
 		for i in temp:

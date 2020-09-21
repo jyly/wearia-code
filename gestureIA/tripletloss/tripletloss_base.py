@@ -43,14 +43,14 @@ def mlp_network_incre(input_shape,num_classes):
     input = Input(shape=input_shape)
     x = Flatten()(input)
     #全连接层
-    x = Dense(16, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
     #遗忘层
-    x = Dropout(0.1)(x)
-    x = Dense(32, activation='relu')(x)
+    # x = Dropout(0.1)(x)
+    # x = Dense(32, activation='relu')(x)
+    # x = Dropout(0.2)(x)
+    # x = Dense(32, activation='relu')(x)
     x = Dropout(0.2)(x)
-    x = Dense(32, activation='relu')(x)
-    x = Dropout(0.2)(x)
-    pre_logit = Dense(128, activation='relu')(x)
+    pre_logit = Dense(256, activation='relu')(x)
     softmax = Dense(10, activation='softmax')(pre_logit)
     return Model(inputs=[input], outputs=[softmax, pre_logit])
 
