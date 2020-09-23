@@ -191,12 +191,7 @@ def mlp_network(input_shape):
     # x = Dropout(0.1)(x)
     # x = Dense(128, activation='relu')(x)
     x = Dropout(0.2)(x)
-<<<<<<< HEAD
     x = Dense(256, activation='relu', name='output')(x)
-=======
-    x = Dense(256, activation='relu')(x)
->>>>>>> ec8e7f208371e0a041bef2dfaa4f72fb943391ca
-
 
     return Model(input, x)
 

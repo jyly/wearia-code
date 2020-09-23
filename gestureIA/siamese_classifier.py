@@ -730,7 +730,6 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 		for j in motion_test_data[i]:
 			temp.append(j)
 		test_data.append(temp)
-<<<<<<< HEAD
 	
 	print(test_data[0])
 	test_data=(test_data-scale_mean)/scale_scale
@@ -741,7 +740,6 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 	score,label= siamese_mul_feature_final(test_data,test_target,targetnum,featurenum,anchornum)
 
 	# score=[i[0] for i in score]
-=======
 
 	test_data=(test_data-scale_mean)/scale_scale
 	print("test_data.shape:",test_data.shape)
@@ -750,8 +748,7 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 
 	score,label= siamese_mul_feature_final(test_data,test_target,targetnum,featurenum,anchornum)
 
-	score=[i[0] for i in score]
->>>>>>> ec8e7f208371e0a041bef2dfaa4f72fb943391ca
+	# score=[i[0] for i in score]
 	label=[i for i in label]
 	print('原结果：',label)
 	print('预测分数：',score)
