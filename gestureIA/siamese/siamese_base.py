@@ -10,7 +10,7 @@ import random
 from keras.callbacks import TensorBoard
 # from keras.datasets import manhattan_distance
 from keras.models import Model
-from keras.layers import Input, Flatten, Dense, Dropout, Lambda,Conv2D,MaxPooling2D,MaxPooling1D,Conv1D
+from keras.layers import Input, Flatten, Dense, Dropout, Lambda,Conv2D,MaxPooling2D,MaxPooling1D,Conv1D,Reshape
 from keras import backend as K
 from keras import regularizers,optimizers
 from keras.models import load_model,model_from_json
@@ -180,21 +180,22 @@ def create_test_pair(test_data, test_target,num_classes,anchornum):
 def mlp_network(input_shape):
     '''Base network to be shared (eq. to feature extraction).
     '''
-    input = Input(shape=input_shape)
-    x = Flatten()(input)
+    input = Input(shape=(input_shape), name='input')
+    # x = Flatten()(input)
+    x = input
     #全连接层
-    x = Dense(128, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
     #遗忘层
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
+    # x = Dropout(0.1)(x)
+    # x = Dense(128, activation='relu')(x)
+    # x = Dropout(0.1)(x)
+    # x = Dense(128, activation='relu')(x)
     x = Dropout(0.2)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.2)(x)
-    x = Dense(128, activation='relu')(x)
+<<<<<<< HEAD
+    x = Dense(256, activation='relu', name='output')(x)
+=======
+    x = Dense(256, activation='relu')(x)
+>>>>>>> ec8e7f208371e0a041bef2dfaa4f72fb943391ca
 
 
     return Model(input, x)
@@ -206,7 +207,7 @@ def mlp_network_incre(input_shape):
     input = Input(shape=input_shape)
     x = Flatten()(input)
     #全连接层
-    x = Dense(16, activation='relu')(x)
+    x = Dense(32, activation='relu')(x)
     #遗忘层
     x = Dropout(0.1)(x)
     x = Dense(32, activation='relu')(x)
@@ -293,22 +294,22 @@ def vgg_16_base(input_shape):
 def create_siamese_network(input_shape):
     
     # base_network = conv_network(input_shape)
-    # base_network = mlp_network(input_shape)
-    base_network = mlp_network_incre(input_shape)
+    base_network = mlp_network(input_shape)
+    # base_network = mlp_network_incre(input_shape)
     # base_network = cwt_network(input_shape)
     # base_network = vgg_16_base(input_shape)
     # base_network = resnet_keras.ResNet50(input_shape)
 
-    input_a = Input(shape=input_shape)
-    input_b = Input(shape=input_shape)
+    input_a = Input(shape=input_shape, name='input1')
+    input_b = Input(shape=input_shape, name='input2')
     # because we re-use the same instance `base_network`,
     # the weights of the network
     # will be shared across the two branches
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
     distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-
-    model = Model([input_a, input_b], distance)
+    x=Reshape((1,),name="output")(distance)
+    model = Model([input_a, input_b], x)
     # keras.utils.plot_model(model,"siamModel.png",show_shapes=True)
     model.summary()
 
@@ -317,6 +318,24 @@ def create_siamese_network(input_shape):
     model.compile(loss=contrastive_loss_1, optimizer=rms, metrics=[accuracy])
     return model
 
+
+def create_siamese_network_2(input_shape):
+    
+    base_network = mlp_network(input_shape)
+
+    input_a = Input(shape=input_shape)
+    input_b = Input(shape=input_shape)
+    processed_a = base_network(input_a)
+    processed_b = base_network(input_b)
+    distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+    # x=Reshape((1,),name="output")(distance)
+    # model = Model([input_a, input_b], x)
+    model = Model([input_a, input_b], distance)
+    model.summary()
+
+    rms = optimizers.RMSprop()
+    model.compile(loss=contrastive_loss_1, optimizer=rms, metrics=[accuracy])
+    return model,base_network
 
 
 # def create_presudo_siamese_network(input_shape):

@@ -1,5 +1,7 @@
 package com.example.gestureia;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
@@ -182,4 +184,20 @@ public class normal_tool {
         }
         return templist;
     }
+    public Double[] strarraytodoublearray(String[] str){
+        Double[] lo=new Double[str.length];
+        for(int i=0;i<str.length;i++){
+            lo[i]=Double.parseDouble(str[i]);
+        }
+        return lo;
+    }
+
+    public Integer[] strarraytointarray(String[] str){
+        Integer[] lo=new Integer[str.length];
+        for(int i=0;i<str.length;i++){
+            lo[i]=Integer.parseInt(str[i]);
+        }
+        return lo;
+    }
+
 }

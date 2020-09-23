@@ -17,10 +17,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    aaptOptions {
+        noCompress "tflite"  //表示不让aapt压缩的文件后缀
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'org.tensorflow:tensorflow-lite:1.10.0'
+//    implementation 'org.tensorflow:tensorflow-android:+'
     implementation 'com.google.android.support:wearable:2.5.0'
     implementation 'com.google.android.gms:play-services-wearable:17.0.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'

@@ -249,3 +249,34 @@ def filterparameterread(filename='./filterparameter.txt'):
 	lda_bar=parameter[1]
 	lda_scaling=parameter[2]
 	return sort,lda_bar,lda_scaling
+
+
+def mulfilterparameterwrite(sort1,sort2,lda_bar,lda_scaling,filename='./filterparameter.txt'):
+	
+	outputfile=open(filename,'w+')
+	outputfile.write(str(sort1))
+	outputfile.write('\n')
+	outputfile.write(str(sort2))
+	outputfile.write('\n')
+
+	outputfile.write(str(lda_bar))
+	outputfile.write('\n')
+	
+	outputfile.write(str(lda_scaling))
+
+	outputfile.close()
+
+
+def mulfilterparameterread(filename='./filterparameter.txt'):
+	
+	inputfile=open(filename,'r+')
+	parameter=[]
+	for i in inputfile:
+		i=list(eval(i))
+		parameter.append(i)
+	inputfile.close()	
+	sort1=parameter[0]
+	sort2=parameter[1]
+	lda_bar=parameter[2]
+	lda_scaling=parameter[3]
+	return sort1,sort2,lda_bar,lda_scaling

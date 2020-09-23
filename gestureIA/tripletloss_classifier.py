@@ -106,6 +106,10 @@ def tripletloss_feature_build_class(train_data,train_target,trainindex,featurenu
 	print("train_data.shape:",train_data.shape)
 	tripletloss_feature_buildmodel(train_data,train_target,trainindex)
 
+
+
+
+
 def tripletloss_feature_final_class(test_data,test_target,targetnum,featurenum,anchornum):
 
 	test_data=np.array(test_data)
@@ -129,12 +133,11 @@ def tripletloss_feature_final_class(test_data,test_target,targetnum,featurenum,a
 	test_data=(test_data-scale_mean)/scale_scale
 
 	score,label= tripletloss_feature_final(test_data,test_target,targetnum,anchornum)
-
-	score=[i[0] for i in score]
+	# score=[i[0] for i in score]
 	label=[i for i in label]
 	print('原结果：',label)
 	print('预测分数：',score)
-	i=0.001
+	i=0.01
 	while i<3:
 		tp,tn,fp,fn=tripletloss_accuracy_score(label,score,i)
 		accuracy=(tp+tn)/(tp+tn+fp+fn)
@@ -144,7 +147,7 @@ def tripletloss_feature_final_class(test_data,test_target,targetnum,featurenum,a
 		# print("accuracy:",accuracy,"far:",far,"frr:",frr)
 		if frr<far:
 			break
-		i=i+0.005
+		i=i+0.01
 	print("i=",i)
 	print("accuracy:",accuracy,"far:",far,"frr:",frr)
 	return accuracy,far,frr
@@ -171,9 +174,9 @@ def tripletloss_feature_divide_classifier(feature,target,targetnum):
 	meanfrr=[]
 
 	#循环次数
-	iternum=20
+	iternum=30
 	#组合内序号个数
-	comnum=5
+	comnum=8
 
 	rangek=list(range(0,maxusernum))
 	#得出用户数在2之间的组合
@@ -197,7 +200,7 @@ def tripletloss_feature_divide_classifier(feature,target,targetnum):
 		temptraintarget=[]
 		trainindex=1
 		for i in range(len(train_data)):
-			for j in range(0,9):
+			for j in range(0,1):
 				for k in range(len(train_data[i][j])):
 					temptraindata.append(train_data[i][j][k])
 					temptraintarget.append(trainindex)
@@ -209,7 +212,7 @@ def tripletloss_feature_divide_classifier(feature,target,targetnum):
 		temptesttarget=[]
 		testindex=1
 		for i in range(len(test_data)):
-			for j in range(0,9):
+			for j in range(0,1):
 				for k in range(len(test_data[i][j])):
 					temptestdata.append(test_data[i][j][k])
 					temptesttarget.append(testindex)
@@ -225,7 +228,8 @@ def tripletloss_feature_divide_classifier(feature,target,targetnum):
 
 
 		featurenum=30
-		anchornum=5
+		anchornum=18
+
 		tripletloss_feature_build_class(train_data,train_target,trainindex,featurenum)
 		accuracy,far,frr=tripletloss_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
 

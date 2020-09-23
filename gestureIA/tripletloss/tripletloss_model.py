@@ -315,7 +315,7 @@ def tripletloss_feature_buildmodel(train_data, train_target,num_classes):
 	traintarget=target1
 
 	model.fit(x=[anchor, positive, negative], y=[traintarget, traintarget],
-          batch_size=8192, epochs=50)
+          batch_size=8192, epochs=40)
 
 	model.save("triplet_loss_model.h5")
 
@@ -345,14 +345,14 @@ def tripletloss_feature_final(test_data,test_target,num_classes,anchornum=5):
 	temp_pred=[]
 	for i in range(int(len(test_label))):
 		temppred=0
-	    # temp_label.append(test_label[i*5])
-		for j in range(5):
-			temppred+=test_pred[i*5+j]
-		temp_pred.append(temppred/5)
+	    # temp_label.append(test_label[i*anchornum])
+		for j in range(anchornum):
+			temppred+=test_pred[i*anchornum+j]
+		temp_pred.append(temppred/anchornum)
 	test_pred=temp_pred
 	print("len(test_pred):",len(test_pred))
 	print("len(test_label):",len(test_label))
-
+	test_pred=[K.eval(i) for i in test_pred]
 
 	return test_pred,test_label
 

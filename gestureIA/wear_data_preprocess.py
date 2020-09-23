@@ -166,29 +166,29 @@ def single_feature(filepath):
 		for i in temp:
 			tempfeature.append(i)
 
-		# temp=featurecontrol.motion_feature(accx[int((pointstartindex)/2):int((pointendindex)/2)])
-		# for i in temp:
-		# 	tempfeature.append(i)
+		temp=featurecontrol.motion_feature(accx[int((pointstartindex)/2):int((pointendindex)/2)])
+		for i in temp:
+			tempfeature.append(i)
 
-		# temp=featurecontrol.motion_feature(accy[int((pointstartindex)/2):int((pointendindex)/2)])
-		# for i in temp:
-		# 	tempfeature.append(i)
+		temp=featurecontrol.motion_feature(accy[int((pointstartindex)/2):int((pointendindex)/2)])
+		for i in temp:
+			tempfeature.append(i)
 
-		# temp=featurecontrol.motion_feature(accz[int((pointstartindex)/2):int((pointendindex)/2)])
-		# for i in temp:
-		# 	tempfeature.append(i)
+		temp=featurecontrol.motion_feature(accz[int((pointstartindex)/2):int((pointendindex)/2)])
+		for i in temp:
+			tempfeature.append(i)
 
-		# temp=featurecontrol.motion_feature(gyrx[int((pointstartindex)/2):int((pointendindex)/2)])
-		# for i in temp:
-		# 	tempfeature.append(i)
+		temp=featurecontrol.motion_feature(gyrx[int((pointstartindex)/2):int((pointendindex)/2)])
+		for i in temp:
+			tempfeature.append(i)
 
-		# temp=featurecontrol.motion_feature(gyry[int((pointstartindex)/2):int((pointendindex)/2)])
-		# for i in temp:
-		# 	tempfeature.append(i)
+		temp=featurecontrol.motion_feature(gyry[int((pointstartindex)/2):int((pointendindex)/2)])
+		for i in temp:
+			tempfeature.append(i)
 
-		# temp=featurecontrol.motion_feature(gyrz[int((pointstartindex)/2):int((pointendindex)/2)])
-		# for i in temp:
-		# 	tempfeature.append(i)
+		temp=featurecontrol.motion_feature(gyrz[int((pointstartindex)/2):int((pointendindex)/2)])
+		for i in temp:
+			tempfeature.append(i)
 	return tag,tempfeature
 
 # #提取手势具体数据段的特征
