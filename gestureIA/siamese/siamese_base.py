@@ -175,6 +175,48 @@ def create_test_pair(test_data, test_target,num_classes,anchornum):
     return np.array(pairs), np.array(labels)
 
 
+def create_victima_test_pair(test_data, test_target,num_classes,anchornum):
+    tempdata=[[],[]]
+    for j in range(len(test_target)):
+        if test_target[j]==1:
+            tempdata[0].append(test_data[j])
+        else:
+            tempdata[1].append(test_data[j])
+    print("len(tempdata[0]):",len(tempdata[0]))
+    print("len(tempdata[1]):",len(tempdata[1]))
+
+    pairs = []
+    labels = []   
+    for t in range(3):            
+        test_data_anchor=[]
+        test_data=[]
+        #选择样本的锚和对比样本
+        rangek=list(range(len(tempdata[0])))
+        selectk = random.sample(rangek, anchornum)
+        for j in range(len(tempdata[0])):
+            if j in selectk:
+                test_data_anchor.append(tempdata[0][j])
+            else:
+                test_data.append(tempdata[0][j])
+        
+        for j in range(len(test_data)):
+            # 添加合法样本对
+            for k in range(anchornum):
+                pairs+=[[test_data_anchor[k],test_data[j]]]
+            labels += [1]
+            #添加impost样本对
+
+        resultList=random.sample(range(0,len(tempdata[1])),100);            
+
+        for t in resultList:
+            for k in range(anchornum):
+                pairs += [[test_data_anchor[k],tempdata[1][t]]]
+            labels += [0]
+    # print("len(test_pairs):",len(pairs))
+    # print("len(test_labels):",len(labels))            
+    return np.array(pairs), np.array(labels)
+
+
 
 
 def mlp_network(input_shape):

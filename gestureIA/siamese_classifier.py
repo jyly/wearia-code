@@ -363,9 +363,9 @@ def siamese_feature_divide_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#循环次数
-	iternum=20
+	iternum=30
 	#组合内序号个数
-	comnum=8
+	comnum=4
 
 	# traincomnum=28
 
@@ -401,7 +401,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		temptraintarget=[]
 		trainindex=1
 		for i in range(len(train_data)):
-			for j in range(5,6):
+			for j in range(0,1):
 				for k in range(len(train_data[i][j])):
 					temptraindata.append(train_data[i][j][k])
 					temptraintarget.append(trainindex)
@@ -413,7 +413,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		temptesttarget=[]
 		testindex=1
 		for i in range(len(test_data)):
-			for j in range(5,6):
+			for j in range(0,1):
 				for k in range(len(test_data[i][j])):
 					temptestdata.append(test_data[i][j][k])
 					temptesttarget.append(testindex)
@@ -499,16 +499,16 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 
 	#将特征分为不同的人和手势类
 	tempfeature=[]
-	# maxusernum=int(targetnum/9)
-	# print("数据集中的用户数：",maxusernum)
-	# for i in range(maxusernum):
-	# 	tempfeature.append([])
-	# 	for j in range(9):
-	# 		tempfeature[i].append([])
-	# for i in range(len(target)):
-	# 	t1=int((target[i]-1)/9)
-	# 	t2=(target[i]-1)%9
-	# 	tempfeature[t1][t2].append(feature[i])
+	maxusernum=int(targetnum/9)
+	print("数据集中的用户数：",maxusernum)
+	for i in range(maxusernum):
+		tempfeature.append([])
+		for j in range(9):
+			tempfeature[i].append([])
+	for i in range(len(target)):
+		t1=int((target[i]-1)/9)
+		t2=(target[i]-1)%9
+		tempfeature[t1][t2].append(feature[i])
 
 
 	maxusernum=targetnum
@@ -740,15 +740,6 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 	score,label= siamese_mul_feature_final(test_data,test_target,targetnum,featurenum,anchornum)
 
 	# score=[i[0] for i in score]
-
-	test_data=(test_data-scale_mean)/scale_scale
-	print("test_data.shape:",test_data.shape)
-	print("test_target.shape:",test_target.shape)
-	print("test_target:",test_target)
-
-	score,label= siamese_mul_feature_final(test_data,test_target,targetnum,featurenum,anchornum)
-
-	# score=[i[0] for i in score]
 	label=[i for i in label]
 	print('原结果：',label)
 	print('预测分数：',score)
@@ -761,7 +752,7 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 		# print(tp,tn,fp,fn)
 		# print("i=",i)
 		# print("accuracy:",accuracy,"far:",far,"frr:",frr)
-		if frr<far or abs(frr-far)<0.02:
+		if frr<far or abs(frr-far)<0.01:
 			break
 		i=i+0.01
 	print("i=",i)

@@ -187,7 +187,7 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
 
-    input_shape = (len(train_data[0]))
+    input_shape = (len(train_data[0]),)
     # input_shape = (2,300,1)
 
     #配对数，对子内部数据段个数，数据段的长，数据段的宽，数据段的高
@@ -534,7 +534,8 @@ import tensorflow as tf
 
 def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
     # test_pairs, test_label = create_pairs_incre_1(data, target,num_classes)
-    test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
+    # test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
+    test_pairs, test_label = create_victima_test_pair(data, target,num_classes,anchornum)
     input_shape = (featurenum,)
     print(input_shape)
     print(test_pairs.shape)
@@ -546,14 +547,14 @@ def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
     #     sess.graph.as_default()
     #     tf.import_graph_def(graph_def, name='') # 导入计算图
     # sess.run(tf.global_variables_initializer())
-    dirs='C:\\Users\\jyly\\Documents\\GitHub\\wearia-code\\gestureIA'
+    # dirs='C:\\Users\\jyly\\Documents\\GitHub\\wearia-code\\gestureIA'
 
 
-    # ppg_model=create_siamese_network(input_shape)
-    # ppg_model.load_weights('ppg_model_weights.h5')
+    ppg_model=create_siamese_network(input_shape)
+    ppg_model.load_weights('ppg_model_weights.h5')
     # keras_to_tensorflow(ppg_model,model_name="ppg_model_weights.pb")
     # ppg_model =load_model(dirs+'\\ppg_model.h5')
-    base_network =load_model(dirs+'\\based_model.h5')
+    # base_network =load_model(dirs+'\\based_model.h5')
     # base_network = mlp_network(input_shape)
     # base_network.load_weights('based_model_weights.h5')
     # keras_to_tensorflow(base_network,model_name="based_model_weights.pb")
@@ -562,34 +563,34 @@ def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
     # open("based_model.tflite", "wb").write(tflite_model)
 
 
-    base_network.summary()
+    # base_network.summary()
 
-    input_a = Input(shape=input_shape)
-    input_b = Input(shape=input_shape)
-    processed_a = base_network(input_a)
-    processed_b = base_network(input_b)
-    distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-    x=Reshape((1,),name="output")(distance)
-    ppg_model = Model([input_a, input_b], x)
-    x=base_network.predict(test_pairs[:, 0,:featurenum])
-    y=base_network.predict(test_pairs[:, 1,:featurenum])
-    print(len(x[0]))
-    score=[]
-    for i in range(len(x)):
-        temp=0
-        for j in range(len(x[0])):
-            temp=temp+(x[i][j]-y[i][j])*(x[i][j]-y[i][j])
-        score.append(temp**0.5)
+    # input_a = Input(shape=input_shape)
+    # input_b = Input(shape=input_shape)
+    # processed_a = base_network(input_a)
+    # processed_b = base_network(input_b)
+    # distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+    # x=Reshape((1,),name="output")(distance)
+    # ppg_model = Model([input_a, input_b], x)
+    # x=base_network.predict(test_pairs[:, 0,:featurenum])
+    # y=base_network.predict(test_pairs[:, 1,:featurenum])
+    # print(len(x[0]))
+    # score=[]
+    # for i in range(len(x)):
+    #     temp=0
+    #     for j in range(len(x[0])):
+    #         temp=temp+(x[i][j]-y[i][j])*(x[i][j]-y[i][j])
+    #     score.append(temp**0.5)
     # print(score)
-    ppg_test_pred=score
+    # ppg_test_pred=score
 
 
-    # motion_model=create_siamese_network(input_shape)
-    # motion_model.load_weights('motion_model_weights.h5')
+    motion_model=create_siamese_network(input_shape)
+    motion_model.load_weights('motion_model_weights.h5')
     # keras_to_tensorflow(motion_model,model_name="motion_model_weights.pb")
 
-    # ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
-    # motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:2*featurenum], test_pairs[:, 1,featurenum:2*featurenum]])
+    ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
+    motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:2*featurenum], test_pairs[:, 1,featurenum:2*featurenum]])
  
 
     #对样本对进行额外处理
