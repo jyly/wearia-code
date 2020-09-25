@@ -330,8 +330,8 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 		featurenum=30
 		anchornum=5
 
-		ppg_train_data,ppg_test_data,ppg_sort=IAtool.minepro(train_data[:,0:88],test_data[:,0:88],train_target,featurenum)
-		motion_train_data,motion_test_data,motion_sort=IAtool.minepro(train_data[:,88:],test_data[:,88:],train_target,featurenum)
+		ppg_train_data,ppg_test_data,ppg_sort=IAtool.minepro(train_data[:,0:84],test_data[:,0:84],train_target,featurenum)
+		motion_train_data,motion_test_data,motion_sort=IAtool.minepro(train_data[:,84:],test_data[:,84:],train_target,featurenum)
 		
 		train_data=[]
 		test_data=[]
@@ -380,8 +380,8 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 
 def siamese_feature_mul_build_class(train_data,train_target,trainindex,featurenum):
 	temp=[]
-	ppg_train_data,temp,ppg_sort=IAtool.minepro(train_data[:,0:88],temp,train_target,featurenum)
-	motion_train_data,temp,motion_sort=IAtool.minepro(train_data[:,88:],temp,train_target,featurenum)
+	ppg_train_data,temp,ppg_sort=IAtool.minepro(train_data[:,0:84],temp,train_target,featurenum)
+	motion_train_data,temp,motion_sort=IAtool.minepro(train_data[:,84:],temp,train_target,featurenum)
 
 	train_data=[]
 	for i in range(len(ppg_train_data)):
@@ -405,8 +405,8 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 	scale_mean=np.array(scale_mean)
 	scale_scale=np.array(scale_scale)
 
-	ppg_test_data=IAtool.scoreselect(test_data[:,0:88],ppg_sort,featurenum)
-	motion_test_data=IAtool.scoreselect(test_data[:,88:],motion_sort,featurenum)
+	ppg_test_data=IAtool.scoreselect(test_data[:,0:84],ppg_sort,featurenum)
+	motion_test_data=IAtool.scoreselect(test_data[:,84:],motion_sort,featurenum)
 
 	test_data=[]
 	for i in range(len(ppg_test_data)):

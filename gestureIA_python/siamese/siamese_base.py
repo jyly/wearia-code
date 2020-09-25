@@ -339,15 +339,10 @@ def create_siamese_network(input_shape):
 
     input_a = Input(shape=input_shape, name='input1')
     input_b = Input(shape=input_shape, name='input2')
-    # because we re-use the same instance `base_network`,
-    # the weights of the network
-    # will be shared across the two branches
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
     distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-    x=Reshape((1,),name="output")(distance)
-    model = Model([input_a, input_b], x)
-    # keras.utils.plot_model(model,"siamModel.png",show_shapes=True)
+    model = Model([input_a, input_b], distance)
     model.summary()
 
     # train
@@ -365,8 +360,6 @@ def create_siamese_network_2(input_shape):
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
     distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-    # x=Reshape((1,),name="output")(distance)
-    # model = Model([input_a, input_b], x)
     model = Model([input_a, input_b], distance)
     model.summary()
 

@@ -128,6 +128,9 @@ def arraytodic(data):
 # 数据扩展成2的幂次方，后面补0，给fft和小波变换使用
 def to2power(data):
 	length=len(data)
+	tempdata=[]
+	for i in data:
+		tempdata.append(i)
 	flag=0
 	if length<256:
 		flag=256
@@ -137,8 +140,8 @@ def to2power(data):
 		else:
 			flag=1024
 	for i in range(flag-length):
-		data.append(0)
-	return data
+		tempdata.append(0)
+	return tempdata
 
 #导数序列 
 def interationcal(data):

@@ -84,7 +84,7 @@ public class MAfind {
 		int tag = 0;
 		double[] datainter=iatools.interationcal(data);
 
-		System.out.println();
+
 //		datainter=nortools.meanfilt(datainter, 20);
 		datainter=nortools.standardscale(datainter);
 		DecimalFormat df = new DecimalFormat("#.00");
@@ -100,11 +100,12 @@ public class MAfind {
 			double tempjs=iatools.array_JS_cal(nortools.array_dataselect(datainter,i,200),nortools.array_dataselect(datainter, i+200, 200),alltag);
 			JS.add(tempjs);
 		}
-
+		System.out.println("JS_score:");
 		for(int i=0;i<JS.size();i++) {
 			System.out.print(JS.get(i)+",");
 		}
-		System.out.println("");
+		System.out.println();
+
 		for(int i=0;i<JS.size()-6;i++) {
 			int flagnum=0;
 			if(JS.get(i)>0.5) {

@@ -16,12 +16,15 @@ public class IA_main {
 	static MAfind ma = new MAfind();
 
 	public static void main(String[] args) {
-//		String dirpath = "./data/";
-//		all_feature(dirpath);
+		
+		
+		String dirpath = "./selected_oridata/";		
+		all_feature(dirpath);
+		
 //		files.featurewrite(featureset, featurefile);
-		String filepath = "./testdata/2020-06-16-08-11-54.csv";
-		File File = new File(filepath);
-		single_feature(File);
+//		String filepath = "./testdata/2020-06-16-08-11-54.csv";
+//		File File = new File(filepath);
+//		single_feature(File);
 		
 
 //		String modelpath = "./test.model";
@@ -78,20 +81,28 @@ public class IA_main {
 
 	public static void all_feature(String dirpath) {
 		File dirFile = new File(dirpath);
-		File[] objfileName = dirFile.listFiles();
+		File[] objdirName = dirFile.listFiles();
+		ArrayList<Integer> filenum = new ArrayList<Integer>();
 		int objnum = 1;
-		for (File objfile : objfileName) {
-			File[] samplefilename = objfile.listFiles();
+		for (File objdir : objdirName) {
+			File[] samplefileset = objdir.listFiles();
+
 			ArrayList<feature> featureset = new ArrayList<feature>();
-			for (File sample : samplefilename) {
+			for (File sample : samplefileset) {
 				feature sampleFeature = single_feature(sample);
 				if(0!=sampleFeature.features.size()) {
 					featureset.add(sampleFeature);
 				}
 			}
-			System.out.println("当前第" + objnum + "个用户手势片段数：" + featureset.size());
-			String featurefile = "./feature/" + String.valueOf(objnum) + ".csv";
+			System.out.println("当前第" + objnum + "个类别手势片段数：" + featureset.size());
+			filenum.add(featureset.size());
+			String featurefile = "./selected_feature/" + String.valueOf(objnum) + ".csv";
 			objnum++;
+			files.featurewrite(featureset, featurefile);
+		}
+		System.out.println("filenum:");
+		for(int i=0;i<filenum.size();i++) {
+			System.out.print(filenum.get(i)+",");
 		}
 	}
 
@@ -104,34 +115,37 @@ public class IA_main {
 		double[] orippgx = nortools.meanfilt(nortools.arraytomatrix(ppgs.x), 20);
 		double[] orippgy = nortools.meanfilt(nortools.arraytomatrix(ppgs.y), 20);
 
-		int tag = ma.coarse_grained_detect(orippgx);
-		System.out.println("tag:" + tag);
+		int coarsetag = ma.coarse_grained_detect(orippgx);
+		System.out.println("coarsetag:" + coarsetag);
 //		if(1==tag) {}
 
 //		//对原始的ppg型号做butterworth提取
-//		double[] butterppgx = nortools.butterworth_highpass(orippgx, 200, 2);
-//		double[] butterppgy = nortools.butterworth_highpass(orippgy, 200, 2);
+		double[] butterppgx = nortools.butterworth_highpass(orippgx, 200, 2);
+		double[] butterppgy = nortools.butterworth_highpass(orippgy, 200, 2);
 //
-//		ppgs.x.clear();
-//		ppgs.y.clear();
-//		ppgs.x = nortools.matrixtoarray(butterppgx);
-//		ppgs.y = nortools.matrixtoarray(butterppgy);
-//		// 做快速主成分分析
-//		ppgs = iatools.fastica(ppgs);
+		ppgs.x=nortools.matrixtoarray(nortools.array_dataselect(orippgx,300,orippgx.length-300));
+		ppgs.y=nortools.matrixtoarray(nortools.array_dataselect(orippgy,300,orippgy.length-300));
+		
+		
+		ppg butterppg=new ppg();
+		butterppg.x = nortools.matrixtoarray(nortools.array_dataselect(butterppgx,300,butterppgx.length-300));
+		butterppg.y = nortools.matrixtoarray(nortools.array_dataselect(butterppgy,300,butterppgx.length-300));
+		// 做快速主成分分析
+		butterppg = iatools.fastica(butterppg);
 //
 //		// 根据峰值判断那条手势信号和脉冲信号
-//		ppgs = iatools.machoice(ppgs);
+		butterppg = iatools.machoice(butterppg);
 //
-//		tag = ma.fine_grained_segment(nortools.arraytomatrix(ppgs.x), 200, 1);
+		int finetag = ma.fine_grained_segment(nortools.arraytomatrix(butterppg.x), 200, 1);
 
-//		if (0 == tag) {
-//			System.out.println("当前片段不存在手势");
-//		} else {
-//			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
-//			ppgs = ma.setMAsegment(ppgs);
-//			singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.x));
-//			singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.y));
-//		}
+		if (0 == finetag) {
+			System.out.println("当前片段不存在手势");
+		} else {
+			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+			ppgs = ma.setMAsegment(ppgs);
+			singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.x));
+			singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.y));
+		}
 		
 		return singleFeature;
 	}

@@ -113,8 +113,7 @@ public class feature {
 		features.add(means.evaluate(selecteffs));
 		features.add(stds.evaluate(selecteffs));
 		features.add(maxs.evaluate(selecteffs) - mins.evaluate(selecteffs));
-		features.add(maxs.evaluate(selecteffs));
-		features.add(mins.evaluate(selecteffs));
+
 		rms = 0;
 		absamplitude = 0;
 		diversion = 0;
@@ -138,6 +137,5 @@ public class feature {
 
 	}
 
-	public void motion_feature(double[] data) {}
 
 }

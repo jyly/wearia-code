@@ -10,7 +10,6 @@ def ppg_feature(data):
 	tempdata=IAtool.to2power(data)
 	data=np.array(data)
 	tempdata=np.array(tempdata)
-	
 	feature=[]
 	# print("时域特征提取")
 	feature.append(np.mean(data))
@@ -78,11 +77,9 @@ def ppg_feature(data):
 	#Discrete Wavelet Transform
 	coeffs = IAtool.dwt(tempdata,'haar',3)
 	cA3, cD3, cD2 , cD1= coeffs
-	feature.append(np.mean(cA3))
+	feature.append(np.mean(cA3))	
 	feature.append(np.std(cA3))
 	feature.append((np.max(cA3)-np.min(cA3)))
-	feature.append(np.max(cA3))
-	feature.append(np.min(cA3))
 
 
 	mean=np.mean(cA3)

@@ -50,14 +50,9 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-//import static android.net.wifi.SupplicantState.COMPLETED;
-//import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
-//import java.io.InputStream;
 import org.tensorflow.lite.Interpreter;
 
 import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -67,15 +62,6 @@ import java.io.InputStreamReader;
 import static java.lang.Math.abs;
 
 public class MainActivity extends WearableActivity {
-//
-//    static {
-//        System.loadLibrary("tensorflow_inference");
-//        Log.i("wumei", "load tensorflow_inference successfully");
-//    }
-
-//    private String MODEL_PATH = "ppg_model_weights.pb";
-
-//    private TensorFlowInferenceInterface tf;
 
     private Button button_start;
     private Button button_final;
@@ -89,6 +75,7 @@ public class MainActivity extends WearableActivity {
 
     private String RequestURL = "http://192.168.1.101:8888/IA";
     //    private String RequestURL = "http://47.94.87.104:4092/IA";
+
     private int count = 0;
     private int uploadtag = 0;
     private Timer timer = new Timer();
@@ -123,6 +110,7 @@ public class MainActivity extends WearableActivity {
             @Override
             public void onClick(View v) {
 //                startService(new Intent(getBaseContext(), sensorlisten.class));
+//                stopService(new Intent(getBaseContext(), sensorlisten.class));
 
 
             }
@@ -131,8 +119,6 @@ public class MainActivity extends WearableActivity {
         button_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                stopService(new Intent(getBaseContext(), sensorlisten.class));
-
                 final String gesture_item = gesture_spinner.getSelectedItem().toString();
                 int lens = gesture_item.length();
                 if (lens > 3) {
@@ -276,7 +262,6 @@ public class MainActivity extends WearableActivity {
     };
 
     private void testtf() {
-//        tf = new TensorFlowInferenceInterface(getAssets(),"ppg_model_weights.pb");
         try {
             //获取特征参数
             InputStream parameterinput = getAssets().open("stdpropara.txt");
@@ -450,7 +435,7 @@ public class MainActivity extends WearableActivity {
                 Interpreter tflite;
                 Boolean load_result;
                 try {
-                    tflite = new Interpreter(loadModelFile("based_model"));
+                    tflite = new Interpreter(loadModelFile("ppg_based_model"));
                     Log.d(">>>", " model load success");
                     float[][] outPutsx = new float[datalen][256];//结果分类
                     float[][] outPutsy = new float[datalen][256];//结果分类

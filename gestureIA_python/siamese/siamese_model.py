@@ -264,7 +264,7 @@ def siamese_mul_feature_buildmodel(train_data, train_target,num_classes,featuren
     ppg_based_model.save_weights('ppg_based_model_weights.h5')
     ppg_based_model.save('ppg_based_model.h5')
   
-    motion_model,motion_based_model=create_siamese_network(input_shape)
+    motion_model,motion_based_model=create_siamese_network_2(input_shape)
     history = motion_model.fit([train_pairs[:, 0,featurenum:2*featurenum], train_pairs[:, 1,featurenum:2*featurenum]], train_label,  
            batch_size=8192, epochs=40)  
     motion_model.save_weights('motion_model_weights.h5')
@@ -273,40 +273,41 @@ def siamese_mul_feature_buildmodel(train_data, train_target,num_classes,featuren
 
 def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
     # test_pairs, test_label = create_pairs_incre_1(data, target,num_classes)
-    # test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
-    test_pairs, test_label = create_victima_test_pair(data, target,num_classes,anchornum)
+    test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
+    # test_pairs, test_label = create_victima_test_pair(data, target,num_classes,anchornum)
     input_shape = (featurenum,)
     print(input_shape)
     print(test_pairs.shape)
  
   
-    dirs='C:\\Users\\jyly\\Documents\\GitHub\\wearia-code\\gestureIA'
+    # dirs='C:\\Users\\jyly\\Documents\\GitHub\\wearia-code\\gestureIA'
 
     ppg_model=create_siamese_network(input_shape)
     ppg_model.load_weights('ppg_model_weights.h5')
-    # keras_to_tensorflow(ppg_model,model_name="ppg_model_weights.pb")
-    # ppg_model =load_model(dirs+'\\ppg_model.h5')
-    # base_network =load_model(dirs+'\\ppg_based_model.h5')
-    base_network = mlp_network(input_shape)
-    base_network.load_weights('ppg_based_model.h5')
-    # keras_to_tensorflow(base_network,model_name="based_model_weights.pb")
-    # converter = tf.lite.TFLiteConverter.from_keras_model_file(dirs+'\\based_model.h5')
-    # tflite_model = converter.convert()
-    # open("based_model.tflite", "wb").write(tflite_model)
+
+    base_network =load_model('ppg_based_model.h5')
+    # base_network = mlp_network(input_shape)
+    # base_network.load_weights('ppg_based_model.h5')
+
+    # converter = tf.lite.TFLiteConverter.from_keras_model_file('ppg_based_model.h5')
+    # converter = tf.lite.TFLiteConverter.from_saved_model('ppg_based_model.h5')
+    converter = tf.lite.TFLiteConverter.from_keras_model(base_network)
+    tflite_model = converter.convert()
+    open("ppg_based_model.tflite", "wb").write(tflite_model)
 
 
-    base_network.summary()
-    x=base_network.predict(data[:,:featurenum])
-    featurewrite2(x,target)
+    # base_network.summary()
+    # x=base_network.predict(data[:,:featurenum])
+    # featurewrite2(x,target)
 
-
+    # 自架构基础模型
     # input_a = Input(shape=input_shape)
     # input_b = Input(shape=input_shape)
     # processed_a = base_network(input_a)
     # processed_b = base_network(input_b)
     # distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-    # x=Reshape((1,),name="output")(distance)
-    # ppg_model = Model([input_a, input_b], x)
+    # ppg_model = Model([input_a, input_b], distance)
+
     # x=base_network.predict(test_pairs[:, 0,:featurenum])
     # y=base_network.predict(test_pairs[:, 1,:featurenum])
     # print(len(x[0]))
@@ -322,7 +323,13 @@ def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
 
     motion_model=create_siamese_network(input_shape)
     motion_model.load_weights('motion_model_weights.h5')
-    # keras_to_tensorflow(motion_model,model_name="motion_model_weights.pb")
+
+    base_network =load_model('motion_based_model.h5')
+    converter = tf.lite.TFLiteConverter.from_keras_model(base_network)
+    tflite_model = converter.convert()
+    open("motion_based_model.tflite", "wb").write(tflite_model)
+
+
 
     ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
     motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:2*featurenum], test_pairs[:, 1,featurenum:2*featurenum]])
@@ -338,23 +345,24 @@ def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
     ppg_test_pred=temp_pred
 
 
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     # temp_label.append(test_label[i*5])
-    #     for j in range(anchornum):
-    #         temppred+=motion_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # motion_test_pred=temp_pred
+    temp_pred=[]
+    for i in range(int(len(test_label))):
+        temppred=0
+        # temp_label.append(test_label[i*5])
+        for j in range(anchornum):
+            temppred+=motion_test_pred[i*anchornum+j]
+        temp_pred.append(temppred/anchornum)
+    motion_test_pred=temp_pred
+
     # print("len(ppg_test_pred):",len(ppg_test_pred))
     # print("len(motion_test_pred):",len(motion_test_pred))
 
 
-    # test_pred=[]
-    # for i in range(len(ppg_test_pred)):
-    #     test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+    test_pred=[]
+    for i in range(len(ppg_test_pred)):
+        test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
 
-    test_pred=ppg_test_pred
+    # test_pred=ppg_test_pred
 
     test_label=np.array(test_label)
     test_pred=np.array(test_pred)

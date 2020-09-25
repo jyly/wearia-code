@@ -66,7 +66,7 @@ public class IAtool {
 		Kurtosis kurtosis = new Kurtosis();
 		double xkur = kurtosis.evaluate(tempSignal[0]);
 		double ykur = kurtosis.evaluate(tempSignal[1]);
-		System.out.println("xkur:" + xkur + " ykur:" + ykur);
+//		System.out.println("xkur:" + xkur + " ykur:" + ykur);
 		ppg temp = new ppg();
 		if (Math.abs(xkur) > (Math.abs(ykur))) {
 			temp = constructnewppg(tempSignal[0], tempSignal[1]);

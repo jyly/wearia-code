@@ -42,16 +42,17 @@ if __name__ == "__main__":
 	# siamese分类（基于特征）
 	# siamese_classifier.siamese_feature_classifier(feature,target,targetnum)
 	# siamese_classifier.siamese_feature_final_class(feature,target,targetnum,30,5)#只用模型做分类
-	# siamese_classifier.siamese_feature_divide_class(feature,target,targetnum)
-	# siamese_classifier.siamese_feature_divide_class(feature[:,0:88],target,targetnum)
-	# siamese_classifier.siamese_feature_divide_class(feature[:,88:],target,targetnum)
+	# siamese_classifier.siamese_feature_divide_class(feature,target,targetnum)#用部分数据训练模型，并用剩余数据测试模型
+	# siamese_classifier.siamese_feature_divide_class(feature[:,0:84],target,targetnum)
+	# siamese_classifier.siamese_feature_divide_class(feature[:,84:],target,targetnum)
 	# siamese_classifier.siamese_femotion_test_predature_inidivide_class(feature,target,targetnum)
 	# siamese_classifier.siamese_mul_feature_divide_class(feature,target,targetnum)
 
+	siamese_classifier.siamese_feature_build_class(feature,target,40,30)
+	siamese_classifier.siamese_feature_final_class(feature,target,40,30,5)
 	
-	# siamese_classifier.siamese_feature_mul_build_class(feature,target,4,30)
-
-	siamese_classifier.siamese_feature_mul_final_class(feature,target,40,30,5)
+	# siamese_classifier.siamese_feature_mul_build_class(feature,target,40,30)
+	# siamese_classifier.siamese_feature_mul_final_class(feature,target,40,30,5)
 
 
 
