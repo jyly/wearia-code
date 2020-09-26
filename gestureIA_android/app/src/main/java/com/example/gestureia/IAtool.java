@@ -7,15 +7,14 @@ import android.util.Log;
 
 import org.fastica.FastICA;
 import org.fastica.FastICAException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 
 import org.apache.commons.math3.stat.descriptive.moment.*;
 import org.apache.commons.math3.complex.Complex;
-import uk.me.berndporr.iirj.Butterworth;
+
 public class IAtool {
-    public normal_tool nortools = new normal_tool();
+    public Normal_tool nortools = new Normal_tool();
     private PowerManager.WakeLock wakeLock = null;
 
     @SuppressLint("InvalidWakeLockTag")
@@ -43,7 +42,7 @@ public class IAtool {
     }
 
     // 将ppg的array转化成矩阵，混合信号矩阵
-    public double[][] constructmixsignal(ppg ppgs) {
+    public double[][] constructmixsignal(Ppg ppgs) {
         int arraylength = ppgs.x.size();
         double[][] mixedSignal = new double[2][arraylength];
         for (int i = 0; i < arraylength; i++) {
@@ -54,9 +53,9 @@ public class IAtool {
     }
 
     // 将分离后的信号矩阵恢复为ppg
-    public ppg constructnewppg(double[] x, double[] y) {
+    public Ppg constructnewppg(double[] x, double[] y) {
         int arraylength = x.length;
-        ppg ppgs = new ppg();
+        Ppg ppgs = new Ppg();
         for (int i = 0; i < arraylength; i++) {
             ppgs.x.add(x[i]);
             ppgs.y.add(y[i]);
@@ -65,7 +64,7 @@ public class IAtool {
     }
 
     // 快速独立成分分析
-    public ppg fastica(ppg ppgs) {
+    public Ppg fastica(Ppg ppgs) {
         int arraylength = ppgs.x.size();
         double[][] mixedSignal = constructmixsignal(ppgs);
         double[][] cleanSignal = new double[2][arraylength];
@@ -77,18 +76,18 @@ public class IAtool {
             e.printStackTrace();
         }
 
-        ppg temp = constructnewppg(cleanSignal[0], cleanSignal[1]);
+        Ppg temp = constructnewppg(cleanSignal[0], cleanSignal[1]);
         return temp;
     }
 
     // 根据峰值判断那条手势信号和脉冲信号
-    public ppg machoice(ppg ppgs) {
+    public Ppg machoice(Ppg ppgs) {
         double[][] tempSignal = constructmixsignal(ppgs);
         Kurtosis kurtosis = new Kurtosis();
         double xkur = kurtosis.evaluate(tempSignal[0]);
         double ykur = kurtosis.evaluate(tempSignal[1]);
         System.out.println("xkur:" + xkur + " ykur:" + ykur);
-        ppg temp = new ppg();
+        Ppg temp = new Ppg();
         if (Math.abs(xkur) > (Math.abs(ykur))) {
             temp = constructnewppg(tempSignal[0], tempSignal[1]);
         } else {
@@ -128,8 +127,8 @@ public class IAtool {
     }
 
     // 计算傅里叶变换的振幅和对应的频率
-    public fftvalue fftcal(Complex[] x, double fre) {
-        fftvalue tempvalue = new fftvalue();
+    public Fftvalue fftcal(Complex[] x, double fre) {
+        Fftvalue tempvalue = new Fftvalue();
 
         int xlen = (int) (x.length / 2);
         for (int i = 0; i < xlen; i++) {
@@ -205,19 +204,17 @@ public class IAtool {
         return nortools.JS_divergence(Ptag, Qtag);
     }
 
-    public Double[][] featurestd(Double feature[][],Double[]scale_mean,Double[]scale_scale){
-        Double [][]finalfeature=new Double[feature.length][30];
-        for(int i=0;i<feature.length;i++){
-            for(int j=0;j<30;j++){
-                finalfeature[i][j]=(feature[i][j]-scale_mean[j])/scale_scale[j];
+    public Double[] featurestd(Double feature[],Double[]scale_mean,Double[]scale_scale){
+        Double []finalfeature=new Double[30];
+            for(int i=0;i<30;i++){
+                finalfeature[i]=(feature[i]-scale_mean[i])/scale_scale[i];
             }
-        }
         return finalfeature;
     }
 
-    public datapair  create_pairs(Double[][]data,Integer[]target,int num_classes){
+    public Datapair create_pairs(Double[][]data, Integer[]target, int num_classes){
         Integer [] classnum=new Integer [2];
-        datapair pairs=new datapair();
+        Datapair pairs=new Datapair();
         for(int i=0;i<num_classes;i++){
             int temp=0;
             for(int j=0;j<target.length;j++){

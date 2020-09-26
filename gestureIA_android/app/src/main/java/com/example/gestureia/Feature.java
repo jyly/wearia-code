@@ -18,7 +18,7 @@ import jwave.Transform;
 import jwave.transforms.FastWaveletTransform;
 import jwave.transforms.wavelets.haar.Haar1;
 
-public class feature {
+public class Feature {
 	public ArrayList<Double> features = new ArrayList<Double>();
 
 	public StandardDeviation stds = new StandardDeviation();
@@ -30,7 +30,7 @@ public class feature {
 	public Percentile percentile = new Percentile();
 
 	public IAtool iatools = new IAtool();
-	public normal_tool nortools = new normal_tool();
+	public Normal_tool nortools = new Normal_tool();
 
 	FastFourierTransformer ffts = new FastFourierTransformer(DftNormalization.STANDARD);
 
@@ -80,7 +80,7 @@ public class feature {
 		features.add(diversion / (datalen - 1));
 
 		Complex[] datacomplex = ffts.transform(tempdata, TransformType.FORWARD);
-		fftvalue tempvalue = iatools.fftcal(datacomplex, 200);
+		Fftvalue tempvalue = iatools.fftcal(datacomplex, 200);
 		ArrayList<Double> extrafft = new ArrayList<Double>();
 		for (int i = 0; i < tempvalue.fftscore.size(); i++) {
 			if (tempvalue.fluency.get(i) < 5) {

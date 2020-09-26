@@ -12,7 +12,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Min;
 
 import uk.me.berndporr.iirj.Butterworth;
 
-public class normal_tool {
+public class Normal_tool {
     public Variance vars = new Variance();
     public Mean means = new Mean();
     public Max maxs = new Max();

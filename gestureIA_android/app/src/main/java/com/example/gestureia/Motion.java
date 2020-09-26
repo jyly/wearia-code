@@ -1,7 +1,7 @@
 package com.example.gestureia;
 import java.util.ArrayList;
 
-public class motion {
+public class Motion {
 
     public ArrayList<Double> accx = new ArrayList<Double>();
     public ArrayList<Double> accy = new ArrayList<Double>();

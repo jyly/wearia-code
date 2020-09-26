@@ -10,7 +10,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-public class sensorcontrol {
+public class Sensorcontrol {
     private SensorManager mSensorManager;
     private ArrayList<Double> ppgx = new ArrayList<Double>();
     private ArrayList<Double> ppgy = new ArrayList<Double>();
@@ -35,8 +35,9 @@ public class sensorcontrol {
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(1), 0);//Accelerometer 100hz
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(4), 0);//Gyroscope 100hz
         sensorList = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+        Log.e(">>>","列出当前设备所有的传感器信息");
         for (Sensor sensor : sensorList) {
-            Log.d("List sensors", "Name: " + sensor.getName() + " /Type_String: " + sensor.getStringType() + " /Type_number: " + sensor.getType());
+            Log.e("List sensors", "Name: " + sensor.getName() + " /Type_String: " + sensor.getStringType() + " /Type_number: " + sensor.getType());
         }
     }
 
@@ -95,8 +96,8 @@ public class sensorcontrol {
         gyrtimestamps.clear();
     }
 
-    public ppg getnewppgseg(int lens) {
-        ppg ppgs = new ppg();
+    public Ppg getnewppgseg(int lens) {
+        Ppg ppgs = new Ppg();
         int length = ppgx.size();
 //        Log.e(">>>", "ppgx.size():" + ppgx.size()+"ppgy.size():" + ppgy.size()+"ppgtimestamps.size():" + ppgtimestamps.size());
 
@@ -111,15 +112,15 @@ public class sensorcontrol {
         return ppgs;
     }
 
-    public ppg getnewppgseg() {
+    public Ppg getnewppgseg() {
         return getnewppgseg(ppgx.size());
     }
 
-    public motion getnewmotionseg(int lens) {
-        motion motions = new motion();
+    public Motion getnewmotionseg(int lens) {
+        Motion motions = new Motion();
         int length = accx.size();
-        if (lens > length - 30) {
-            lens = length - 30;
+        if (lens > length - 50) {
+            lens = length - 50;
         }
 //        Log.e(">>>", "accx.size:" + accx.size()+"accy.size:" + accy.size()+"accz.size:" + accz.size()+"acctimestamps.size:" + acctimestamps.size());
         for (int i = length - lens; i < length - 10; i++) {
@@ -130,8 +131,8 @@ public class sensorcontrol {
         }
 
         length = gyrx.size();
-        if (lens > length - 30) {
-            lens = length - 30;
+        if (lens > length - 50) {
+            lens = length - 50;
         }
 //        Log.e(">>>", "gyrx.size:" + gyrx.size()+"gyry.size:" + gyry.size()+"gyrz.size:" + gyrz.size()+"gyrtimestamps.size:" + gyrtimestamps.size());
         for (int i = length - lens; i < length - 10; i++) {
@@ -144,8 +145,8 @@ public class sensorcontrol {
     }
 
 
-    public motion getnewmotionseg(int acclens, int gyrlens) {
-        motion motions = new motion();
+    public Motion getnewmotionseg(int acclens, int gyrlens) {
+        Motion motions = new Motion();
         int length = accx.size();
         if (acclens > length - 30) {
             acclens = length - 30;
@@ -172,7 +173,7 @@ public class sensorcontrol {
         return motions;
     }
 
-    public motion getnewmotionseg() {
+    public Motion getnewmotionseg() {
         return getnewmotionseg(accx.size(), gyrx.size());
     }
 

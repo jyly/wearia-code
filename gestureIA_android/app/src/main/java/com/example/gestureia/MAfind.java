@@ -12,7 +12,7 @@ public class MAfind {
 
     public StandardDeviation std = new StandardDeviation();
     public IAtool iatools = new IAtool();
-    public normal_tool nortools = new normal_tool();
+    public Normal_tool nortools = new Normal_tool();
     // pggpass方案中计算能量的方案
     public ArrayList<Double> energycal(ArrayList<Double> data, int win, double threshold) {
         ArrayList<Double> energy = new ArrayList<Double>();
@@ -120,8 +120,8 @@ public class MAfind {
 
 
     // 根据开始点和结束点，提取出有手势的片段出来
-    public ppg setMAsegment(ppg ppgs) {
-        ppg seppgs = new ppg();
+    public Ppg setMAsegment(Ppg ppgs) {
+        Ppg seppgs = new Ppg();
         for (int i = pointstartindex; i < pointendindex; i++) {
             seppgs.x.add(ppgs.x.get(i));
             seppgs.y.add(ppgs.x.get(i));

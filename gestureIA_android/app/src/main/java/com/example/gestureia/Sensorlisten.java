@@ -5,39 +5,17 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 
-import uk.me.berndporr.iirj.*;
-
-public class sensorlisten extends Service {
+public class Sensorlisten extends Service {
 
     private ArrayList<Double> ppgx = new ArrayList<Double>();
     private ArrayList<Double> ppgy = new ArrayList<Double>();
@@ -56,10 +34,10 @@ public class sensorlisten extends Service {
 
     private PowerManager.WakeLock wakeLock = null;
 
-    private sensorcontrol sensors = new sensorcontrol();
+    private Sensorcontrol sensors = new Sensorcontrol();
 
 
-    private normal_tool nortools = new normal_tool();
+    private Normal_tool nortools = new Normal_tool();
     private MAfind ma = new MAfind();
     private IAtool iatools = new IAtool();
 
@@ -84,8 +62,8 @@ public class sensorlisten extends Service {
             public void run() {
 
                 System.out.println("TimerTask");
-                ppg rawppgs = sensors.getnewppgseg(1800);
-                motion motions = sensors.getnewmotionseg(900);
+                Ppg rawppgs = sensors.getnewppgseg(1800);
+                Motion motions = sensors.getnewmotionseg(900);
                 Log.e(">>>","ppgx.size():"+rawppgs.x.size());
 
                 if (rawppgs.x.size() > 2000 && rawppgs.y.size() > 2000) {
@@ -104,7 +82,7 @@ public class sensorlisten extends Service {
 
                         double[] butterppgx = nortools.butterworth_highpass(orippgx, 200, 2);
                         double[] butterppgy = nortools.butterworth_highpass(orippgy, 200, 2);
-                        ppg ppgs = new ppg();
+                        Ppg ppgs = new Ppg();
                         ppgs.x = nortools.matrixtoarray(butterppgx);
                         ppgs.y = nortools.matrixtoarray(butterppgy);
                         ppgs = iatools.fastica(ppgs);
@@ -115,7 +93,7 @@ public class sensorlisten extends Service {
                         if (0 == finetag) {
                             System.out.println("当前片段不存在手势");
                         } else {
-                            feature singleFeature = new feature();
+                            Feature singleFeature = new Feature();
                             System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
                             ppgs = ma.setMAsegment(ppgs);
                             singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.x));
