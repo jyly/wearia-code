@@ -34,7 +34,6 @@ public class MAfind {
 
         double [] energy=new double[datalens - fre];
 
-
         for (int i = 0; i < (datalens - fre); i++) {
             energy[i]=std.evaluate(data, i, fre);
         }
@@ -82,7 +81,6 @@ public class MAfind {
         int tag = 0;
         double[] datainter=iatools.interationcal(data);
 
-        System.out.println();
 //		datainter=nortools.meanfilt(datainter, 20);
         datainter=nortools.standardscale(datainter);
         DecimalFormat df = new DecimalFormat("#.00");
@@ -98,7 +96,7 @@ public class MAfind {
             double tempjs=iatools.array_JS_cal(nortools.array_dataselect(datainter,i,200),nortools.array_dataselect(datainter, i+200, 200),alltag);
             JS.add(tempjs);
         }
-
+        System.out.println("JS_score:");
         for(int i=0;i<JS.size();i++) {
             System.out.print(JS.get(i)+",");
         }

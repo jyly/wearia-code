@@ -84,10 +84,12 @@ public class MainActivity extends WearableActivity {
     private IAtool iatools = new IAtool();
     private normal_tool nortools = new normal_tool();
     private MAfind ma = new MAfind();
-
+    private filecontrol filecontrols=new filecontrol();
     private long starttime = 0;
     private long currenttime = 0;
     private long ensuretime = 0;
+    private Double[][] final_feature = new Double[5][256];
+    private Interpreter tflite = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +99,36 @@ public class MainActivity extends WearableActivity {
         setContentView(R.layout.activity_main);
         setAmbientEnabled();
         permissionrequest();
-//        testtf();
+
+
+
+        try {
+            tflite = new Interpreter(loadModelFile("based_model"));
+            ArrayList<String> temp_feature = new ArrayList<String>();
+            InputStream featurefiles = getAssets().open("featuredataset/1.csv");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(featurefiles));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                temp_feature.add(line);
+            }
+            reader.close();
+            featurefiles.close();
+            //提取256位最终的向量
+            String[][] str_feature = new String[temp_feature.size()][];
+            for (int i = 0; i < temp_feature.size(); i++) {
+                str_feature[i] = temp_feature.get(i).split(",");
+            }
+            for (int i = 0; i < temp_feature.size(); i++) {
+                Double[] temp = nortools.strarraytodoublearray(str_feature[i]);
+                for (int j = 0; j < 256; j++) {
+                    final_feature[i][j] = temp[j];
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        testtf();
 
         button_start = (Button) findViewById(R.id.start);
         button_listen = (Button) findViewById(R.id.listen);
@@ -261,13 +292,92 @@ public class MainActivity extends WearableActivity {
         }
     };
 
+    public feature single_feature(ppg ppgs) {
+        feature singleFeature = new feature();
+
+        System.out.println("reading success" );
+
+        double[] orippgx = nortools.meanfilt(nortools.arraytomatrix(ppgs.x), 20);
+        double[] orippgy = nortools.meanfilt(nortools.arraytomatrix(ppgs.y), 20);
+
+        int coarsetag = ma.coarse_grained_detect(orippgx);
+        System.out.println("coarsetag:" + coarsetag);
+//		if(1==tag) {}
+
+//		//对原始的ppg型号做butterworth提取
+        double[] butterppgx = nortools.butterworth_highpass(orippgx, 200, 2);
+        double[] butterppgy = nortools.butterworth_highpass(orippgy, 200, 2);
+//
+        ppgs.x=nortools.matrixtoarray(nortools.array_dataselect(orippgx,300,orippgx.length-300));
+        ppgs.y=nortools.matrixtoarray(nortools.array_dataselect(orippgy,300,orippgy.length-300));
+
+
+        ppg butterppg=new ppg();
+        butterppg.x = nortools.matrixtoarray(nortools.array_dataselect(butterppgx,300,butterppgx.length-300));
+        butterppg.y = nortools.matrixtoarray(nortools.array_dataselect(butterppgy,300,butterppgx.length-300));
+        // 做快速主成分分析
+        butterppg = iatools.fastica(butterppg);
+//
+//		// 根据峰值判断那条手势信号和脉冲信号
+        butterppg = iatools.machoice(butterppg);
+//
+        int finetag = ma.fine_grained_segment(nortools.arraytomatrix(butterppg.x), 200, 1);
+
+        if (0 == finetag) {
+            System.out.println("当前片段不存在手势");
+        } else {
+            System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+            ppgs = ma.setMAsegment(ppgs);
+            singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.x));
+            singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.y));
+        }
+
+        return singleFeature;
+    }
+
     private void testtf() {
         try {
             //获取特征参数
+
+            long startime=System.currentTimeMillis();
+            Log.e(">>>","测试开始时间："+startime);
+
+
+            ArrayList<feature> featureset = new ArrayList<feature>();
+
+            InputStream featurefile = getAssets().open("oridataset/1.csv");
+            ppg ppg1=filecontrols.ppgreadin(featurefile);
+            feature sampleFeature = single_feature(ppg1);
+            featureset.add(sampleFeature);
+
+            featurefile = getAssets().open("oridataset/2.csv");
+            ppg1=filecontrols.ppgreadin(featurefile);
+            sampleFeature = single_feature(ppg1);
+            featureset.add(sampleFeature);
+
+            featurefile = getAssets().open("oridataset/3.csv");
+            ppg1=filecontrols.ppgreadin(featurefile);
+            sampleFeature = single_feature(ppg1);
+            featureset.add(sampleFeature);
+
+            featurefile = getAssets().open("oridataset/4.csv");
+            ppg1=filecontrols.ppgreadin(featurefile);
+            sampleFeature = single_feature(ppg1);
+            featureset.add(sampleFeature);
+
+            featurefile = getAssets().open("oridataset/5.csv");
+            ppg1=filecontrols.ppgreadin(featurefile);
+            sampleFeature = single_feature(ppg1);
+            featureset.add(sampleFeature);
+
+            long innerime=System.currentTimeMillis();
+            Log.e(">>>","特征提取结束时间："+innerime);
+
             InputStream parameterinput = getAssets().open("stdpropara.txt");
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(parameterinput));
             String temp_sort1 = reader.readLine();
-            String temp_sort2 = reader.readLine();
+//            String temp_sort2 = reader.readLine();
             String temp_scale_mean = reader.readLine();
             String temp_scale_scale = reader.readLine();
 //            Log.e(">>>","tempscale_mean:"+temp_scale_mean);
@@ -275,12 +385,12 @@ public class MainActivity extends WearableActivity {
             parameterinput.close();
 
             String[] str_sort1 = temp_sort1.replace("[", "").replace("]", "").replace(" ", "").split(",");
-            String[] strsort2 = temp_sort2.replace("[", "").replace("]", "").replace(" ", "").split(",");
+//            String[] strsort2 = temp_sort2.replace("[", "").replace("]", "").replace(" ", "").split(",");
             String[] str_scale_mean = temp_scale_mean.replace("[", "").replace("]", "").replace(" ", "").split(",");
             String[] str_scale_scale = temp_scale_scale.replace("[", "").replace("]", "").replace(" ", "").split(",");
 
             Integer[] sort1 = nortools.strarraytointarray(str_sort1);
-            Integer[] sort2 = nortools.strarraytointarray(strsort2);
+//            Integer[] sort2 = nortools.strarraytointarray(strsort2);
             Double[] scale_mean = nortools.strarraytodoublearray(str_scale_mean);
             Double[] scale_scale = nortools.strarraytodoublearray(str_scale_scale);
 //
@@ -288,58 +398,70 @@ public class MainActivity extends WearableActivity {
 //            Log.e(">>>","sort2:"+sort2[0]);
 //            Log.e(">>>","scale_mean:"+scale_mean[0]);
 //            Log.e(">>>","scale_scale:"+scale_scale[0]);
-
-            ArrayList<Integer> target = new ArrayList<Integer>();
-            ArrayList<String> temp_feature = new ArrayList<String>();
-            InputStream featurefile = getAssets().open("dataset/clc_1.csv");
-            reader = new BufferedReader(new InputStreamReader(featurefile));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                temp_feature.add(line);
-                target.add(0);
-            }
-            reader.close();
-            featurefile.close();
-
-            featurefile = getAssets().open("dataset/clx_1.csv");
-            reader = new BufferedReader(new InputStreamReader(featurefile));
-            while ((line = reader.readLine()) != null) {
-                temp_feature.add(line);
-                target.add(1);
-            }
-            reader.close();
-            featurefile.close();
-
-
-            String[][] str_feature = new String[temp_feature.size()][];
-            for (int i = 0; i < temp_feature.size(); i++) {
-                str_feature[i] = temp_feature.get(i).split(",");
-            }
-            Double[][] ppg_feature = new Double[temp_feature.size()][88];
-            for (int i = 0; i < temp_feature.size(); i++) {
-                Double[] temp = nortools.strarraytodoublearray(str_feature[i]);
-                for (int j = 0; j < 88; j++) {
+            Double[][] ppg_feature = new Double[featureset.size()][84];
+            for (int i = 0; i < featureset.size(); i++) {
+                double [] temp=nortools.arraytomatrix(featureset.get(i).features);
+                for (int j = 0; j < 84; j++) {
                     ppg_feature[i][j] = temp[j];
                 }
             }
-
             Double[][] inform_feature = new Double[ppg_feature.length][30];
-            for (int i = 0; i < temp_feature.size(); i++) {
+            for (int i = 0; i < featureset.size(); i++) {
                 for (int j = 0; j < 30; j++) {
                     inform_feature[i][j] = ppg_feature[i][sort1[j]];
                 }
             }
 
-            Log.e(">>>", "feature:" + inform_feature[0][0]);
-            ppg_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
-            Log.e(">>>", "feature:" + ppg_feature[0][0]);
+            inform_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
+            innerime=System.currentTimeMillis();
+            Log.e(">>>","数据处理结束时间："+innerime);
 
-            Integer[] targets = new Integer[target.size()];
-            for (int i = 0; i < target.size(); i++) {
-                targets[i] = target.get(i);
-            }
-            datapair pairs = iatools.create_pairs(ppg_feature, targets, 2);
-            predict(pairs);
+//            featurefile = getAssets().open("dataset/2.csv");
+//            reader = new BufferedReader(new InputStreamReader(featurefile));
+//            while ((line = reader.readLine()) != null) {
+//                temp_feature.add(line);
+//                target.add(1);
+//            }
+//            reader.close();
+//            featurefile.close();
+
+            //将文件中的特征转为30位向量
+//            String[][] str_feature = new String[temp_feature.size()][];
+//            for (int i = 0; i < temp_feature.size(); i++) {
+//                str_feature[i] = temp_feature.get(i).split(",");
+//            }
+//            Double[][] ppg_feature = new Double[temp_feature.size()][84];
+//            for (int i = 0; i < temp_feature.size(); i++) {
+//                Double[] temp = nortools.strarraytodoublearray(str_feature[i]);
+//                for (int j = 0; j < 84; j++) {
+//                    ppg_feature[i][j] = temp[j];
+//                }
+//            }
+//            Double[][] inform_feature = new Double[ppg_feature.length][30];
+//            for (int i = 0; i < temp_feature.size(); i++) {
+//                for (int j = 0; j < 30; j++) {
+//                    inform_feature[i][j] = ppg_feature[i][sort1[j]];
+//                }
+//            }
+//            Log.e(">>>", "feature:" + inform_feature[0][0]);
+//            ppg_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
+//            Log.e(">>>", "feature:" + ppg_feature[0][0]);
+
+
+
+//            Integer[] targets = new Integer[target.size()];
+//            for (int i = 0; i < target.size(); i++) {
+//                targets[i] = target.get(i);
+//            }
+//            datapair pairs = iatools.create_pairs(ppg_feature, targets, 2);
+//            predict(pairs);
+
+
+
+
+
+            sample_predict(final_feature,inform_feature);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -403,7 +525,48 @@ public class MainActivity extends WearableActivity {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
 
-    public void predict(final datapair pairs) {
+
+    public void sample_predict(final Double[][] final_feature, final Double[][] inform_feature) {
+        //Runs inference in background thread
+        new AsyncTask<Integer, Integer, Integer>() {
+
+            @Override
+            protected Integer doInBackground(Integer... params) {
+                int datalen=inform_feature.length;
+                float[][]datax=new float[datalen][30];
+                for (int i = 0; i < datalen; i++) {
+                    for (int j = 0; j < 30; j++) {
+                        datax[i][j]=(float)(double)inform_feature[i][j];
+                    }
+                }
+                Log.d(">>>", " model load success");
+                float[][] outPutsx = new float[datalen][256];//结果分类
+                tflite.run(datax, outPutsx);
+                float []score=new float[datalen];
+                for(int i=0;i<datalen;i++){
+                    float temp=0;
+                    for(int j=0;j<final_feature.length;j++){
+                        for(int k=0;k<256;k++){
+                            temp=temp+(outPutsx[i][k]-(float)(double)final_feature[j][k])*(outPutsx[i][k]-(float)(double)final_feature[j][k]);
+                        }
+                    }
+                    temp=temp/5;
+
+                    score[i]=(float)Math.sqrt(temp);
+                }
+                for (int i = 0; i < datalen; i++) {
+                    Log.e(">>>", "score[i]:" + score[i] + "," + i);
+                }
+                long stoptime=System.currentTimeMillis();
+                Log.e(">>>","测试结束时间："+stoptime);
+                return 0;
+            }
+
+        }.execute(0);
+
+    }
+
+    public void pair_predict(final datapair pairs) {
         //Runs inference in background thread
         new AsyncTask<Integer, Integer, Integer>() {
 
@@ -432,85 +595,57 @@ public class MainActivity extends WearableActivity {
                     }
                 }
 
-                Interpreter tflite;
                 Boolean load_result;
-                try {
-                    tflite = new Interpreter(loadModelFile("ppg_based_model"));
-                    Log.d(">>>", " model load success");
-                    float[][] outPutsx = new float[datalen][256];//结果分类
-                    float[][] outPutsy = new float[datalen][256];//结果分类
+                Log.d(">>>", " model load success");
+                float[][] outPutsx = new float[datalen][256];//结果分类
+                float[][] outPutsy = new float[datalen][256];//结果分类
 
-                    tflite.run(datax, outPutsx);
-                    tflite.run(datay, outPutsy);
-                    float []score=new float[datalen];
-                    for(int i=0;i<datalen;i++){
-                        float temp=0;
-                        for(int j=0;j<256;j++){
-                            temp=temp+(outPutsx[i][j]-outPutsy[i][j])*(outPutsx[i][j]-outPutsy[i][j]);
-                        }
-                        score[i]=(float)Math.sqrt(temp);
+                tflite.run(datax, outPutsx);
+                tflite.run(datay, outPutsy);
+                float []score=new float[datalen];
+                for(int i=0;i<datalen;i++){
+                    float temp=0;
+                    for(int j=0;j<256;j++){
+                        temp=temp+(outPutsx[i][j]-outPutsy[i][j])*(outPutsx[i][j]-outPutsy[i][j]);
                     }
-                    for (int i = 0; i < datalen; i++) {
-                        Log.e(">>>", "score[i]:" + score[i] + "," + i);
-                    }
-                    double t=0.01;
-                    while(t<3){
-                        int tp=0;
-                        int tn=0;
-                        int fp=0;
-                        int fn=0;
-                        for(int j=0;j<datalen;j++){
-                            if(score[j]<t){
-                                if(1==label[j]){
-                                    tp=tp+1;
-                                }else{
-                                    fp=fp+1;
-                                }
+                    score[i]=(float)Math.sqrt(temp);
+                }
+                for (int i = 0; i < datalen; i++) {
+                    Log.e(">>>", "score[i]:" + score[i] + "," + i);
+                }
+                double t=0.01;
+                while(t<3){
+                    int tp=0;
+                    int tn=0;
+                    int fp=0;
+                    int fn=0;
+                    for(int j=0;j<datalen;j++){
+                        if(score[j]<t){
+                            if(1==label[j]){
+                                tp=tp+1;
                             }else{
-                                if(1==label[j]){
-                                    fn=fn+1;
-                                }else{
-                                    tn=tn+1;
-                                }
+                                fp=fp+1;
+                            }
+                        }else{
+                            if(1==label[j]){
+                                fn=fn+1;
+                            }else{
+                                tn=tn+1;
                             }
                         }
+                    }
 //                        Log.e(">>>","tp:"+tp+",fp:"+fp+",frr:"+frr);
 
-                        double accuracy=(double)(tp+tn)/(tp+tn+fp+fn);
-                        double far=(double)(fp)/(fp+tn);
-                        double frr=(double)(fn)/(fn+tp);
-                        if ((frr<far) || (abs(frr-far)<0.02)){
-                            Log.e(">>>","accuracy:"+accuracy+",far:"+far+",frr:"+frr);
-                            break;
-                        }
-                        t=t+0.01;
+                    double accuracy=(double)(tp+tn)/(tp+tn+fp+fn);
+                    double far=(double)(fp)/(fp+tn);
+                    double frr=(double)(fn)/(fn+tp);
+                    if ((frr<far) || (abs(frr-far)<0.02)){
+                        Log.e(">>>","accuracy:"+accuracy+",far:"+far+",frr:"+frr);
+                        break;
                     }
-
-
-
-
-                    load_result = true;
-                } catch (IOException e) {
-                    Log.d(">>>", " model load fail");
-                    load_result = false;
-                    e.printStackTrace();
+                    t=t+0.01;
                 }
 
-
-//                Interpreter.Options options = new Interpreter.Options();
-//                options.setNumThreads(4);
-//                tflite = new Interpreter(new File("stdpropara.txt"), options);
-                //名称，输入张量，张量维度
-//                    tf.feed("input",datax[0],1,30);
-//                    //计算结果
-//                    tf.run(new String[]{"output"});
-//
-//                    double [] outPuts1 = new double[256];//结果分类
-//                    //将结果输出到output上
-//                    tf.fetch("output",outPuts1);
-//                    for(int i=0;i<256;i++){
-//                        Log.e(">>>","outPuts[i]:"+outPuts1[i]+","+i);
-//                    }
                 return 0;
             }
 

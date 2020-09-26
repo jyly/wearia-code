@@ -53,11 +53,11 @@ def featurewrite(feature,filename):
 	outputfile.close()
 
 def featurewrite2(feature,target):
-	featurefilepath='feature.csv'
+	featurefilepath='finalfeature.csv'
 	outputfile=open(featurefilepath,'w+')
 	for i in range(len(feature)):
-		outputfile.write(str(target[i]))
-		outputfile.write(',')
+		# outputfile.write(str(target[i]))
+		# outputfile.write(',')
 		for j in range(len(feature[i])):
 			outputfile.write(str(feature[i][j]))
 			outputfile.write(',')

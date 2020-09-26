@@ -330,29 +330,6 @@ def vgg_16_base(input_shape):
 
 def create_siamese_network(input_shape):
     
-    # base_network = conv_network(input_shape)
-    base_network = mlp_network(input_shape)
-    # base_network = mlp_network_incre(input_shape)
-    # base_network = cwt_network(input_shape)
-    # base_network = vgg_16_base(input_shape)
-    # base_network = resnet_keras.ResNet50(input_shape)
-
-    input_a = Input(shape=input_shape, name='input1')
-    input_b = Input(shape=input_shape, name='input2')
-    processed_a = base_network(input_a)
-    processed_b = base_network(input_b)
-    distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-    model = Model([input_a, input_b], distance)
-    model.summary()
-
-    # train
-    rms = optimizers.RMSprop()
-    model.compile(loss=contrastive_loss_1, optimizer=rms, metrics=[accuracy])
-    return model
-
-
-def create_siamese_network_2(input_shape):
-    
     base_network = mlp_network(input_shape)
 
     input_a = Input(shape=input_shape)

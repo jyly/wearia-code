@@ -35,8 +35,7 @@ public class MAfind {
 		int datalens = data.length;
 
 		double [] energy=new double[datalens - fre];
-		
-	
+			
 		for (int i = 0; i < (datalens - fre); i++) {
 			energy[i]=std.evaluate(data, i, fre);
 		}
@@ -83,7 +82,6 @@ public class MAfind {
 	public int coarse_grained_detect(double[] data) {
 		int tag = 0;
 		double[] datainter=iatools.interationcal(data);
-
 
 //		datainter=nortools.meanfilt(datainter, 20);
 		datainter=nortools.standardscale(datainter);

@@ -99,7 +99,7 @@ public class feature {
 		features.add(kurtosis.evaluate(extrafftmatrix));
 		features.add(skewness.evaluate(extrafftmatrix));
 
-		// �ֽ��9�׵���ɢС��
+		// 分解成9阶的离散小波
 		double[][] coeffs = null;
 		Transform t = new Transform(new FastWaveletTransform(new Haar1()));
 		coeffs = t.decompose(tempdata);
@@ -113,8 +113,7 @@ public class feature {
 		features.add(means.evaluate(selecteffs));
 		features.add(stds.evaluate(selecteffs));
 		features.add(maxs.evaluate(selecteffs) - mins.evaluate(selecteffs));
-		features.add(maxs.evaluate(selecteffs));
-		features.add(mins.evaluate(selecteffs));
+
 		rms = 0;
 		absamplitude = 0;
 		diversion = 0;
@@ -128,7 +127,7 @@ public class feature {
 		features.add(absamplitude / selecteffs.length);
 		features.add(diversion / selecteffs.length);
 
-		// �Իع�ϵ��
+		// 自回归系数
 		for (int i = 1; i < 10; i++) {
 			features.add(nortools.get_auto_corr(data, i));
 		}
@@ -137,7 +136,4 @@ public class feature {
 //				}
 
 	}
-
-	public void motion_feature(double[] data) {}
-
 }

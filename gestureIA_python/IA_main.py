@@ -48,7 +48,7 @@ if __name__ == "__main__":
 	# siamese_classifier.siamese_femotion_test_predature_inidivide_class(feature,target,targetnum)
 	# siamese_classifier.siamese_mul_feature_divide_class(feature,target,targetnum)
 
-	siamese_classifier.siamese_feature_build_class(feature,target,40,30)
+	# siamese_classifier.siamese_feature_build_class(feature,target,40,30)
 	siamese_classifier.siamese_feature_final_class(feature,target,40,30,5)
 	
 	# siamese_classifier.siamese_feature_mul_build_class(feature,target,40,30)

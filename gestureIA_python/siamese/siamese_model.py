@@ -38,7 +38,7 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
     print("测试集对数：",test_pairs.shape)
     input_shape = (len(train_data[0]),)
   
-    model=create_siamese_network(input_shape)
+    model,based_model=create_siamese_network(input_shape)
     # model=create_presudo_siamese_network(input_shape)
     
     # train_pairs,val_pairs, train_label, val_label = train_test_split(train_pairs,train_label,test_size = 0.2,random_state = 30,stratify=train_label)
@@ -82,7 +82,6 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
     temp_pred=[]
     for i in range(int(len(test_label))):
         temppred=0
-        # temp_label.append(test_label[i*anchornum])
         for j in range(anchornum):
             temppred+=test_pred[i*anchornum+j]
         temp_pred.append(temppred/anchornum)
@@ -105,9 +104,10 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
     print("train_pairs.shape:",train_pairs.shape)
     input_shape = (len(train_data[0]),)
 
-    model=create_siamese_network(input_shape)
+    model,based_model=create_siamese_network(input_shape)
     # model=create_presudo_siamese_network(input_shape)
-    
+   
+
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
            batch_size=8192,epochs=40)  
@@ -122,7 +122,10 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
     #   epochs=50,steps_per_epoch=(int(len(train_pairs)/batch_size)+1)
     #   )
 
-    model.save_weights('feature_model_weights.h5')
+    model.save_weights('model_weights.h5')
+    based_model.save_weights('based_model_weights.h5')
+    based_model.save('based_model.h5')
+
     train_pred = model.predict([train_pairs[:, 0], train_pairs[:, 1]])
 
     #计算训练集中的判定分数的均值
@@ -143,12 +146,23 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
 
 def siamese_feature_final(data,target,num_classes,anchornum=5):
     # test_pairs, test_label = create_pairs_incre_1(data, target,num_classes)
+    # based_model=load_model('based_model.h5')
+    # based_model.summary()
+    # x=based_model.predict(data)
+    # featurewrite2(x,target)
+
     test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
     input_shape = (len(data[0]),)
     print(input_shape)
    
-    model=create_siamese_network(input_shape)
-    model.load_weights('feature_model_weights.h5')
+    model,based_model=create_siamese_network(input_shape)
+    model.load_weights('model_weights.h5')
+
+    based_model =load_model('based_model.h5')
+    converter = tf.lite.TFLiteConverter.from_keras_model(based_model)
+    tflite_model = converter.convert()
+    open("based_model.tflite", "wb").write(tflite_model)
+
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
     print("len(test_pred):",len(test_pred))
 
@@ -185,7 +199,7 @@ def siamese_mul_feature(train_data,test_data, train_target,test_target, trainind
 
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
 
-    ppg_model=create_siamese_network(input_shape)
+    ppg_model,ppg_based_model=create_siamese_network(input_shape)
     history = ppg_model.fit([train_pairs[:, 0,:featurenum], train_pairs[:, 1,:featurenum]], train_label,  
            batch_size=8192, epochs=40)  
     ppg_model.save_weights('ppg_model_weights.h5')
@@ -209,7 +223,7 @@ def siamese_mul_feature(train_data,test_data, train_target,test_target, trainind
     print('* Accuracy on ppg test set: %0.2f%%' % (100 * te_acc))
 
 
-    motion_model=create_siamese_network(input_shape)
+    motion_model,motion_based_model=create_siamese_network(input_shape)
     history = motion_model.fit([train_pairs[:, 0,featurenum:2*featurenum], train_pairs[:, 1,featurenum:2*featurenum]], train_label,  
            batch_size=8192, epochs=40)  
     motion_model.save_weights('motion_model_weights.h5')
@@ -282,16 +296,16 @@ def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
   
     # dirs='C:\\Users\\jyly\\Documents\\GitHub\\wearia-code\\gestureIA'
 
-    ppg_model=create_siamese_network(input_shape)
+    ppg_model,ppg_based_network=create_siamese_network(input_shape)
     ppg_model.load_weights('ppg_model_weights.h5')
 
-    base_network =load_model('ppg_based_model.h5')
+    ppg_based_network =load_model('ppg_based_model.h5')
     # base_network = mlp_network(input_shape)
     # base_network.load_weights('ppg_based_model.h5')
 
     # converter = tf.lite.TFLiteConverter.from_keras_model_file('ppg_based_model.h5')
     # converter = tf.lite.TFLiteConverter.from_saved_model('ppg_based_model.h5')
-    converter = tf.lite.TFLiteConverter.from_keras_model(base_network)
+    converter = tf.lite.TFLiteConverter.from_keras_model(ppg_based_network)
     tflite_model = converter.convert()
     open("ppg_based_model.tflite", "wb").write(tflite_model)
 
@@ -321,11 +335,11 @@ def siamese_mul_feature_final(data,target,num_classes,featurenum,anchornum=5):
     # ppg_test_pred=score
 
 
-    motion_model=create_siamese_network(input_shape)
+    motion_model,motion_based_network=create_siamese_network(input_shape)
     motion_model.load_weights('motion_model_weights.h5')
 
-    base_network =load_model('motion_based_model.h5')
-    converter = tf.lite.TFLiteConverter.from_keras_model(base_network)
+    motion_based_network =load_model('motion_based_model.h5')
+    converter = tf.lite.TFLiteConverter.from_keras_model(motion_based_network)
     tflite_model = converter.convert()
     open("motion_based_model.tflite", "wb").write(tflite_model)
 

@@ -29,11 +29,6 @@ public class sensorcontrol {
     public List<Sensor> sensorList;
 
     public void StartSensorListening(Context context) {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//            }
-//        }).start();
 
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(65572), 0);//Heart Rate PPG Raw Data 200hz
