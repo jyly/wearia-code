@@ -15,23 +15,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Sensorlisten extends Service {
-
-    private ArrayList<Double> ppgx = new ArrayList<Double>();
-    private ArrayList<Double> ppgy = new ArrayList<Double>();
-
-    private ArrayList<Double> accx = new ArrayList<Double>();
-    private ArrayList<Double> accy = new ArrayList<Double>();
-    private ArrayList<Double> accz = new ArrayList<Double>();
-
-    private ArrayList<Double> gyrx = new ArrayList<Double>();
-    private ArrayList<Double> gyry = new ArrayList<Double>();
-    private ArrayList<Double> gyrz = new ArrayList<Double>();
-
-    private ArrayList<Long> ppgtimestamps = new ArrayList<>();
-    private ArrayList<Long> acctimestamps = new ArrayList<>();
-    private ArrayList<Long> gyrtimestamps = new ArrayList<>();
-
+public class behaviorlisten extends Service {
     private PowerManager.WakeLock wakeLock = null;
 
     private Sensorcontrol sensors = new Sensorcontrol();
@@ -49,7 +33,7 @@ public class Sensorlisten extends Service {
         Log.i("Kathy", "onCreate - Thread ID = " + Thread.currentThread().getId());
         super.onCreate();
 
-        energyopen();
+        iatools.energyopen(getApplicationContext());
 
 
 //        launch();
@@ -62,11 +46,14 @@ public class Sensorlisten extends Service {
             public void run() {
 
                 System.out.println("TimerTask");
-                Ppg rawppgs = sensors.getnewppgseg(1800);
-                Motion motions = sensors.getnewmotionseg(900);
-                Log.e(">>>","ppgx.size():"+rawppgs.x.size());
 
-                if (rawppgs.x.size() > 2000 && rawppgs.y.size() > 2000) {
+                Log.e(">>>","ppg.size():"+sensors.getppgsize());
+
+                if (sensors.getppgsize() > 2000 ) {
+
+                    Ppg rawppgs = sensors.getnewppgseg(1800);
+                    Motion motions = sensors.getnewmotionseg(900);
+
                     sensors.datadelete();
 
                     double[] tempx = nortools.arraytomatrix(rawppgs.x);
@@ -93,18 +80,18 @@ public class Sensorlisten extends Service {
                         if (0 == finetag) {
                             System.out.println("当前片段不存在手势");
                         } else {
-                            Feature singleFeature = new Feature();
+                            Featurecontrol singleFeaturecontrol = new Featurecontrol();
                             System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
                             ppgs = ma.setMAsegment(ppgs);
-                            singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.x));
-                            singleFeature.ppg_feature(nortools.arraytomatrix(ppgs.y));
+                            singleFeaturecontrol.ppg_feature(nortools.arraytomatrix(ppgs.x));
+                            singleFeaturecontrol.ppg_feature(nortools.arraytomatrix(ppgs.y));
                         }
                     }
 
 //                    stopService(new Intent(getBaseContext(), sensorlisten.class));
                 }
             }
-        }, 100, 2000);
+        }, 100, 1000);
     }
 
     @Override
@@ -123,47 +110,10 @@ public class Sensorlisten extends Service {
     public void onDestroy() {
         Log.i("Kathy", "onDestroy - Thread ID = " + Thread.currentThread().getId());
         sensors.StopSensorListening();
-        energyclose();
-        super.onDestroy();
+        iatools.energyclose();
+//        super.onDestroy();
     }
 
 
-    public void datadelete() {
-        while (ppgx.size() > 4000) {
-            ppgx.remove(0);
-            ppgy.remove(0);
-            ppgtimestamps.remove(0);
-        }
-
-        while (accx.size() > 2000) {
-            accx.remove(0);
-            accy.remove(0);
-            accz.remove(0);
-            acctimestamps.remove(0);
-        }
-
-        while (gyrx.size() > 2000) {
-            gyrx.remove(0);
-            gyry.remove(0);
-            gyrz.remove(0);
-            gyrtimestamps.remove(0);
-        }
-    }
-
-
-    @SuppressLint("InvalidWakeLockTag")
-    private void energyopen() {
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "smartAwake");
-        wakeLock.acquire();
-    }
-
-
-    private void energyclose() {
-        if (wakeLock != null) {
-            wakeLock.release();
-            wakeLock = null;
-        }
-    }
 
 }

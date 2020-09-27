@@ -1,5 +1,7 @@
 package com.example.gestureia;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 import org.apache.commons.math3.stat.descriptive.moment.Kurtosis;
@@ -18,8 +20,7 @@ import jwave.Transform;
 import jwave.transforms.FastWaveletTransform;
 import jwave.transforms.wavelets.haar.Haar1;
 
-public class Feature {
-	public ArrayList<Double> features = new ArrayList<Double>();
+public class Featurecontrol {
 
 	public StandardDeviation stds = new StandardDeviation();
 	public Mean means = new Mean();
@@ -31,10 +32,12 @@ public class Feature {
 
 	public IAtool iatools = new IAtool();
 	public Normal_tool nortools = new Normal_tool();
+	private MAfind ma = new MAfind();
 
 	FastFourierTransformer ffts = new FastFourierTransformer(DftNormalization.STANDARD);
 
-	public void ppg_feature(double[] data) {
+	public ArrayList<Double> ppg_feature(double[] data) {
+		ArrayList<Double> features = new ArrayList<Double>();
 
 		double[] tempdata = iatools.to2power(data);
 		int datalen = data.length;
@@ -134,6 +137,47 @@ public class Feature {
 //				for(int i=0;i<features.size();i++) {
 //					System.out.println("feature["+i+"]:"+features.get(i));
 //				}
-
+		return features;
 	}
+
+	public ArrayList<Double> sample_feature(Ppg ppgs) {
+		ArrayList<Double> samplefeature= new ArrayList<Double>();
+		double[] orippgx = nortools.meanfilt(nortools.arraytomatrix(ppgs.x), 20);
+		double[] orippgy = nortools.meanfilt(nortools.arraytomatrix(ppgs.y), 20);
+
+//        int coarsetag = ma.coarse_grained_detect(orippgx);
+//        System.out.println("coarsetag:" + coarsetag);
+//		if(1==tag) {}
+//		//对原始的ppg型号做butterworth提取
+		double[] butterppgx = nortools.butterworth_highpass(orippgx, 200, 2);
+		double[] butterppgy = nortools.butterworth_highpass(orippgy, 200, 2);
+
+		Ppg butterppg = new Ppg();
+		butterppg.x = nortools.matrixtoarray(nortools.array_dataselect(butterppgx, 300, butterppgx.length - 300));
+		butterppg.y = nortools.matrixtoarray(nortools.array_dataselect(butterppgy, 300, butterppgx.length - 300));
+		// 做快速主成分分析
+		butterppg = iatools.fastica(butterppg);
+		// 根据峰值判断那条手势信号和脉冲信号
+		butterppg = iatools.machoice(butterppg);
+		//细粒度手势分析，判断手势区间
+		int finetag = ma.fine_grained_segment(nortools.arraytomatrix(butterppg.x), 200, 1);
+		if (0 == finetag) {
+			Log.e(">>>", "当前片段不存在手势");
+		} else {
+			ppgs.x = nortools.matrixtoarray(nortools.array_dataselect(orippgx, 300, orippgx.length - 300));
+			ppgs.y = nortools.matrixtoarray(nortools.array_dataselect(orippgy, 300, orippgy.length - 300));
+			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+			ppgs = ma.setMAsegment(ppgs);
+			ArrayList<Double> tempx=ppg_feature(nortools.arraytomatrix(ppgs.x));
+			for(int i=0;i<tempx.size();i++){
+				samplefeature.add(tempx.get(i));
+			}
+			ArrayList<Double> tempy=ppg_feature(nortools.arraytomatrix(ppgs.y));
+			for(int i=0;i<tempx.size();i++){
+				samplefeature.add(tempy.get(i));
+			}
+		}
+		return samplefeature;
+	}
+
 }

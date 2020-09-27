@@ -212,29 +212,29 @@ public class IAtool {
         return finalfeature;
     }
 
-    public Datapair create_pairs(Double[][]data, Integer[]target, int num_classes){
-        Integer [] classnum=new Integer [2];
-        Datapair pairs=new Datapair();
-        for(int i=0;i<num_classes;i++){
-            int temp=0;
-            for(int j=0;j<target.length;j++){
-                if(i==target[j]){
-                    temp++;
-                }
-            }
-            classnum[i]=temp;
-        }
-        for(int i=0;i<(classnum[0]-1);i++){
-            pairs.x.add(data[i]);
-            pairs.y.add(data[i+1]);
-            pairs.label.add(1);
-            int rands=(int)(1+Math.random()*(classnum[1]-2));
-            pairs.x.add(data[i]);
-            pairs.y.add(data[classnum[0]+rands]);
-            pairs.label.add(0);
-        }
-        Log.e(">>>","pairs.size；"+pairs.x.size());
-
-        return pairs;
-    }
+//    public Datapair create_pairs(Double[][]data, Integer[]target, int num_classes){
+//        Integer [] classnum=new Integer [2];
+//        Datapair pairs=new Datapair();
+//        for(int i=0;i<num_classes;i++){
+//            int temp=0;
+//            for(int j=0;j<target.length;j++){
+//                if(i==target[j]){
+//                    temp++;
+//                }
+//            }
+//            classnum[i]=temp;
+//        }
+//        for(int i=0;i<(classnum[0]-1);i++){
+//            pairs.x.add(data[i]);
+//            pairs.y.add(data[i+1]);
+//            pairs.label.add(1);
+//            int rands=(int)(1+Math.random()*(classnum[1]-2));
+//            pairs.x.add(data[i]);
+//            pairs.y.add(data[classnum[0]+rands]);
+//            pairs.label.add(0);
+//        }
+//        Log.e(">>>","pairs.size；"+pairs.x.size());
+//
+//        return pairs;
+//    }
 }

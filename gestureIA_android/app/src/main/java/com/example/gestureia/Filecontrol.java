@@ -1,6 +1,7 @@
 package com.example.gestureia;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -130,6 +131,7 @@ public class Filecontrol {
 	public void basedfeaturewrite(Context context,ArrayList<float[]> featureset) {
 		try {
 			String fileName = context.getExternalFilesDir("").getAbsolutePath() + "basedfeature.csv";//文件存储路径
+			Log.e(">>>","filename:"+fileName);
 			File file=new File(fileName);
 			if(file.exists()){
 				file.delete();

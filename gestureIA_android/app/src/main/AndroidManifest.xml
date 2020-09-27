@@ -32,7 +32,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="ice_cream_sandwich">
         <service
-            android:name=".Sensorlisten"
+            android:name=".behaviorlisten"
             android:enabled="true"
             android:exported="true"></service>
 

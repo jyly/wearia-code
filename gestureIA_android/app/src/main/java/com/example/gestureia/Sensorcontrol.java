@@ -199,5 +199,14 @@ public class Sensorcontrol {
         }
     }
 
+    public int getppgsize(){
+        return  ppgx.size();
+    }
 
+    public int getaccsize(){
+        return  accx.size();
+    }
+    public int getgyrsize(){
+        return  gyrx.size();
+    }
 }
