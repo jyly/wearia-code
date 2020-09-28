@@ -103,9 +103,9 @@ public class MAfind {
         System.out.println("");
         for(int i=0;i<JS.size()-6;i++) {
             int flagnum=0;
-            if(JS.get(i)>0.5) {
+            if(JS.get(i)>0.45) {
                 for(int j=i;j<i+6;j++) {
-                    if(JS.get(j)>0.5) {
+                    if(JS.get(j)>0.45) {
                         flagnum++;
                     }
                 }

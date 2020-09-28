@@ -159,7 +159,16 @@ public class Normal_tool {
 
     // 序列转矩阵
     public double[] arraytomatrix(ArrayList<Double> data) {
+        ArrayList<Double> finaldata=new ArrayList<Double>();
+
+        for (int i = 0; i < data.size(); i++) {
+                if(data.get(i)!=null){
+                    finaldata.add(data.get(i));
+                }
+        }
+        data=finaldata;
         int datalength = data.size();
+
         double[] matrix = new double[datalength];
         for (int i = 0; i < datalength; i++) {
             matrix[i] = data.get(i);

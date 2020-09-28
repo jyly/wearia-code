@@ -204,10 +204,10 @@ public class IAtool {
         return nortools.JS_divergence(Ptag, Qtag);
     }
 
-    public Double[] featurestd(Double feature[],Double[]scale_mean,Double[]scale_scale){
-        Double []finalfeature=new Double[30];
+    public float[] featurestd(float feature[],Double[]scale_mean,Double[]scale_scale){
+        float []finalfeature=new float[30];
             for(int i=0;i<30;i++){
-                finalfeature[i]=(feature[i]-scale_mean[i])/scale_scale[i];
+                finalfeature[i]=(feature[i]-(float)(double)scale_mean[i])/(float)(double)scale_scale[i];
             }
         return finalfeature;
     }

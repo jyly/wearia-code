@@ -48,13 +48,26 @@
                 android:layout_gravity="center"
                 android:text="开始登记数据"
                 android:textSize="17sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal">
             <Button
-                android:id="@+id/listen"
-                android:layout_width="170dp"
+                android:id="@+id/listen_start"
+                android:layout_width="80dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
-                android:text="开始手势认证"
+                android:text="start"
                 android:textSize="17sp" />
+            <Button
+                android:id="@+id/listen_stop"
+                android:layout_width="80dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:text="stop"
+                android:textSize="17sp" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

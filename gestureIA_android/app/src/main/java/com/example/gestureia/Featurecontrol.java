@@ -166,7 +166,8 @@ public class Featurecontrol {
 		} else {
 			ppgs.x = nortools.matrixtoarray(nortools.array_dataselect(orippgx, 300, orippgx.length - 300));
 			ppgs.y = nortools.matrixtoarray(nortools.array_dataselect(orippgy, 300, orippgy.length - 300));
-			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+//			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+			Log.e(">>>","手势点：" + ma.pointstartindex + " " + ma.pointendindex);
 			ppgs = ma.setMAsegment(ppgs);
 			ArrayList<Double> tempx=ppg_feature(nortools.arraytomatrix(ppgs.x));
 			for(int i=0;i<tempx.size();i++){

@@ -18,16 +18,16 @@ if __name__ == "__main__":
 
 	#数据预处理
 	# wear_data_preprocess.all_data(wear_datadir)#提取手势的具体数据段
-	# wear_data_preprocess.all_feature(wear_datadir)#提取手势具体数据段的特征
+	wear_data_preprocess.all_feature(wear_datadir)#提取手势具体数据段的特征
 
 
 	# 将预处理后的数据从文件读到内存
 	# dataset,target,targetnum=filecontrol.dataread()
-	feature,target,targetnum=filecontrol.featureread()
+	# feature,target,targetnum=filecontrol.featureread()
 
-	print("总样本数：",len(target))
-	print("总类别数：",targetnum)	
-	print("总特征数：",len(feature[0]))
+	# print("总样本数：",len(target))
+	# print("总类别数：",targetnum)	
+	# print("总特征数：",len(feature[0]))
 
 
 	# sklrean分类
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 	# siamese_classifier.siamese_mul_feature_divide_class(feature,target,targetnum)
 
 	# siamese_classifier.siamese_feature_build_class(feature,target,40,30)
-	siamese_classifier.siamese_feature_final_class(feature,target,40,30,5)
+	# siamese_classifier.siamese_feature_final_class(feature,target,40,30,5)
 	
 	# siamese_classifier.siamese_feature_mul_build_class(feature,target,40,30)
 	# siamese_classifier.siamese_feature_mul_final_class(feature,target,40,30,5)

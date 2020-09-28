@@ -51,7 +51,8 @@ import static java.lang.Math.abs;
 public class MainActivity extends WearableActivity {
 
     private Button button_register;
-    private Button button_listen;
+    private Button button_listen_start;
+    private Button button_listen_stop;
     private Spinner gesture_spinner;
 
     private Button button_add;
@@ -83,9 +84,9 @@ public class MainActivity extends WearableActivity {
     //          private   Integer[] sort2 = nortools.strarraytointarray(strsort2);
     private Double[] scale_mean = null;
     private Double[] scale_scale = null;
-    private Double[][] final_feature = null;
     private Interpreter tflite = null;
 
+    private Double[][] final_feature = null;
     private ArrayList<Ppg> ppg_record = new ArrayList<Ppg>();
     private ArrayList<Motion> motion_record = new ArrayList<Motion>();
     private ArrayList<float[]> features_record = new ArrayList<float[]>();
@@ -98,8 +99,8 @@ public class MainActivity extends WearableActivity {
         setContentView(R.layout.activity_main);
         setAmbientEnabled();
         permissionrequest();
-        readmodelpara();
-        readbasedfeature();
+//        readmodelpara();
+//        readbasedfeature();
 //
 //        testtf();
         //加载下拉列表
@@ -110,14 +111,19 @@ public class MainActivity extends WearableActivity {
 
 
         button_register = (Button) findViewById(R.id.register);
-        button_listen = (Button) findViewById(R.id.listen);
+        button_listen_start = (Button) findViewById(R.id.listen_start);
+        button_listen_stop = (Button) findViewById(R.id.listen_stop);
 
 //        后台监听
-        button_listen.setOnClickListener(new View.OnClickListener() {
+        button_listen_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e(">>.", "service start！");
+
+                readbasedfeature();
                 if (final_feature == null) {
                     Toast.makeText(getApplicationContext(), "请选择先注册手势！", Toast.LENGTH_LONG).show();
+                    Log.e(">>.", "请选择先注册手势！");
                 } else {
                     startService(new Intent(getBaseContext(), behaviorlisten.class));
                     //获取当前设备已安装的包名
@@ -135,12 +141,17 @@ public class MainActivity extends WearableActivity {
 //                        e.printStackTrace();
 //                        Log.e(">>>","当前设备不存在支付宝应用，请前往应用市场下载。");
 //                    }
-
-
                 }
-//                stopService(new Intent(getBaseContext(), sensorlisten.class));
+            }
+        });
 
-
+        button_listen_stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(">>.", "service stop！");
+                sensors.StopSensorListening();
+                iatools.energyclose();
+                stopService(new Intent(getBaseContext(), behaviorlisten.class));
 
             }
         });
@@ -148,11 +159,13 @@ public class MainActivity extends WearableActivity {
         button_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 final String gesture_item = gesture_spinner.getSelectedItem().toString();
                 int lens = gesture_item.length();
                 if (lens > 3) {
                     Toast.makeText(getApplicationContext(), "请选择要登记的手势！", Toast.LENGTH_LONG).show();
                 } else {
+                    readmodelpara();
                     Toast.makeText(getApplicationContext(), "系统初始化，请稍后！", Toast.LENGTH_LONG).show();
                     setContentView(R.layout.gesture_record);
 
@@ -179,14 +192,20 @@ public class MainActivity extends WearableActivity {
                             sensors.StopSensorListening();
                             iatools.energyclose();
                             //将最终向量保存到文件中
-                            for (int i = 0; i < final_feature.length; i++) {
-                                float[] temp = new float[final_feature[i].length];
-                                for (int j = 0; j < final_feature[i].length; j++) {
-                                    temp[j] = (float) (double) final_feature[i][j];
-                                }
-                                features_record.add(temp);
+
+//                            for (int i = 0; i < final_feature.length; i++) {
+//                                float[] temp = new float[final_feature[i].length];
+//                                for (int j = 0; j < final_feature[i].length; j++) {
+//                                    temp[j] = (float) (double) final_feature[i][j];
+//                                }
+//                                features_record.add(temp);
+//                            }
+                            if(features_record.size()>0) {
+
+                                filecontrols.basedfeaturewrite(getApplicationContext(), features_record);
+                            }else{
+                                Log.e(">>>","当前无手势特征录入文件");
                             }
-                            filecontrols.basedfeaturewrite(getApplicationContext(), features_record);
                             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(intent);
 
@@ -221,9 +240,9 @@ public class MainActivity extends WearableActivity {
                                 handler.sendMessage(msg);
                                 //计算当前片段通过网络后的向量
                                 ArrayList<Double> temp = featurecontrols.sample_feature(rawppgs);
-                                Double[] inform_feature = new Double[30];
+                                float[] inform_feature = new float[30];
                                 for (i = 0; i < 30; i++) {
-                                    inform_feature[i] = temp.get(sort1[i]);
+                                    inform_feature[i] = (float) (double) temp.get(sort1[i]);
                                 }
                                 inform_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
                                 features_record.add(siamese.sample_feature(tflite, inform_feature));
@@ -792,6 +811,4 @@ public class MainActivity extends WearableActivity {
             }
         }).start();
     }
-
-
 }
