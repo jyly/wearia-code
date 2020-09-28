@@ -138,4 +138,51 @@ public class feature {
 	}
 
 
+	public void motion_feature(double[] data) {
+
+		double[] tempdata = iatools.to2power(data);
+		int datalen = data.length;
+
+		features.add(means.evaluate(data));
+		features.add(stds.evaluate(data));
+		features.add(maxs.evaluate(data) - mins.evaluate(data));
+		features.add(maxs.evaluate(data));
+		features.add(mins.evaluate(data));
+		features.add(percentile.evaluate(data, 50));
+		features.add(kurtosis.evaluate(data));
+		features.add(skewness.evaluate(data));
+
+		double mean = means.evaluate(data);
+		double rms = 0, absamplitude = 0, diversion = 0;
+		for (int i = 0; i < datalen; i++) {
+			rms = rms + data[i] * data[i];
+			absamplitude = absamplitude + Math.abs(data[i] - mean);
+			diversion = diversion + Math.abs(data[i]);
+		}
+		features.add(Math.sqrt(rms / datalen));
+		features.add(absamplitude / datalen);
+		features.add(diversion / datalen);
+
+		double[] interval = iatools.interationcal(data);
+		features.add(maxs.evaluate(interval));
+		features.add(mins.evaluate(interval));
+		features.add(kurtosis.evaluate(interval));
+		features.add(skewness.evaluate(interval));
+		features.add(percentile.evaluate(interval, 50));
+
+		rms = 0;
+		absamplitude = 0;
+		diversion = 0;
+		mean = means.evaluate(interval);
+		for (int i = 0; i < datalen - 1; i++) {
+			rms = rms + interval[i] * interval[i];
+			absamplitude = absamplitude + Math.abs(interval[i] - mean);
+			diversion = diversion + Math.abs(interval[i]);
+		}
+		features.add(Math.sqrt(rms / (datalen - 1)));
+		features.add(absamplitude / (datalen - 1));
+		features.add(diversion / (datalen - 1));
+		}
+
+	
 }

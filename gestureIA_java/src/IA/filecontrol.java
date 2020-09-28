@@ -81,7 +81,7 @@ public class filecontrol {
 		}
 	}
 
-	public ppg orisegmentread(File filepath) {
+	public ppg orippgread(File filepath) {
 		ppg ppgs = new ppg();
 
 		try {
@@ -106,4 +106,35 @@ public class filecontrol {
 		return ppgs;
 	}
 
+	public Motion orimotionread(File filepath) {
+		Motion motion = new Motion();
+
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(filepath));
+			String line = "";
+			line = in.readLine();
+			while (line != null) {
+//				System.out.println(line);
+				String[] tempppg = line.split(",");
+				if (tempppg[0].equals("0")) {
+					motion.accx.add(Double.parseDouble(tempppg[1]));
+					motion.accy.add(Double.parseDouble(tempppg[2]));
+					motion.accz.add(Double.parseDouble(tempppg[2]));
+//					motion.acctimestamps.add(Long.parseDouble(tempppg[3]));
+				}
+				if (tempppg[0].equals("1")) {
+					motion.gyrx.add(Double.parseDouble(tempppg[1]));
+					motion.gyry.add(Double.parseDouble(tempppg[2]));
+					motion.gyrz.add(Double.parseDouble(tempppg[2]));
+//					motion.acctimestamps.add(Long.parseDouble(tempppg[3]));
+				}
+				line = in.readLine();
+			}
+			in.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return motion;
+	}
 }

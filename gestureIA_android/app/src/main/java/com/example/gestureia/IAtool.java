@@ -205,8 +205,8 @@ public class IAtool {
     }
 
     public float[] featurestd(float feature[],Double[]scale_mean,Double[]scale_scale){
-        float []finalfeature=new float[30];
-            for(int i=0;i<30;i++){
+        float []finalfeature=new float[feature.length];
+            for(int i=0;i<feature.length;i++){
                 finalfeature[i]=(feature[i]-(float)(double)scale_mean[i])/(float)(double)scale_scale[i];
             }
         return finalfeature;

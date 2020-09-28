@@ -99,7 +99,7 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
     return test_pred,test_label
 
 def siamese_feature_buildmodel(train_data, train_target,num_classes):
-    # train_pairs, train_label = create_pairs_incre_1(train_data, digit_indices,num_classes)
+    # train_pairs, train_label = create_pairs_incre_1(train_data, train_target,num_classes)
     train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
     print("train_pairs.shape:",train_pairs.shape)
     input_shape = (len(train_data[0]),)

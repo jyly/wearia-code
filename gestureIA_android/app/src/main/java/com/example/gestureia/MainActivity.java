@@ -75,22 +75,23 @@ public class MainActivity extends WearableActivity {
     private Normal_tool nortools = new Normal_tool();
     private Filecontrol filecontrols = new Filecontrol();
     private Featurecontrol featurecontrols = new Featurecontrol();
-    private siamese_model siamese = new siamese_model();
+    private Siamese_model siamese = new Siamese_model();
     private long starttime = 0;
     private long currenttime = 0;
     private long ensuretime = 0;
 
     private Integer[] sort1 = null;
-    //          private   Integer[] sort2 = nortools.strarraytointarray(strsort2);
+    private Integer[] sort2 = null;
     private Double[] scale_mean = null;
     private Double[] scale_scale = null;
-    private Interpreter tflite = null;
+    private Interpreter ppg_tflite = null;
+    private Interpreter motion_tflite = null;
 
-    private Double[][] final_feature = null;
+    private Double[][][] final_feature = null;
     private ArrayList<Ppg> ppg_record = new ArrayList<Ppg>();
     private ArrayList<Motion> motion_record = new ArrayList<Motion>();
-    private ArrayList<float[]> features_record = new ArrayList<float[]>();
-
+    private ArrayList<float[][]> features_record = new ArrayList<float[][]>();
+    private int service_flag = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +126,10 @@ public class MainActivity extends WearableActivity {
                     Toast.makeText(getApplicationContext(), "请选择先注册手势！", Toast.LENGTH_LONG).show();
                     Log.e(">>.", "请选择先注册手势！");
                 } else {
-                    startService(new Intent(getBaseContext(), behaviorlisten.class));
+                    if (0 == service_flag) {
+                        startService(new Intent(getBaseContext(), Behaviorlisten.class));
+                        service_flag = 1;
+                    }
                     //获取当前设备已安装的包名
 //                    List<PackageInfo> packages = getPackageManager().getInstalledPackages(0);
 //                    for(int i=0;i<packages.size();i++){
@@ -150,8 +154,9 @@ public class MainActivity extends WearableActivity {
             public void onClick(View v) {
                 Log.e(">>.", "service stop！");
                 sensors.StopSensorListening();
+                service_flag = 0;
                 iatools.energyclose();
-                stopService(new Intent(getBaseContext(), behaviorlisten.class));
+                stopService(new Intent(getBaseContext(), Behaviorlisten.class));
 
             }
         });
@@ -200,23 +205,13 @@ public class MainActivity extends WearableActivity {
 //                                }
 //                                features_record.add(temp);
 //                            }
-                            if(features_record.size()>0) {
-
+                            if (features_record.size() > 0) {
                                 filecontrols.basedfeaturewrite(getApplicationContext(), features_record);
-                            }else{
-                                Log.e(">>>","当前无手势特征录入文件");
+                            } else {
+                                Log.e(">>>", "当前无手势特征录入文件");
                             }
                             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(intent);
-
-//                            实验室中，上传数据到服务器
-//                            ppg rawppgs = sensors.getnewppgseg();
-//                            motion motions = sensors.getnewmotionseg();
-//                            //上传完整的长片段
-//                            if (getcount() > 0 || rawppgs.x.size() < 100000) {
-//                                segmentupload(RequestURL, motions, rawppgs, 300000, "l_segment", gesture_item);
-////                                files.segmentupload_new(RequestURL,getApplicationContext(),motions, rawppgs, 300000, "l_segment", gesture_item);
-//                            }
                         }
                     });
 
@@ -232,21 +227,33 @@ public class MainActivity extends WearableActivity {
                                 Ppg rawppgs = sensors.getnewppgseg(1800);
                                 Motion motions = sensors.getnewmotionseg(900);
                                 //保存当前选择的数据段
-                                ppg_record.add(rawppgs);
-                                motion_record.add(motions);
+//                                ppg_record.add(rawppgs);
+//                                motion_record.add(motions);
 
                                 Message msg = new Message();
                                 msg.what = 1;
                                 handler.sendMessage(msg);
                                 //计算当前片段通过网络后的向量
-                                ArrayList<Double> temp = featurecontrols.sample_feature(rawppgs);
-                                float[] inform_feature = new float[30];
-                                for (i = 0; i < 30; i++) {
-                                    inform_feature[i] = (float) (double) temp.get(sort1[i]);
-                                }
-                                inform_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
-                                features_record.add(siamese.sample_feature(tflite, inform_feature));
 
+                                ArrayList<Double> temp = featurecontrols.build_feature(rawppgs,motions);
+                                if(temp.size()>0) {
+                                    float[] inform_feature = new float[60];
+                                    for (i = 0; i < 30; i++) {
+                                        inform_feature[i] = (float) (double) temp.get(sort1[i]);
+                                        inform_feature[i + 30] = (float) (double) temp.get(sort2[i] + 84);
+                                    }
+                                    inform_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
+                                    float[] ppg_feature = new float[30];
+                                    float[] motion_feature = new float[30];
+                                    for (i = 0; i < 30; i++) {
+                                        ppg_feature[i] = inform_feature[i];
+                                        motion_feature[i] = inform_feature[i + 30];
+                                    }
+                                    float[][] final_feature = new float[2][];
+                                    final_feature[0] = siamese.sample_feature(ppg_tflite, ppg_feature);
+                                    final_feature[1] = siamese.sample_feature(motion_tflite, motion_feature);
+                                    features_record.add(final_feature);
+                                }
 
                                 //实验室中上传人工确认后的短片段
 //                                ppg rawppgs = sensors.getnewppgseg(1800);
@@ -287,25 +294,6 @@ public class MainActivity extends WearableActivity {
                                     uploadtag = 1;
                                 }
                             }
-//                            if(1==uploadtag){
-//                                ppg ppgs = sensors.getnewppgseg(1400);
-//                                double[] temp=nortools.arraytomatrix(ppgs.x);
-//                                double[] orippgx = nortools.meanfilt(nortools.array_dataselect(temp,temp.length-1000,1000), 20);
-//                                int tag = ma.coarse_grained_detect(orippgx);
-//                                System.out.println("tag:" + tag);
-//                                if(1==tag){
-//                                    ensuretime = System.currentTimeMillis();
-//
-//                                    Message msg = new Message();
-//                                    msg.what = 1;
-//                                    handler.sendMessage(msg);
-//                                    countupdate();
-//
-//
-//
-//                                }
-//                            }
-
                         }
                     }, 10, 1000);
                 }
@@ -345,23 +333,24 @@ public class MainActivity extends WearableActivity {
 
     private void readmodelpara() {
         try {
-            tflite = new Interpreter(loadModelFile("based_model"));
+            ppg_tflite = new Interpreter(loadModelFile("ppg_based_model"));
+            motion_tflite = new Interpreter(loadModelFile("motion_based_model"));
             InputStream parameterinput = getAssets().open("stdpropara.txt");
             BufferedReader reader = new BufferedReader(new InputStreamReader(parameterinput));
             String temp_sort1 = reader.readLine();
-//            String temp_sort2 = reader.readLine();
+            String temp_sort2 = reader.readLine();
             String temp_scale_mean = reader.readLine();
             String temp_scale_scale = reader.readLine();
             reader.close();
             parameterinput.close();
 
             String[] str_sort1 = temp_sort1.replace("[", "").replace("]", "").replace(" ", "").split(",");
-//            String[] strsort2 = temp_sort2.replace("[", "").replace("]", "").replace(" ", "").split(",");
+            String[] strsort2 = temp_sort2.replace("[", "").replace("]", "").replace(" ", "").split(",");
             String[] str_scale_mean = temp_scale_mean.replace("[", "").replace("]", "").replace(" ", "").split(",");
             String[] str_scale_scale = temp_scale_scale.replace("[", "").replace("]", "").replace(" ", "").split(",");
 
             sort1 = nortools.strarraytointarray(str_sort1);
-//            Integer[] sort2 = nortools.strarraytointarray(strsort2);
+            sort2 = nortools.strarraytointarray(strsort2);
             scale_mean = nortools.strarraytodoublearray(str_scale_mean);
             scale_scale = nortools.strarraytodoublearray(str_scale_scale);
         } catch (Exception e) {
@@ -382,35 +371,56 @@ public class MainActivity extends WearableActivity {
 
     private void readbasedfeature() {
         try {
-            ArrayList<String> temp_feature = new ArrayList<String>();
-            String fileName = getExternalFilesDir("").getAbsolutePath() + "basedfeature.csv";//文件存储路径
-            Log.e(">>>", "basedfeature filename:" + fileName);
+            ArrayList<String> ppg_feature = new ArrayList<String>();
+            String fileName = getExternalFilesDir("").getAbsolutePath() + "ppgbasedfeature.csv";//文件存储路径
+            Log.e(">>>", "ppgbasedfeature filename:" + fileName);
             File file = new File(fileName);
             if (file.exists()) {
                 BufferedReader reader = new BufferedReader(new FileReader(file));
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    temp_feature.add(line);
+                    ppg_feature.add(line);
                 }
                 reader.close();
-                //提取256位最终的向量
+                //提取128位最终的向量
                 int listnum = 0;
-                if (temp_feature.size() > 5) {
+                if (ppg_feature.size() > 5) {
                     listnum = 5;
                 } else {
-                    listnum = temp_feature.size();
+                    listnum = ppg_feature.size();
                 }
-                String[][] str_feature = new String[listnum][];
-                final_feature = new Double[listnum][256];
+                String[][] ppg_str_feature = new String[listnum][];
                 for (int i = 0; i < listnum; i++) {
-                    str_feature[i] = temp_feature.get(i).split(",");
+                    ppg_str_feature[i] = ppg_feature.get(i).split(",");
                 }
+                Log.e(">>>", "ppg_str_feature length:" + ppg_str_feature[0].length);
+
+                final_feature = new Double[listnum][2][128];
                 for (int i = 0; i < listnum; i++) {
-                    for (int j = 0; j < 256; j++) {
-                        final_feature[i][j] = Double.parseDouble(str_feature[i][j]);
+                    for (int j = 0; j < 128; j++) {
+                        final_feature[i][0][j] = Double.parseDouble(ppg_str_feature[i][j]);
                     }
                 }
 
+                ArrayList<String> motion_feature = new ArrayList<String>();
+                fileName = getExternalFilesDir("").getAbsolutePath() + "motionbasedfeature.csv";//文件存储路径
+                Log.e(">>>", "motionbasedfeature filename:" + fileName);
+                file = new File(fileName);
+                reader = new BufferedReader(new FileReader(file));
+                while ((line = reader.readLine()) != null) {
+                    motion_feature.add(line);
+                }
+                reader.close();
+                //提取128位最终的向量
+                String[][] motion_str_feature = new String[listnum][];
+                for (int i = 0; i < listnum; i++) {
+                    motion_str_feature[i] = motion_feature.get(i).split(",");
+                }
+                for (int i = 0; i < listnum; i++) {
+                    for (int j = 0; j < 128; j++) {
+                        final_feature[i][1][j] = Double.parseDouble(motion_str_feature[i][j]);
+                    }
+                }
             }
 
         } catch (IOException e) {
@@ -446,33 +456,33 @@ public class MainActivity extends WearableActivity {
             map = true;
         return map;
     }
-
-    private void readbasedfeature2() {
-        try {
-            ArrayList<String> temp_feature = new ArrayList<String>();
-            InputStream parameterinput = getAssets().open("featuredataset/1.csv");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(parameterinput));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                temp_feature.add(line);
-            }
-            reader.close();
-            //提取256位最终的向量
-            String[][] str_feature = new String[temp_feature.size()][];
-            final_feature = new Double[temp_feature.size()][256];
-            for (int i = 0; i < temp_feature.size(); i++) {
-                str_feature[i] = temp_feature.get(i).split(",");
-            }
-            for (int i = 0; i < temp_feature.size(); i++) {
-                for (int j = 0; j < 256; j++) {
-                    final_feature[i][j] = Double.parseDouble(str_feature[i][j]);
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//
+//    private void readbasedfeature2() {
+//        try {
+//            ArrayList<String> temp_feature = new ArrayList<String>();
+//            InputStream parameterinput = getAssets().open("featuredataset/1.csv");
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(parameterinput));
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                temp_feature.add(line);
+//            }
+//            reader.close();
+//            //提取128位最终的向量
+//            String[][] str_feature = new String[temp_feature.size()][];
+//            final_feature = new Double[temp_feature.size()][128];
+//            for (int i = 0; i < temp_feature.size(); i++) {
+//                str_feature[i] = temp_feature.get(i).split(",");
+//            }
+//            for (int i = 0; i < temp_feature.size(); i++) {
+//                for (int j = 0; j < 128; j++) {
+//                    final_feature[i][j] = Double.parseDouble(str_feature[i][j]);
+//                }
+//            }
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     private void testtf() {
         //获取特征参数
@@ -579,45 +589,45 @@ public class MainActivity extends WearableActivity {
     }
 
 
-    public void sample_predict(final Double[][] final_feature, final Double[][] inform_feature) {
-        //Runs inference in background thread
-        new AsyncTask<Integer, Integer, Integer>() {
-
-            @Override
-            protected Integer doInBackground(Integer... params) {
-                int datalen = inform_feature.length;
-                float[][] datax = new float[datalen][30];
-                for (int i = 0; i < datalen; i++) {
-                    for (int j = 0; j < 30; j++) {
-                        datax[i][j] = (float) (double) inform_feature[i][j];
-                    }
-                }
-                Log.d(">>>", " model load success");
-                float[][] outPutsx = new float[datalen][256];//结果分类
-                tflite.run(datax, outPutsx);
-                float[] score = new float[datalen];
-                for (int i = 0; i < datalen; i++) {
-                    float temp = 0;
-                    for (int j = 0; j < final_feature.length; j++) {
-                        for (int k = 0; k < 256; k++) {
-                            temp = temp + (outPutsx[i][k] - (float) (double) final_feature[j][k]) * (outPutsx[i][k] - (float) (double) final_feature[j][k]);
-                        }
-                    }
-                    temp = temp / 5;
-
-                    score[i] = (float) Math.sqrt(temp);
-                }
-                for (int i = 0; i < datalen; i++) {
-                    Log.e(">>>", "score[i]:" + score[i] + "," + i);
-                }
-                long stoptime = System.currentTimeMillis();
-                Log.e(">>>", "测试结束时间：" + stoptime);
-                return 0;
-            }
-
-        }.execute(0);
-
-    }
+//    public void sample_predict(final Double[][] final_feature, final Double[][] inform_feature) {
+//        //Runs inference in background thread
+//        new AsyncTask<Integer, Integer, Integer>() {
+//
+//            @Override
+//            protected Integer doInBackground(Integer... params) {
+//                int datalen = inform_feature.length;
+//                float[][] datax = new float[datalen][30];
+//                for (int i = 0; i < datalen; i++) {
+//                    for (int j = 0; j < 30; j++) {
+//                        datax[i][j] = (float) (double) inform_feature[i][j];
+//                    }
+//                }
+//                Log.d(">>>", " model load success");
+//                float[][] outPutsx = new float[datalen][128];//结果分类
+//                tflite.run(datax, outPutsx);
+//                float[] score = new float[datalen];
+//                for (int i = 0; i < datalen; i++) {
+//                    float temp = 0;
+//                    for (int j = 0; j < final_feature.length; j++) {
+//                        for (int k = 0; k < 128; k++) {
+//                            temp = temp + (outPutsx[i][k] - (float) (double) final_feature[j][k]) * (outPutsx[i][k] - (float) (double) final_feature[j][k]);
+//                        }
+//                    }
+//                    temp = temp / 5;
+//
+//                    score[i] = (float) Math.sqrt(temp);
+//                }
+//                for (int i = 0; i < datalen; i++) {
+//                    Log.e(">>>", "score[i]:" + score[i] + "," + i);
+//                }
+//                long stoptime = System.currentTimeMillis();
+//                Log.e(">>>", "测试结束时间：" + stoptime);
+//                return 0;
+//            }
+//
+//        }.execute(0);
+//
+//    }
 //
 //    public void pair_predict(final Datapair pairs) {
 //        //Runs inference in background thread
@@ -650,15 +660,15 @@ public class MainActivity extends WearableActivity {
 //
 //                Boolean load_result;
 //                Log.d(">>>", " model load success");
-//                float[][] outPutsx = new float[datalen][256];//结果分类
-//                float[][] outPutsy = new float[datalen][256];//结果分类
+//                float[][] outPutsx = new float[datalen][128];//结果分类
+//                float[][] outPutsy = new float[datalen][128];//结果分类
 //
 //                tflite.run(datax, outPutsx);
 //                tflite.run(datay, outPutsy);
 //                float[] score = new float[datalen];
 //                for (int i = 0; i < datalen; i++) {
 //                    float temp = 0;
-//                    for (int j = 0; j < 256; j++) {
+//                    for (int j = 0; j < 128; j++) {
 //                        temp = temp + (outPutsx[i][j] - outPutsy[i][j]) * (outPutsx[i][j] - outPutsy[i][j]);
 //                    }
 //                    score[i] = (float) Math.sqrt(temp);

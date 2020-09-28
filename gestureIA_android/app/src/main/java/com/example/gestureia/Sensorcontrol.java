@@ -178,7 +178,7 @@ public class Sensorcontrol {
     }
 
     public void datadelete() {
-        Log.e(">>>","data_delete");
+//        Log.e(">>>","data_delete");
         while(ppgx.size()>4000){
             ppgx.remove(0);
             ppgy.remove(0);

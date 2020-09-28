@@ -139,15 +139,93 @@ public class Featurecontrol {
 //				}
 		return features;
 	}
+	public ArrayList<Double> motion_feature(double[] data) {
+		ArrayList<Double> features= new ArrayList<Double>();
+		int datalen = data.length;
+		features.add(means.evaluate(data));
+		features.add(stds.evaluate(data));
+		features.add(maxs.evaluate(data) - mins.evaluate(data));
+		features.add(maxs.evaluate(data));
+		features.add(mins.evaluate(data));
+		features.add(percentile.evaluate(data, 50));
+		features.add(kurtosis.evaluate(data));
+		features.add(skewness.evaluate(data));
 
-	public ArrayList<Double> sample_feature(Ppg ppgs) {
+		double mean = means.evaluate(data);
+		double rms = 0, absamplitude = 0, diversion = 0;
+		for (int i = 0; i < datalen; i++) {
+			rms = rms + data[i] * data[i];
+			absamplitude = absamplitude + Math.abs(data[i] - mean);
+			diversion = diversion + Math.abs(data[i]);
+		}
+		features.add(Math.sqrt(rms / datalen));
+		features.add(absamplitude / datalen);
+		features.add(diversion / datalen);
+
+		double[] interval = iatools.interationcal(data);
+		features.add(maxs.evaluate(interval));
+		features.add(mins.evaluate(interval));
+		features.add(kurtosis.evaluate(interval));
+		features.add(skewness.evaluate(interval));
+		features.add(percentile.evaluate(interval, 50));
+
+		rms = 0;
+		absamplitude = 0;
+		diversion = 0;
+		mean = means.evaluate(interval);
+		for (int i = 0; i < datalen - 1; i++) {
+			rms = rms + interval[i] * interval[i];
+			absamplitude = absamplitude + Math.abs(interval[i] - mean);
+			diversion = diversion + Math.abs(interval[i]);
+		}
+		features.add(Math.sqrt(rms / (datalen - 1)));
+		features.add(absamplitude / (datalen - 1));
+		features.add(diversion / (datalen - 1));
+		return features;
+	}
+
+	public ArrayList<Double> return_feature(Ppg ppgs,Motion motion) {
 		ArrayList<Double> samplefeature= new ArrayList<Double>();
+		ArrayList<Double> temp=ppg_feature(nortools.arraytomatrix(ppgs.x));
+		for(int i=0;i<temp.size();i++){
+			samplefeature.add(temp.get(i));
+		}
+		temp=ppg_feature(nortools.arraytomatrix(ppgs.y));
+		for(int i=0;i<temp.size();i++){
+			samplefeature.add(temp.get(i));
+		}
+		temp = motion_feature(nortools.arraytomatrix(motion.accx));
+		for (int i = 0; i < temp.size(); i++) {
+			samplefeature.add(temp.get(i));
+		}
+		temp = motion_feature(nortools.arraytomatrix(motion.accy));
+		for (int i = 0; i < temp.size(); i++) {
+			samplefeature.add(temp.get(i));
+		}
+		temp = motion_feature(nortools.arraytomatrix(motion.accz));
+		for (int i = 0; i < temp.size(); i++) {
+			samplefeature.add(temp.get(i));
+		}
+		temp = motion_feature(nortools.arraytomatrix(motion.gyrx));
+		for (int i = 0; i < temp.size(); i++) {
+			samplefeature.add(temp.get(i));
+		}
+		temp = motion_feature(nortools.arraytomatrix(motion.gyry));
+		for (int i = 0; i < temp.size(); i++) {
+			samplefeature.add(temp.get(i));
+		}
+		temp = motion_feature(nortools.arraytomatrix(motion.gyrz));
+		for (int i = 0; i < temp.size(); i++) {
+			samplefeature.add(temp.get(i));
+		}
+		return samplefeature;
+	}
+
+	public ArrayList<Double> build_feature(Ppg ppgs,Motion motion) {
+		ArrayList<Double> samplefeature= null;
 		double[] orippgx = nortools.meanfilt(nortools.arraytomatrix(ppgs.x), 20);
 		double[] orippgy = nortools.meanfilt(nortools.arraytomatrix(ppgs.y), 20);
 
-//        int coarsetag = ma.coarse_grained_detect(orippgx);
-//        System.out.println("coarsetag:" + coarsetag);
-//		if(1==tag) {}
 //		//对原始的ppg型号做butterworth提取
 		double[] butterppgx = nortools.butterworth_highpass(orippgx, 200, 2);
 		double[] butterppgy = nortools.butterworth_highpass(orippgy, 200, 2);
@@ -168,15 +246,15 @@ public class Featurecontrol {
 			ppgs.y = nortools.matrixtoarray(nortools.array_dataselect(orippgy, 300, orippgy.length - 300));
 //			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
 			Log.e(">>>","手势点：" + ma.pointstartindex + " " + ma.pointendindex);
-			ppgs = ma.setMAsegment(ppgs);
-			ArrayList<Double> tempx=ppg_feature(nortools.arraytomatrix(ppgs.x));
-			for(int i=0;i<tempx.size();i++){
-				samplefeature.add(tempx.get(i));
-			}
-			ArrayList<Double> tempy=ppg_feature(nortools.arraytomatrix(ppgs.y));
-			for(int i=0;i<tempx.size();i++){
-				samplefeature.add(tempy.get(i));
-			}
+			ppgs = ma.setppgegment(ppgs);
+			motion.accx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accx),150, motion.accx.size() - 150));
+			motion.accy = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accy),150, motion.accx.size() - 150));
+			motion.accz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accz),150, motion.accx.size() - 150));
+			motion.gyrx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrx),150, motion.gyrx.size() - 150));
+			motion.gyry = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyry),150, motion.gyrx.size() - 150));
+			motion.gyrz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrz),150, motion.gyrx.size() - 150));
+			motion=ma.setmotionsegment(motion);
+			samplefeature=return_feature(ppgs,motion);
 		}
 		return samplefeature;
 	}
