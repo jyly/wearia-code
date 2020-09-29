@@ -1,5 +1,7 @@
 package com.example.gestureia;
 
+import android.util.Log;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
@@ -131,7 +133,7 @@ public class MAfind {
 
 
     // 根据开始点和结束点，提取出有手势的片段出来
-    public Ppg setppgegment(Ppg ppgs) {
+    public Ppg setppgsegment(Ppg ppgs) {
         Ppg seppgs = new Ppg();
         for (int i = pointstartindex; i < pointendindex; i++) {
             seppgs.x.add(ppgs.x.get(i));
@@ -141,8 +143,10 @@ public class MAfind {
     }
     public Motion setmotionsegment(Motion motion) {
         Motion semotoin = new Motion();
+        Log.e(">>>","手势点/2：" + (int) pointstartindex / 2 + " " + (int) pointendindex / 2);
 
-        for (int i = (int) pointstartindex / 2; i < (int) pointendindex / 2; i++) {
+
+        for (int i = (int) (pointstartindex / 2); i < (int) (pointendindex / 2); i++) {
             semotoin.accx.add(motion.accx.get(i));
             semotoin.accy.add(motion.accy.get(i));
             semotoin.accz.add(motion.accz.get(i));

@@ -72,22 +72,14 @@ public class MainActivity extends WearableActivity {
 
     private Sensorcontrol sensors = new Sensorcontrol();
     private IAtool iatools = new IAtool();
-    private Normal_tool nortools = new Normal_tool();
-    private Filecontrol filecontrols = new Filecontrol();
     private Featurecontrol featurecontrols = new Featurecontrol();
     private Siamese_model siamese = new Siamese_model();
+    private Baedmodel basedmodel=new Baedmodel();
     private long starttime = 0;
     private long currenttime = 0;
     private long ensuretime = 0;
 
-    private Integer[] sort1 = null;
-    private Integer[] sort2 = null;
-    private Double[] scale_mean = null;
-    private Double[] scale_scale = null;
-    private Interpreter ppg_tflite = null;
-    private Interpreter motion_tflite = null;
 
-    private Double[][][] final_feature = null;
     private ArrayList<Ppg> ppg_record = new ArrayList<Ppg>();
     private ArrayList<Motion> motion_record = new ArrayList<Motion>();
     private ArrayList<float[][]> features_record = new ArrayList<float[][]>();
@@ -102,7 +94,6 @@ public class MainActivity extends WearableActivity {
         permissionrequest();
 //        readmodelpara();
 //        readbasedfeature();
-//
 //        testtf();
         //加载下拉列表
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinnervalue, android.R.layout.simple_spinner_item);
@@ -121,8 +112,8 @@ public class MainActivity extends WearableActivity {
             public void onClick(View v) {
                 Log.e(">>.", "service start！");
 
-                readbasedfeature();
-                if (final_feature == null) {
+                basedmodel.readbasedfeature(getApplicationContext());
+                if (basedmodel.final_feature == null) {
                     Toast.makeText(getApplicationContext(), "请选择先注册手势！", Toast.LENGTH_LONG).show();
                     Log.e(">>.", "请选择先注册手势！");
                 } else {
@@ -170,7 +161,7 @@ public class MainActivity extends WearableActivity {
                 if (lens > 3) {
                     Toast.makeText(getApplicationContext(), "请选择要登记的手势！", Toast.LENGTH_LONG).show();
                 } else {
-                    readmodelpara();
+                    basedmodel.readmodelpara(getApplicationContext());
                     Toast.makeText(getApplicationContext(), "系统初始化，请稍后！", Toast.LENGTH_LONG).show();
                     setContentView(R.layout.gesture_record);
 
@@ -206,7 +197,7 @@ public class MainActivity extends WearableActivity {
 //                                features_record.add(temp);
 //                            }
                             if (features_record.size() > 0) {
-                                filecontrols.basedfeaturewrite(getApplicationContext(), features_record);
+                                basedmodel.writebasedfeature(getApplicationContext(), features_record);
                             } else {
                                 Log.e(">>>", "当前无手势特征录入文件");
                             }
@@ -239,10 +230,10 @@ public class MainActivity extends WearableActivity {
                                 if(temp.size()>0) {
                                     float[] inform_feature = new float[60];
                                     for (i = 0; i < 30; i++) {
-                                        inform_feature[i] = (float) (double) temp.get(sort1[i]);
-                                        inform_feature[i + 30] = (float) (double) temp.get(sort2[i] + 84);
+                                        inform_feature[i] = (float) (double) temp.get(basedmodel.sort1[i]);
+                                        inform_feature[i + 30] = (float) (double) temp.get(basedmodel.sort2[i] + 84);
                                     }
-                                    inform_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
+                                    inform_feature = iatools.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
                                     float[] ppg_feature = new float[30];
                                     float[] motion_feature = new float[30];
                                     for (i = 0; i < 30; i++) {
@@ -250,8 +241,8 @@ public class MainActivity extends WearableActivity {
                                         motion_feature[i] = inform_feature[i + 30];
                                     }
                                     float[][] final_feature = new float[2][];
-                                    final_feature[0] = siamese.sample_feature(ppg_tflite, ppg_feature);
-                                    final_feature[1] = siamese.sample_feature(motion_tflite, motion_feature);
+                                    final_feature[0] = siamese.sample_feature(basedmodel.ppg_tflite, ppg_feature);
+                                    final_feature[1] = siamese.sample_feature(basedmodel.motion_tflite, motion_feature);
                                     features_record.add(final_feature);
                                 }
 
@@ -331,103 +322,7 @@ public class MainActivity extends WearableActivity {
     };
 
 
-    private void readmodelpara() {
-        try {
-            ppg_tflite = new Interpreter(loadModelFile("ppg_based_model"));
-            motion_tflite = new Interpreter(loadModelFile("motion_based_model"));
-            InputStream parameterinput = getAssets().open("stdpropara.txt");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(parameterinput));
-            String temp_sort1 = reader.readLine();
-            String temp_sort2 = reader.readLine();
-            String temp_scale_mean = reader.readLine();
-            String temp_scale_scale = reader.readLine();
-            reader.close();
-            parameterinput.close();
 
-            String[] str_sort1 = temp_sort1.replace("[", "").replace("]", "").replace(" ", "").split(",");
-            String[] strsort2 = temp_sort2.replace("[", "").replace("]", "").replace(" ", "").split(",");
-            String[] str_scale_mean = temp_scale_mean.replace("[", "").replace("]", "").replace(" ", "").split(",");
-            String[] str_scale_scale = temp_scale_scale.replace("[", "").replace("]", "").replace(" ", "").split(",");
-
-            sort1 = nortools.strarraytointarray(str_sort1);
-            sort2 = nortools.strarraytointarray(strsort2);
-            scale_mean = nortools.strarraytodoublearray(str_scale_mean);
-            scale_scale = nortools.strarraytodoublearray(str_scale_scale);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private MappedByteBuffer loadModelFile(String model) throws IOException {
-        Log.e(">>>", model + ".tflite");
-        AssetFileDescriptor fileDescriptor = getApplicationContext().getAssets().openFd(model + ".tflite");
-        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
-        FileChannel fileChannel = inputStream.getChannel();
-        long startOffset = fileDescriptor.getStartOffset();
-        long declaredLength = fileDescriptor.getDeclaredLength();
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
-    }
-
-
-    private void readbasedfeature() {
-        try {
-            ArrayList<String> ppg_feature = new ArrayList<String>();
-            String fileName = getExternalFilesDir("").getAbsolutePath() + "ppgbasedfeature.csv";//文件存储路径
-            Log.e(">>>", "ppgbasedfeature filename:" + fileName);
-            File file = new File(fileName);
-            if (file.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(file));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    ppg_feature.add(line);
-                }
-                reader.close();
-                //提取128位最终的向量
-                int listnum = 0;
-                if (ppg_feature.size() > 5) {
-                    listnum = 5;
-                } else {
-                    listnum = ppg_feature.size();
-                }
-                String[][] ppg_str_feature = new String[listnum][];
-                for (int i = 0; i < listnum; i++) {
-                    ppg_str_feature[i] = ppg_feature.get(i).split(",");
-                }
-                Log.e(">>>", "ppg_str_feature length:" + ppg_str_feature[0].length);
-
-                final_feature = new Double[listnum][2][128];
-                for (int i = 0; i < listnum; i++) {
-                    for (int j = 0; j < 128; j++) {
-                        final_feature[i][0][j] = Double.parseDouble(ppg_str_feature[i][j]);
-                    }
-                }
-
-                ArrayList<String> motion_feature = new ArrayList<String>();
-                fileName = getExternalFilesDir("").getAbsolutePath() + "motionbasedfeature.csv";//文件存储路径
-                Log.e(">>>", "motionbasedfeature filename:" + fileName);
-                file = new File(fileName);
-                reader = new BufferedReader(new FileReader(file));
-                while ((line = reader.readLine()) != null) {
-                    motion_feature.add(line);
-                }
-                reader.close();
-                //提取128位最终的向量
-                String[][] motion_str_feature = new String[listnum][];
-                for (int i = 0; i < listnum; i++) {
-                    motion_str_feature[i] = motion_feature.get(i).split(",");
-                }
-                for (int i = 0; i < listnum; i++) {
-                    for (int j = 0; j < 128; j++) {
-                        final_feature[i][1][j] = Double.parseDouble(motion_str_feature[i][j]);
-                    }
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     private int getcount() {
         return count;

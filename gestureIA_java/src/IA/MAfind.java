@@ -75,16 +75,13 @@ public class MAfind {
 				}
 			}
 		}
-//		System.out.println("fine£∫" + tag+","+pointstartindex+","+pointendindex);
-//		System.out.println("energylen£∫" + energy.length);
+
 		if ((pointendindex - pointstartindex) < 150 && pointendindex>(datalens - fre)) {
 			tag = 0;
 		}
 		if(tag>0) {
 			int maxindex=pointstartindex;
-		
 			for(i=pointstartindex;i<pointendindex-100;i++) {
-//				System.out.println("i£∫" + i);
 				if(energy[i]>energy[maxindex]) {
 					maxindex=i;
 				}
@@ -150,7 +147,7 @@ public class MAfind {
 
 	public Motion setmotionsegment(Motion motion) {
 		Motion semotoin = new Motion();
-
+		System.out.println(" ÷ ∆µ„/2£∫" +  (int) pointstartindex / 2+ "," + (int) pointendindex / 2);
 		for (int i = (int) pointstartindex / 2; i < (int) pointendindex / 2; i++) {
 			semotoin.accx.add(motion.accx.get(i));
 			semotoin.accy.add(motion.accy.get(i));

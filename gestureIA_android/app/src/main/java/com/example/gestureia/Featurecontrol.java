@@ -246,13 +246,14 @@ public class Featurecontrol {
 			ppgs.y = nortools.matrixtoarray(nortools.array_dataselect(orippgy, 300, orippgy.length - 300));
 //			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
 			Log.e(">>>","手势点：" + ma.pointstartindex + " " + ma.pointendindex);
-			ppgs = ma.setppgegment(ppgs);
-			motion.accx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accx),150, motion.accx.size() - 150));
-			motion.accy = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accy),150, motion.accx.size() - 150));
-			motion.accz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accz),150, motion.accx.size() - 150));
-			motion.gyrx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrx),150, motion.gyrx.size() - 150));
-			motion.gyry = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyry),150, motion.gyrx.size() - 150));
-			motion.gyrz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrz),150, motion.gyrx.size() - 150));
+			ppgs = ma.setppgsegment(ppgs);
+			int datalen=motion.accx.size();
+			motion.accx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accx),150,  datalen- 150));
+			motion.accy = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accy),150, datalen - 150));
+			motion.accz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accz),150, datalen - 150));
+			motion.gyrx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrx),150, datalen - 150));
+			motion.gyry = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyry),150, datalen - 150));
+			motion.gyrz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrz),150, datalen - 150));
 			motion=ma.setmotionsegment(motion);
 			samplefeature=return_feature(ppgs,motion);
 		}

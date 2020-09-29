@@ -158,12 +158,9 @@ public class IA_main {
 			ppgs = ma.setMAsegment(ppgs);
 			Motion motion = files.orimotionread(filepath);
 			int datalen=motion.accx.size();
-			
 			motion.accx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accx),150, datalen - 150));
 			motion.accy = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accy),150, datalen - 150));
 			motion.accz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accz),150, datalen - 150));
-			datalen=motion.gyrx.size();
-			System.out.println("gyrx len£º" + datalen);
 			motion.gyrx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrx),150, datalen - 150));
 			motion.gyry = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyry),150, datalen - 150));
 			motion.gyrz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrz),150, datalen - 150));

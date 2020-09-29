@@ -193,16 +193,16 @@ public class Normal_tool {
         }
         return templist;
     }
-    public Double[] strarraytodoublearray(String[] str){
-        Double[] lo=new Double[str.length];
+    public double[] strarraytodoublearray(String[] str){
+        double[] lo=new double[str.length];
         for(int i=0;i<str.length;i++){
             lo[i]=Double.parseDouble(str[i]);
         }
         return lo;
     }
 
-    public Integer[] strarraytointarray(String[] str){
-        Integer[] lo=new Integer[str.length];
+    public int[] strarraytointarray(String[] str){
+        int[] lo=new int[str.length];
         for(int i=0;i<str.length;i++){
             lo[i]=Integer.parseInt(str[i]);
         }

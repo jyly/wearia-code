@@ -179,20 +179,20 @@ public class Sensorcontrol {
 
     public void datadelete() {
 //        Log.e(">>>","data_delete");
-        while(ppgx.size()>4000){
+        while(ppgx.size()>3000){
             ppgx.remove(0);
             ppgy.remove(0);
             ppgtimestamps.remove(0);
         }
 
-        while(accx.size()>2000){
+        while(accx.size()>1500){
             accx.remove(0);
             accy.remove(0);
             accz.remove(0);
             acctimestamps.remove(0);
         }
 
-        while(gyrx.size()>2000){
+        while(gyrx.size()>1500){
             gyrx.remove(0);
             gyry.remove(0);
             gyrz.remove(0);

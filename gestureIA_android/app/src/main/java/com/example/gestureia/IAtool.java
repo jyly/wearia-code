@@ -24,14 +24,12 @@ public class IAtool {
         wakeLock.acquire();
     }
 
-
     public void energyclose() {
         if (wakeLock != null) {
             wakeLock.release();
             wakeLock = null;
         }
     }
-
 
     public double[] dataselect(double[] data, int start, int lens) {
         double[] templist = new double[lens];
@@ -204,10 +202,10 @@ public class IAtool {
         return nortools.JS_divergence(Ptag, Qtag);
     }
 
-    public float[] featurestd(float feature[],Double[]scale_mean,Double[]scale_scale){
+    public float[] featurestd(float feature[],double[]scale_mean,double[]scale_scale){
         float []finalfeature=new float[feature.length];
             for(int i=0;i<feature.length;i++){
-                finalfeature[i]=(feature[i]-(float)(double)scale_mean[i])/(float)(double)scale_scale[i];
+                finalfeature[i]=(feature[i]-(float)scale_mean[i])/(float)scale_scale[i];
             }
         return finalfeature;
     }

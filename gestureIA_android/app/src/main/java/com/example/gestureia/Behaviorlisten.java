@@ -33,15 +33,9 @@ public class Behaviorlisten extends Service {
     private MAfind ma = new MAfind();
     private IAtool iatools = new IAtool();
     private Siamese_model siamese=new Siamese_model();
+    private Baedmodel basedmodel=new Baedmodel();
 
-    private Integer[] sort1 = null;
-    private Integer[] sort2 = null;
-    private Double[] scale_mean = null;
-    private Double[] scale_scale = null;
-    private Interpreter ppg_tflite = null;
-    private Interpreter motion_tflite = null;
 
-    private Double[][] final_feature = null;
 
     Timer timer = new Timer();
     private int sleepcount=0;
@@ -53,7 +47,6 @@ public class Behaviorlisten extends Service {
 
     }
 
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         iatools.energyclose();
@@ -62,9 +55,8 @@ public class Behaviorlisten extends Service {
         sensors.dataclear();
         sensors.StopSensorListening();
         sensors.StartSensorListening(getApplicationContext());
-        readmodelpara();
-        readbasedfeature();
-
+        basedmodel.readmodelpara(getApplicationContext());
+        basedmodel.readbasedfeature(getApplicationContext());
 
         timer.schedule(new TimerTask() {
             @Override
@@ -110,48 +102,40 @@ public class Behaviorlisten extends Service {
                         if (0 == finetag) {
                             System.out.println("当前片段不存在手势");
                         } else {
+                            Log.e(">>>","手势点：" + ma.pointstartindex + " " + ma.pointendindex);
                             //特征提取
-                            ArrayList<Double> sample= new ArrayList<Double>();
-                            ArrayList<Double> motionfeature= new ArrayList<Double>();
+                            ArrayList<Double> samplefeature= new ArrayList<Double>();
                             ppgs.x = nortools.matrixtoarray(nortools.array_dataselect(orippgx, 300, orippgx.length - 300));
                             ppgs.y = nortools.matrixtoarray(nortools.array_dataselect(orippgy, 300, orippgy.length - 300));
-                            Log.e(">>>","手势点：" + ma.pointstartindex + " " + ma.pointendindex);
-                            ppgs = ma.setMAsegment(ppgs);
-                            motion.accx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accx),150, motion.accx.size() - 150));
-                            motion.accy = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accy),150, motion.accx.size() - 150));
-                            motion.accz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accz),150, motion.accx.size() - 150));
-                            motion.gyrx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrx),150, motion.gyrx.size() - 150));
-                            motion.gyry = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyry),150, motion.gyrx.size() - 150));
-                            motion.gyrz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrz),150, motion.gyrx.size() - 150));
+                            ppgs = ma.setppgsegment(ppgs);
+                            int datalen=motion.accx.size();
+                            motion.accx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accx),150,  datalen- 150));
+                            motion.accy = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accy),150, datalen - 150));
+                            motion.accz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.accz),150, datalen - 150));
+                            motion.gyrx = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrx),150, datalen - 150));
+                            motion.gyry = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyry),150, datalen - 150));
+                            motion.gyrz = nortools.matrixtoarray(nortools.array_dataselect(nortools.arraytomatrix(motion.gyrz),150, datalen - 150));
+
                             motion=ma.setmotionsegment(motion);
-
-
-
-
-
-
-
+                            samplefeature=featurecontrol.return_feature(ppgs,motion);
                             //特征过滤及预处理
                             float[] inform_feature = new float[60];
                             for (int i = 0; i < 30; i++) {
-                                inform_feature[i] = (float)(double)ppgfeature.get(sort1[i]);
+                                inform_feature[i] = (float) (double) samplefeature.get(basedmodel.sort1[i]);
+                                inform_feature[i + 30] = (float) (double) samplefeature.get(basedmodel.sort2[i] + 84);
                             }
-                            for (int i = 0; i < 30; i++) {
-                                inform_feature[i+30] = (float)(double)motionfeature.get(sort2[i]);
-                            }
-                            inform_feature = iatools.featurestd(inform_feature, scale_mean, scale_scale);
-                            float []ppg_feature=new float[30];
+                            inform_feature = iatools.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
+                            float[] ppg_feature = new float[30];
+                            float[] motion_feature = new float[30];
                             for (int i = 0; i < 30; i++) {
                                 ppg_feature[i] = inform_feature[i];
+                                motion_feature[i] = inform_feature[i + 30];
                             }
-                            float []motion_feature=new float[30];
-                            for (int i = 0; i < 30; i++) {
-                                motion_feature[i] = inform_feature[i+30];
-                            }
-                            //                            float[] temp_final_feature =siamese.sample_feature(tflite, inform_feature);
-                            float[] temp_ppg_feature =siamese.ppg_feature(ppg_tflite, ppg_feature);
-                            float[] temp_motion_feature =siamese.motion_feature(motion_tflite, motion_feature);
-                            int predittag=siamese.behavior_predit(final_feature,temp_final_feature);
+                            float[][] temp_final_feature = new float[2][];
+                            temp_final_feature[0] = siamese.sample_feature(basedmodel.ppg_tflite, ppg_feature);
+                            temp_final_feature[1] = siamese.sample_feature(basedmodel.motion_tflite, motion_feature);
+
+                            int predittag=siamese.behavior_predit(basedmodel.final_feature,temp_final_feature);
                             if (predittag==1){
                                 sleepcount=8;
                             }
@@ -180,78 +164,5 @@ public class Behaviorlisten extends Service {
         iatools.energyclose();
         timer.cancel();
         super.onDestroy();
-    }
-    private void readmodelpara() {
-        try {
-            ppg_tflite = new Interpreter(loadModelFile("ppg_based_model"));
-            motion_tflite = new Interpreter(loadModelFile("motion_based_model"));
-            InputStream parameterinput = getAssets().open("stdpropara.txt");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(parameterinput));
-            String temp_sort1 = reader.readLine();
-            String temp_sort2 = reader.readLine();
-            String temp_scale_mean = reader.readLine();
-            String temp_scale_scale = reader.readLine();
-            reader.close();
-            parameterinput.close();
-
-            String[] str_sort1 = temp_sort1.replace("[", "").replace("]", "").replace(" ", "").split(",");
-            String[] strsort2 = temp_sort2.replace("[", "").replace("]", "").replace(" ", "").split(",");
-            String[] str_scale_mean = temp_scale_mean.replace("[", "").replace("]", "").replace(" ", "").split(",");
-            String[] str_scale_scale = temp_scale_scale.replace("[", "").replace("]", "").replace(" ", "").split(",");
-
-            sort1 = nortools.strarraytointarray(str_sort1);
-            Integer[] sort2 = nortools.strarraytointarray(strsort2);
-            scale_mean = nortools.strarraytodoublearray(str_scale_mean);
-            scale_scale = nortools.strarraytodoublearray(str_scale_scale);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    private MappedByteBuffer loadModelFile(String model) throws IOException {
-        Log.e(">>>", model + ".tflite");
-        AssetFileDescriptor fileDescriptor = getApplicationContext().getAssets().openFd(model + ".tflite");
-        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
-        FileChannel fileChannel = inputStream.getChannel();
-        long startOffset = fileDescriptor.getStartOffset();
-        long declaredLength = fileDescriptor.getDeclaredLength();
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
-    }
-    private void readbasedfeature() {
-        try {
-            ArrayList<String> temp_feature = new ArrayList<String>();
-            String fileName = getExternalFilesDir("").getAbsolutePath() + "basedfeature.csv";//文件存储路径
-            Log.e(">>>", "basedfeature filename:" + fileName);
-            File file = new File(fileName);
-            if (file.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(file));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    temp_feature.add(line);
-                }
-                reader.close();
-                //提取128位最终的向量
-                int listnum = 0;
-                if (temp_feature.size() > 5) {
-                    listnum = 5;
-                } else {
-                    listnum = temp_feature.size();
-                }
-                String[][] str_feature = new String[listnum][];
-                final_feature = new Double[listnum][128];
-                for (int i = 0; i < listnum; i++) {
-                    str_feature[i] = temp_feature.get(i).split(",");
-                }
-                for (int i = 0; i < listnum; i++) {
-                    for (int j = 0; j < 128; j++) {
-                        final_feature[i][j] = Double.parseDouble(str_feature[i][j]);
-                    }
-                }
-
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 }
