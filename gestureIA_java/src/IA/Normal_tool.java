@@ -10,7 +10,7 @@ import org.apache.commons.math3.stat.descriptive.rank.Min;
 
 import uk.me.berndporr.iirj.Butterworth;
 
-public class normal_tool {
+public class Normal_tool {
 	public Variance vars = new Variance();
 	public Mean means = new Mean();
 	public Max maxs = new Max();
@@ -164,7 +164,14 @@ public class normal_tool {
 		}
 		return matrix;
 	}
-
+	public long[] arraytomatrix_l(ArrayList<Long> data) {
+		int datalength = data.size();
+		long[] matrix = new long[datalength];
+		for (int i = 0; i < datalength; i++) {
+			matrix[i] = data.get(i);
+		}
+		return matrix;
+	}
 	// ¾ØÕó×ªÐòÁÐ
 	public ArrayList<Double> matrixtoarray(double[] data) {
 		int datalength = data.length;

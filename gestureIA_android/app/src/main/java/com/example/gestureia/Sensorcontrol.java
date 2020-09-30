@@ -32,10 +32,13 @@ public class Sensorcontrol {
 
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(65572), 0);//Heart Rate PPG Raw Data 200hz
+//        mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(21), 0);//Heart Rate PPG Raw Data 200hz
+//        mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(17), 0);//Heart Rate PPG Raw Data 200hz
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(1), 0);//Accelerometer 100hz
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(4), 0);//Gyroscope 100hz
+//        mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(5), 0);//Gyroscope 100hz
         sensorList = mSensorManager.getSensorList(Sensor.TYPE_ALL);
-        Log.e(">>>","列出当前设备所有的传感器信息");
+        Log.e(">>>", "列出当前设备所有的传感器信息");
         for (Sensor sensor : sensorList) {
             Log.e("List sensors", "Name: " + sensor.getName() + " /Type_String: " + sensor.getStringType() + " /Type_number: " + sensor.getType());
         }
@@ -64,6 +67,7 @@ public class Sensorcontrol {
                     break;
                 case Sensor.TYPE_GYROSCOPE:     //陀螺传感器
 //                    Log.d("Test", "Got the GYROSCOPE : " + String.valueOf(e.values[0]) + "," + String.valueOf(e.values[1]) + "," + String.valueOf(e.values[2]));
+
                     gyrx.add(Double.valueOf(String.valueOf(e.values[0])));
                     gyry.add(Double.valueOf(String.valueOf(e.values[1])));
                     gyrz.add(Double.valueOf(String.valueOf(e.values[2])));
@@ -71,11 +75,27 @@ public class Sensorcontrol {
                     break;
 
                 case 65572:   //ppg传感器
-//                    Log.d("Test", "raw ppg : " + String.valueOf(e.values[0]) + "," + String.valueOf(e.values[1]) + "," + timeStamp);
+//                    Log.d("Test", "raw ppg : "+e.values.length+"," + String.valueOf(e.values[0]) + "," + String.valueOf(e.values[2]));
+//                    for(int i=0;i<16;i++){
+//                        Log.e(">>>>","e.value:"+i+","+e.values[i]);
+//                    }
                     ppgx.add(Double.valueOf(String.valueOf(e.values[0])));
+                    //ticwatch的是value1
                     ppgy.add(Double.valueOf(String.valueOf(e.values[1])));
                     ppgtimestamps.add(System.currentTimeMillis());
                     break;
+//                case 5:   //光学ppg传感器
+//                    //大于100基本就是没在使用
+//                    Log.d("Test", "light : " +e.values.length+","+ String.valueOf(e.values[0]));
+//                    break;
+//                case 17:   //Significant Motion 传感器
+//                    //大于100基本就是没在使用
+//                    Log.d("Test", "Significant Motion  : " +e.values.length+","+ String.valueOf(e.values[0]));
+//                    break;
+//                case 21:   // Heart Rate PPG 传感器
+//                    //大于100基本就是没在使用
+//                    Log.d("Test", " Heart Rate PPG  : " +e.values.length+","+ String.valueOf(e.values[0]));
+//                    break;
             }
         }
     };
@@ -97,18 +117,22 @@ public class Sensorcontrol {
     }
 
     public Ppg getnewppgseg(int lens) {
-        Ppg ppgs = new Ppg();
         int length = ppgx.size();
 //        Log.e(">>>", "ppgx.size():" + ppgx.size()+"ppgy.size():" + ppgy.size()+"ppgtimestamps.size():" + ppgtimestamps.size());
-
         if (lens > length - 100) {
             lens = length - 100;
         }
-        for (int i = length - lens; i < length - 10; i++) {
-            ppgs.x.add(ppgx.get(i));
-            ppgs.y.add(ppgy.get(i));
-            ppgs.timestamps.add(ppgtimestamps.get(i));
+        double[] x = new double[lens];
+        double[] y = new double[lens];
+        long[] timestamp = new long[lens];
+
+        for (int i = 0; i < lens; i++) {
+            x[i] = ppgx.get(i + length - lens - 10);
+            y[i] = ppgy.get(i + length - lens - 10);
+            timestamp[i] = ppgtimestamps.get(i + length - lens - 10);
         }
+        Ppg ppgs = new Ppg(x, y, timestamp);
+
         return ppgs;
     }
 
@@ -117,82 +141,61 @@ public class Sensorcontrol {
     }
 
     public Motion getnewmotionseg(int lens) {
-        Motion motions = new Motion();
         int length = accx.size();
         if (lens > length - 50) {
             lens = length - 50;
         }
-//        Log.e(">>>", "accx.size:" + accx.size()+"accy.size:" + accy.size()+"accz.size:" + accz.size()+"acctimestamps.size:" + acctimestamps.size());
-        for (int i = length - lens; i < length - 10; i++) {
-            motions.accx.add(accx.get(i));
-            motions.accy.add(accy.get(i));
-            motions.accz.add(accz.get(i));
-            motions.acctimestamps.add(acctimestamps.get(i));
+        double[] acc_x = new double[lens];
+        double[] acc_y = new double[lens];
+        double[] acc_z = new double[lens];
+        long[] acctime = new long[lens];
+
+        for (int i = 0; i < lens; i++) {
+            acc_x[i] = accx.get(i + length - lens - 10);
+            acc_y[i] = accy.get(i + length - lens - 10);
+            acc_z[i] = accz.get(i + length - lens - 10);
+            acctime[i] = acctimestamps.get(i + length - lens - 10);
         }
+
 
         length = gyrx.size();
         if (lens > length - 50) {
             lens = length - 50;
         }
-//        Log.e(">>>", "gyrx.size:" + gyrx.size()+"gyry.size:" + gyry.size()+"gyrz.size:" + gyrz.size()+"gyrtimestamps.size:" + gyrtimestamps.size());
-        for (int i = length - lens; i < length - 10; i++) {
-            motions.gyrx.add(gyrx.get(i));
-            motions.gyry.add(gyry.get(i));
-            motions.gyrz.add(gyrz.get(i));
-            motions.gyrtimestamps.add(gyrtimestamps.get(i));
+        double[] gyr_x = new double[lens];
+        double[] gyr_y = new double[lens];
+        double[] gyr_z = new double[lens];
+        long[] gyrtime = new long[lens];
+
+        for (int i = 0; i < lens; i++) {
+            gyr_x[i] = gyrx.get(i + length - lens - 10);
+            gyr_y[i] = gyry.get(i + length - lens - 10);
+            gyr_z[i] = gyrz.get(i + length - lens - 10);
+            gyrtime[i] = gyrtimestamps.get(i + length - lens - 10);
         }
+        Motion motions = new Motion(acc_x,acc_y,acc_z,acctime,gyr_x,gyr_y,gyr_z,gyrtime);
+
         return motions;
     }
 
 
-    public Motion getnewmotionseg(int acclens, int gyrlens) {
-        Motion motions = new Motion();
-        int length = accx.size();
-        if (acclens > length - 30) {
-            acclens = length - 30;
-        }
-//        Log.e(">>>", "accx.size:" + accx.size()+"accy.size:" + accy.size()+"accz.size:" + accz.size()+"acctimestamps.size:" + acctimestamps.size());
-        for (int i = length - acclens; i < length - 10; i++) {
-            motions.accx.add(accx.get(i));
-            motions.accy.add(accy.get(i));
-            motions.accz.add(accz.get(i));
-            motions.acctimestamps.add(acctimestamps.get(i));
-        }
-
-        length = gyrx.size();
-        if (gyrlens > length - 30) {
-            gyrlens = length - 30;
-        }
-//        Log.e(">>>", "gyrx.size:" + gyrx.size()+"gyry.size:" + gyry.size()+"gyrz.size:" + gyrz.size()+"gyrtimestamps.size:" + gyrtimestamps.size());
-        for (int i = length - gyrlens; i < length - 10; i++) {
-            motions.gyrx.add(gyrx.get(i));
-            motions.gyry.add(gyry.get(i));
-            motions.gyrz.add(gyrz.get(i));
-            motions.gyrtimestamps.add(gyrtimestamps.get(i));
-        }
-        return motions;
-    }
-
-    public Motion getnewmotionseg() {
-        return getnewmotionseg(accx.size(), gyrx.size());
-    }
 
     public void datadelete() {
 //        Log.e(">>>","data_delete");
-        while(ppgx.size()>3000){
+        while (ppgx.size() > 3000) {
             ppgx.remove(0);
             ppgy.remove(0);
             ppgtimestamps.remove(0);
         }
 
-        while(accx.size()>1500){
+        while (accx.size() > 1500) {
             accx.remove(0);
             accy.remove(0);
             accz.remove(0);
             acctimestamps.remove(0);
         }
 
-        while(gyrx.size()>1500){
+        while (gyrx.size() > 1500) {
             gyrx.remove(0);
             gyry.remove(0);
             gyrz.remove(0);
@@ -200,14 +203,15 @@ public class Sensorcontrol {
         }
     }
 
-    public int getppgsize(){
-        return  ppgx.size();
+    public int getppgsize() {
+        return ppgx.size();
     }
 
-    public int getaccsize(){
-        return  accx.size();
+    public int getaccsize() {
+        return accx.size();
     }
-    public int getgyrsize(){
-        return  gyrx.size();
+
+    public int getgyrsize() {
+        return gyrx.size();
     }
 }

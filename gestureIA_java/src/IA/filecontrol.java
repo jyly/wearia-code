@@ -10,67 +10,14 @@ import java.util.ArrayList;
 
 public class filecontrol {
 
-	public ppg ppgread(File filepath) {
-		ppg ppgs = new ppg();
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(filepath));
-			String line = "";
-			line = in.readLine();
-			while (line != null) {
-//				System.out.println(line);
-				String[] tempppg = line.split(",");
-				ppgs.x.add(Double.parseDouble(tempppg[0]));
-				ppgs.y.add(Double.parseDouble(tempppg[1]));
-//				ppgs.timestamps.add(Double.parseDouble(tempppg[2]));
-				line = in.readLine();
-			}
-			in.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return ppgs;
-	}
-
-	public void ppgwrrite(ppg ppgs) {
-		String fileName = "./ppg.csv";
-		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
-			int arraylength = ppgs.x.size();
-			for (int i = 0; i < arraylength; i++) {
-				out.write(ppgs.x.get(i) + "," + ppgs.y.get(i) + ",");
-				out.newLine();
-			}
-			out.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public void icawrrite(ppg ppgs) {
-		String fileName = "./icappg.csv";
-		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
-			int arraylength = ppgs.x.size();
-			for (int i = 0; i < arraylength; i++) {
-				out.write(ppgs.x.get(i) + "," + ppgs.y.get(i) + ",");
-				out.newLine();
-			}
-			out.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public void featurewrite(ArrayList<feature> featureset, String filename) {
+	public void featurewrite(ArrayList<double[]> featureset, String filename) {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
 			int arraylength = featureset.size();
-			int featurelen = featureset.get(0).features.size();
+			int featurelen = featureset.get(0).length;
 			for (int i = 0; i < arraylength; i++) {
 				for (int j = 0; j < featurelen; j++) {
-					out.write(featureset.get(i).features.get(j) + ",");
+					out.write(featureset.get(i)[j] + ",");
 				}
 				out.newLine();
 			}
@@ -81,8 +28,11 @@ public class filecontrol {
 		}
 	}
 
-	public ppg orippgread(File filepath) {
-		ppg ppgs = new ppg();
+	public Ppg orippgread(File filepath) {
+		Ppg ppgs = null;
+		ArrayList<Double> ppgx = new ArrayList<Double>();
+		ArrayList<Double> ppgy = new ArrayList<Double>();
+		ArrayList<Long> ppgtimestamps = new ArrayList<>();
 
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(filepath));
@@ -92,13 +42,17 @@ public class filecontrol {
 //				System.out.println(line);
 				String[] tempppg = line.split(",");
 				if (tempppg[0].equals("2")) {
-					ppgs.x.add(Double.parseDouble(tempppg[1]));
-					ppgs.y.add(Double.parseDouble(tempppg[2]));
-					ppgs.timestamps.add(Double.parseDouble(tempppg[3]));
+					ppgx.add(Double.parseDouble(tempppg[1]));
+					ppgy.add(Double.parseDouble(tempppg[2]));
+					ppgtimestamps.add(Long.parseLong(tempppg[3]));
 				}
 				line = in.readLine();
 			}
 			in.close();
+			Normal_tool normal = new Normal_tool();
+			ppgs = new Ppg(normal.arraytomatrix(ppgx), normal.arraytomatrix(ppgy),
+					normal.arraytomatrix_l(ppgtimestamps));
+			normal=null;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -107,7 +61,18 @@ public class filecontrol {
 	}
 
 	public Motion orimotionread(File filepath) {
-		Motion motion = new Motion();
+		
+	    ArrayList<Double> accx = new ArrayList<Double>();
+	     ArrayList<Double> accy = new ArrayList<Double>();
+	     ArrayList<Double> accz = new ArrayList<Double>();
+
+	     ArrayList<Double> gyrx = new ArrayList<Double>();
+	     ArrayList<Double> gyry = new ArrayList<Double>();
+	     ArrayList<Double> gyrz = new ArrayList<Double>();
+	     ArrayList<Long> acctimestamps = new ArrayList<>();
+	     ArrayList<Long> gyrtimestamps = new ArrayList<>();
+	    
+		Motion motion = null;
 
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(filepath));
@@ -117,20 +82,24 @@ public class filecontrol {
 //				System.out.println(line);
 				String[] tempppg = line.split(",");
 				if (tempppg[0].equals("0")) {
-					motion.accx.add(Double.parseDouble(tempppg[1]));
-					motion.accy.add(Double.parseDouble(tempppg[2]));
-					motion.accz.add(Double.parseDouble(tempppg[2]));
-//					motion.acctimestamps.add(Long.parseDouble(tempppg[3]));
+					accx.add(Double.parseDouble(tempppg[1]));
+					accy.add(Double.parseDouble(tempppg[2]));
+					accz.add(Double.parseDouble(tempppg[3]));
+					acctimestamps.add(Long.parseLong(tempppg[4]));
 				}
 				if (tempppg[0].equals("1")) {
-					motion.gyrx.add(Double.parseDouble(tempppg[1]));
-					motion.gyry.add(Double.parseDouble(tempppg[2]));
-					motion.gyrz.add(Double.parseDouble(tempppg[2]));
-//					motion.acctimestamps.add(Long.parseDouble(tempppg[3]));
+					gyrx.add(Double.parseDouble(tempppg[1]));
+					gyry.add(Double.parseDouble(tempppg[2]));
+					gyrz.add(Double.parseDouble(tempppg[3]));
+					gyrtimestamps.add(Long.parseLong(tempppg[4]));
 				}
 				line = in.readLine();
 			}
 			in.close();
+			Normal_tool normal = new Normal_tool();
+			motion = new Motion(normal.arraytomatrix(accx), normal.arraytomatrix(accy),normal.arraytomatrix(accz),normal.arraytomatrix_l(acctimestamps),
+					normal.arraytomatrix(gyrx), normal.arraytomatrix(gyry),normal.arraytomatrix(gyrz),normal.arraytomatrix_l(gyrtimestamps));
+			normal=null;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

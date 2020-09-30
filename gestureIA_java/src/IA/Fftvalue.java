@@ -1,4 +1,4 @@
-package com.example.gestureia;
+package IA;
 
 
 public class Fftvalue {
@@ -9,5 +9,4 @@ public class Fftvalue {
         fluency = fluency_in;
         fftscore = fftscore_in;
     }
-    public Fftvalue(){}
 }

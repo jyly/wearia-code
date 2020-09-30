@@ -36,10 +36,11 @@ public class Siamese_model {
             }
             temp2 = (float) Math.sqrt(temp2);
 
-            score += (temp1 + temp2) / 2;
+//            score += (temp1 + temp2) / 2;
+            score +=temp1 ;
         }
         score = score / datalen;
-        if (score < 0.36) {
+        if (score < 0.2) {
             predittag = 1;
         }
         Log.e(">>>", "score:" + score);

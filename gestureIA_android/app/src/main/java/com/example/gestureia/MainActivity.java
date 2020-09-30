@@ -5,7 +5,7 @@ import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -26,27 +26,17 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import org.tensorflow.lite.Interpreter;
-
-import android.content.res.AssetFileDescriptor;
-
-import java.io.FileInputStream;
-
-import static java.lang.Math.abs;
 
 public class MainActivity extends WearableActivity {
 
@@ -62,7 +52,7 @@ public class MainActivity extends WearableActivity {
     private TextView tips;
 
     //实验室记录上传数据的服务器地址
-//    private String RequestURL = "http://192.168.1.101:8888/IA";
+    private String RequestURL = "http://192.168.1.101:8888/IA";
 
     //录入的手势条数
     private int count = 0;
@@ -71,10 +61,8 @@ public class MainActivity extends WearableActivity {
     private Timer timer = new Timer();
 
     private Sensorcontrol sensors = new Sensorcontrol();
-    private IAtool iatools = new IAtool();
-    private Featurecontrol featurecontrols = new Featurecontrol();
-    private Siamese_model siamese = new Siamese_model();
-    private Baedmodel basedmodel=new Baedmodel();
+    private Energycontrol energycontrolr = new Energycontrol();
+    private Baedmodel basedmodel = new Baedmodel();
     private long starttime = 0;
     private long currenttime = 0;
     private long ensuretime = 0;
@@ -146,7 +134,7 @@ public class MainActivity extends WearableActivity {
                 Log.e(">>.", "service stop！");
                 sensors.StopSensorListening();
                 service_flag = 0;
-                iatools.energyclose();
+                energycontrolr.energyclose();
                 stopService(new Intent(getBaseContext(), Behaviorlisten.class));
 
             }
@@ -158,14 +146,15 @@ public class MainActivity extends WearableActivity {
 
                 final String gesture_item = gesture_spinner.getSelectedItem().toString();
                 int lens = gesture_item.length();
-                if (lens > 3) {
+//                if (lens > 3) {
+                if (1 == 0) {
                     Toast.makeText(getApplicationContext(), "请选择要登记的手势！", Toast.LENGTH_LONG).show();
                 } else {
                     basedmodel.readmodelpara(getApplicationContext());
                     Toast.makeText(getApplicationContext(), "系统初始化，请稍后！", Toast.LENGTH_LONG).show();
                     setContentView(R.layout.gesture_record);
 
-                    iatools.energyopen(getApplicationContext());
+                    energycontrolr.energyopen(getApplicationContext());
                     sensors.dataclear();
                     setcount();
 
@@ -186,7 +175,7 @@ public class MainActivity extends WearableActivity {
                             Toast.makeText(getApplicationContext(), "已登记手势样本" + getcount() + "条", Toast.LENGTH_LONG).show();
                             timer.cancel();
                             sensors.StopSensorListening();
-                            iatools.energyclose();
+                            energycontrolr.energyclose();
                             //将最终向量保存到文件中
 
 //                            for (int i = 0; i < final_feature.length; i++) {
@@ -215,8 +204,10 @@ public class MainActivity extends WearableActivity {
                                 int i = getcount();
                                 Log.e(">>>", "segment：" + i);
                                 gesturecount.setText(String.valueOf(i));
-                                Ppg rawppgs = sensors.getnewppgseg(1800);
+                                Ppg ppgs = sensors.getnewppgseg(1800);
                                 Motion motions = sensors.getnewmotionseg(900);
+                                segmentupload(RequestURL, motions, ppgs, 10000, "s_segment", gesture_item);
+
                                 //保存当前选择的数据段
 //                                ppg_record.add(rawppgs);
 //                                motion_record.add(motions);
@@ -226,30 +217,37 @@ public class MainActivity extends WearableActivity {
                                 handler.sendMessage(msg);
                                 //计算当前片段通过网络后的向量
 
-                                ArrayList<Double> temp = featurecontrols.build_feature(rawppgs,motions);
-                                if(temp.size()>0) {
-                                    float[] inform_feature = new float[60];
-                                    for (i = 0; i < 30; i++) {
-                                        inform_feature[i] = (float) (double) temp.get(basedmodel.sort1[i]);
-                                        inform_feature[i + 30] = (float) (double) temp.get(basedmodel.sort2[i] + 84);
+                                Featurecontrol featurecontrols = new Featurecontrol();
+                                double[] temp = featurecontrols.build_feature(ppgs, motions);
+
+
+                                if (temp!=null) {
+                                    int featurelen=60;
+                                    float[] inform_feature = new float[featurelen*2];
+                                    for (i = 0; i < featurelen; i++) {
+                                        inform_feature[i] = (float) (double) temp[basedmodel.sort1[i]];
+                                        inform_feature[i + featurelen] = (float) (double) temp[basedmodel.sort2[i] + 252];
                                     }
-                                    inform_feature = iatools.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
-                                    float[] ppg_feature = new float[30];
-                                    float[] motion_feature = new float[30];
-                                    for (i = 0; i < 30; i++) {
+                                    inform_feature = featurecontrols.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
+                                    featurecontrols=null;
+                                    float[] ppg_feature = new float[featurelen];
+                                    float[] motion_feature = new float[featurelen];
+                                    for (i = 0; i < featurelen; i++) {
                                         ppg_feature[i] = inform_feature[i];
-                                        motion_feature[i] = inform_feature[i + 30];
+                                        motion_feature[i] = inform_feature[i + featurelen];
                                     }
+
                                     float[][] final_feature = new float[2][];
+                                    Siamese_model siamese = new Siamese_model();
                                     final_feature[0] = siamese.sample_feature(basedmodel.ppg_tflite, ppg_feature);
                                     final_feature[1] = siamese.sample_feature(basedmodel.motion_tflite, motion_feature);
+                                    siamese=null;
                                     features_record.add(final_feature);
                                 }
 
                                 //实验室中上传人工确认后的短片段
 //                                ppg rawppgs = sensors.getnewppgseg(1800);
 //                                motion motions = sensors.getnewmotionseg(900);
-//                                segmentupload(RequestURL, motions, rawppgs, 10000, "s_segment", gesture_item);
 
                             } else {
                                 Toast.makeText(getApplicationContext(), "请稍等！", Toast.LENGTH_LONG).show();
@@ -320,8 +318,6 @@ public class MainActivity extends WearableActivity {
             }
         }
     };
-
-
 
 
     private int getcount() {
@@ -651,28 +647,28 @@ public class MainActivity extends WearableActivity {
                     sb.append(LINE_END);
                     dos.write(sb.toString().getBytes());
                     StringBuffer sd = new StringBuffer();
-                    for (int i = 0; i < motions.accx.size(); i++) {
+                    for (int i = 0; i < motions.accx.length; i++) {
                         sd.append(0).append(",")
-                                .append(motions.accx.get(i)).append(",")
-                                .append(motions.accy.get(i)).append(",")
-                                .append(motions.accz.get(i)).append(",")
-                                .append(motions.acctimestamps.get(i)).append(",")
+                                .append(motions.accx[i]).append(",")
+                                .append(motions.accy[i]).append(",")
+                                .append(motions.accz[i]).append(",")
+                                .append(motions.acctimestamps[i]).append(",")
                                 .append("\n");
                     }
-                    for (int i = 0; i < motions.gyrx.size(); i++) {
+                    for (int i = 0; i < motions.gyrx.length; i++) {
                         sd.append(1).append(",")
-                                .append(motions.gyrx.get(i)).append(",")
-                                .append(motions.gyry.get(i)).append(",")
-                                .append(motions.gyrz.get(i)).append(",")
-                                .append(motions.gyrtimestamps.get(i)).append(",")
+                                .append(motions.gyrx[i]).append(",")
+                                .append(motions.gyry[i]).append(",")
+                                .append(motions.gyrz[i]).append(",")
+                                .append(motions.gyrtimestamps[i]).append(",")
                                 .append("\n");
                     }
 
-                    for (int i = 0; i < ppgs.x.size(); i++) {
+                    for (int i = 0; i < ppgs.x.length; i++) {
                         sd.append(2).append(",")
-                                .append(ppgs.x.get(i)).append(",")
-                                .append(ppgs.y.get(i)).append(",")
-                                .append(ppgs.timestamps.get(i)).append(",")
+                                .append(ppgs.x[i]).append(",")
+                                .append(ppgs.y[i]).append(",")
+                                .append(ppgs.timestamps[i]).append(",")
                                 .append("\n");
                     }
 //                    Log.e(">>>", "" + accx.size() + " " + gyrx.size() + " " + orix.size() + " " + magx.size());

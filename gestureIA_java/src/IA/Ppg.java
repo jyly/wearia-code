@@ -1,8 +1,7 @@
-package com.example.gestureia;
+package IA;
 
 
 public class Ppg {
-
     public double[] x = null;
     public double[] y = null;
     public long[] timestamps = null;
