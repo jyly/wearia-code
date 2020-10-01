@@ -125,35 +125,68 @@ public class Normal_tool {
     }
 
     // 初始的butterworth滤波会有个收敛的过程，前面的数据手动选择滤除
-    public double[] butterworth_highpass(double[] data, int fre, int high) {
-        double[] templist = new double[data.length];
-        Butterworth butterworthx = new Butterworth();
-        butterworthx.highPass(3, fre, high);// order,fre,cutoff
+    public double[] butterworth_highpass(double[] data, int fre, double  high) {
+        int addinter=300;
+        double[] tempdata = new double[data.length + addinter];
+        for (int i = 0; i < addinter; i++)
+            tempdata[i] = data[0];
         for (int i = 0; i < data.length; i++) {
-            templist[i] = butterworthx.filter(data[i]);
+            tempdata[i+addinter]=data[i];
         }
+
+        double[] templist = new double[data.length+addinter];
+        Butterworth butterworth = new Butterworth();
+        butterworth.highPass(3, fre, high);// order,fre,cutoff
+        for (int i = 0; i < tempdata.length; i++) {
+            templist[i] = butterworth.filter(tempdata[i]);
+        }
+        Normal_tool normal=new Normal_tool();
+        templist=normal.array_dataselect(templist, addinter, data.length);
+        normal=null;
         return templist;
     }
 
-    public double[] butterworth_lowpass(double[] data, int fre, int low) {
-        double[] templist = new double[data.length];
-        Butterworth butterworthx = new Butterworth();
-        butterworthx.highPass(3, fre, low);// order,fre,cutoff
+    public double[] butterworth_lowpass(double[] data, int fre, double low) {
+        int addinter=300;
+        double[] tempdata = new double[data.length + addinter];
+        for (int i = 0; i < addinter; i++)
+            tempdata[i] = data[0];
         for (int i = 0; i < data.length; i++) {
-            templist[i] = butterworthx.filter(data[i]);
+            tempdata[i+addinter]=data[i];
         }
+        double[] templist = new double[data.length+addinter];
+        Butterworth butterworth = new Butterworth();
+        butterworth.lowPass(3, fre, low);// order,fre,cutoff
+        for (int i = 0; i < tempdata.length; i++) {
+            templist[i] = butterworth.filter(data[i]);
+        }
+        Normal_tool normal=new Normal_tool();
+        templist=normal.array_dataselect(templist, addinter, data.length);
+        normal=null;
         return templist;
     }
 
-    public double[] butterworth_bandpass(double[] data, int fre, int high, int low) {
-        int center = ((high + low) / 2);
-        int width = high - low;
-        double[] templist = new double[data.length];
-        Butterworth butterworthx = new Butterworth();
-        butterworthx.highPass(3, fre, center, width);// order,fre,center,width
+    public double[] butterworth_bandpass(double[] data, int fre, double high, double low) {
+        double center = ((high + low) / 2);
+        double width = high - low;
+
+        int addinter=300;
+        double[] tempdata = new double[data.length + addinter];
+        for (int i = 0; i < addinter; i++)
+            tempdata[i] = data[0];
         for (int i = 0; i < data.length; i++) {
-            templist[i] = butterworthx.filter(data[i]);
+            tempdata[i+addinter]=data[i];
         }
+
+        double[] templist = new double[data.length+addinter];
+        Butterworth butterworth = new Butterworth();
+        butterworth.bandPass(3, fre, center, width);// order,fre,center,width
+        for (int i = 0; i < tempdata.length; i++) {
+            templist[i] = butterworth.filter(data[i]);
+        }
+        Normal_tool normal=new Normal_tool();
+        templist=normal.array_dataselect(templist, addinter, data.length);
+        normal=null;
         return templist;
     }
 

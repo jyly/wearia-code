@@ -30,7 +30,8 @@ def single_data(filepath):
 	icappgx,icappgy=IAtool.ppgfica(butterppgx,butterppgy)
 
 	#判断是否存在手势和提取出手势段
-	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#python 的ica是0.03,android的是1
+	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#python 的ica是0.03,android的是1
+	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_2(icappgx,200,0.03)#python 的ica是0.03,android的是1
 	#是否有手势，手势开始点，手势结束点，手势长度
 	print(tag,pointstartindex,pointendindex,pointendindex-pointstartindex)
 	if tag==1:

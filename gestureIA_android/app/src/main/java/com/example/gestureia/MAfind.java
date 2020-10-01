@@ -93,6 +93,58 @@ public class MAfind {
     }
 
 
+    // 寻找片段中的开始点和结束点
+    public int fine_grained_segment_2(double[] data, int fre, double threshold) {
+        pointstartindex = 0;
+        pointendindex = 0;
+        int tag = 0;
+        int datalens = data.length;
+        StandardDeviation std = new StandardDeviation();
+
+        //若最后一段时间的标准差大于阈值这认为手势未结束
+        if (std.evaluate(data, datalens - fre - 2, fre) > threshold)
+            return tag;
+        //计算能量值
+        double[] energy = new double[datalens - fre];
+        for (int i = 0; i < (datalens - fre); i++) {
+            energy[i] = std.evaluate(data, i, fre);
+        }
+
+        int i = datalens - fre - 350;
+        int lens = (int) (1 * fre);
+        while (i > (lens + 50)) {
+            i = i - 1;
+            // 从后往前判断，当大于阈值时，认为可能存在手势
+            if (energy[i] > threshold) {
+                int flag = 0;
+                //后面的一定区间内的值都大于阈值时，认为存在手势
+                for (int j = 0; j < lens; j++) {
+                    if (energy[i + j] < threshold) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                //前面的的一定区间内的值都小于阈值时，认为存在手势
+                if (0 == flag) {
+                    for (int j = 0; j < lens; j++) {
+                        if (energy[i - j] > threshold+0.1) {
+                            flag = 1;
+                            break;
+                        }
+                    }
+                }
+                if (0 == flag) {
+                    pointstartindex=i-100;
+                    pointendindex=i+200;
+                    tag=1;
+                    break;
+                }
+            }
+        }
+        return tag;
+    }
+
+
     public int coarse_grained_detect(double[] data) {
         int tag = 0;
         IAtool iatools = new IAtool();
@@ -113,7 +165,7 @@ public class MAfind {
         double[] JS = new double[datainter.length - 400];
         for (int i = 0; i < datainter.length - 400; i = i + 30) {
             double tempjs = iatools.array_JS_cal(nortools.array_dataselect(datainter, i, 200), nortools.array_dataselect(datainter, i + 200, 200), alltag);
-            JS[i]=tempjs;
+            JS[i] = tempjs;
         }
 //        System.out.println("JS_score:");
 //        for(int i=0;i<JS.size();i++) {
@@ -140,8 +192,9 @@ public class MAfind {
 
     // 根据开始点和结束点，提取出有手势的片段出来
     public Ppg setppgsegment(Ppg ppgs) {
-        Ppg seppgs = new Ppg();
+
         int lens = pointendindex - pointstartindex;
+        Ppg seppgs = new Ppg(lens);
         for (int i = 0; i < lens; i++) {
             seppgs.x[i] = ppgs.x[i + pointstartindex];
             seppgs.y[i] = ppgs.y[i + pointstartindex];
@@ -150,17 +203,17 @@ public class MAfind {
     }
 
     public Motion setmotionsegment(Motion motion) {
-        Motion semotoin = new Motion();
 //        Log.e(">>>","手势点/2：" + (int) pointstartindex / 2 + " " + (int) pointendindex / 2);
         int lens = (int) (pointendindex / 2) - (int) (pointstartindex / 2);
-        int start=(int) (pointendindex / 2);
+        Motion semotoin = new Motion(lens);
+        int start = (int) (pointstartindex / 2);
         for (int i = 0; i < lens; i++) {
-            semotoin.accx[i] = motion.accx[i+start];
-            semotoin.accy[i] = motion.accy[i+start];
-            semotoin.accz[i] = motion.accz[i+start];
-            semotoin.gyrx[i] = motion.gyrx[i+start];
-            semotoin.gyry[i] = motion.gyry[i+start];
-            semotoin.gyrz[i] = motion.gyrz[i+start];
+            semotoin.accx[i] = motion.accx[i + start];
+            semotoin.accy[i] = motion.accy[i + start];
+            semotoin.accz[i] = motion.accz[i + start];
+            semotoin.gyrx[i] = motion.gyrx[i + start];
+            semotoin.gyry[i] = motion.gyry[i + start];
+            semotoin.gyrz[i] = motion.gyrz[i + start];
         }
         return semotoin;
     }

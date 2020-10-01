@@ -26,4 +26,15 @@ public class Motion {
         gyrtimestamps = gyrtime;
     }
     public Motion(){}
+    public Motion(int lens) {
+    	accx=new double[lens];
+    	accy=new double[lens];
+    	accz=new double[lens];
+    	acctimestamps=new long[lens];
+    	
+    	gyrx=new double[lens];
+    	gyry=new double[lens];
+    	gyrz=new double[lens];
+    	gyrtimestamps=new long[lens];
+    }
 }

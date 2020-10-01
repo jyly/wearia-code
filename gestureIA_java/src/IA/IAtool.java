@@ -34,10 +34,11 @@ public class IAtool {
         return ppgs;
     }
 
-    // 快速独立成分分析
+
     // 快速独立成分分析
     public Ppg fastica(Ppg ppgs) {
         int arraylength = ppgs.x.length;
+
         double[][] mixedSignal = constructmixsignal(ppgs);
         double[][] cleanSignal = new double[2][arraylength];
         try {
@@ -46,7 +47,12 @@ public class IAtool {
         } catch (FastICAException e) {
             e.printStackTrace();
         }
-        Ppg temp = constructnewppg(cleanSignal[0], cleanSignal[1]);
+
+    	Ppg temp=ppgs;
+        if(2==cleanSignal.length) {
+        	temp = constructnewppg(cleanSignal[0], cleanSignal[1]);
+        }
+       
         return temp;
     }
 

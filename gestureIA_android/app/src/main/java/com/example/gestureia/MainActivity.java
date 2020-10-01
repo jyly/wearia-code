@@ -222,11 +222,11 @@ public class MainActivity extends WearableActivity {
 
 
                                 if (temp!=null) {
-                                    int featurelen=60;
+                                    int featurelen=30;
                                     float[] inform_feature = new float[featurelen*2];
                                     for (i = 0; i < featurelen; i++) {
                                         inform_feature[i] = (float) (double) temp[basedmodel.sort1[i]];
-                                        inform_feature[i + featurelen] = (float) (double) temp[basedmodel.sort2[i] + 252];
+                                        inform_feature[i + featurelen] = (float) (double) temp[basedmodel.sort2[i] + 84];
                                     }
                                     inform_feature = featurecontrols.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
                                     featurecontrols=null;

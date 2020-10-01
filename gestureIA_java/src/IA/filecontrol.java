@@ -28,6 +28,25 @@ public class filecontrol {
 		}
 	}
 
+	public void datawrite(double[] datax, double[] datay, String filename) {
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
+
+			for (int j = 0; j < datax.length; j++) {
+				out.write(datax[j] + ",");
+			}
+			out.newLine();
+			for (int j = 0; j < datay.length; j++) {
+				out.write(datay[j] + ",");
+			}
+			out.newLine();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public Ppg orippgread(File filepath) {
 		Ppg ppgs = null;
 		ArrayList<Double> ppgx = new ArrayList<Double>();
@@ -52,7 +71,7 @@ public class filecontrol {
 			Normal_tool normal = new Normal_tool();
 			ppgs = new Ppg(normal.arraytomatrix(ppgx), normal.arraytomatrix(ppgy),
 					normal.arraytomatrix_l(ppgtimestamps));
-			normal=null;
+			normal = null;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -61,17 +80,17 @@ public class filecontrol {
 	}
 
 	public Motion orimotionread(File filepath) {
-		
-	    ArrayList<Double> accx = new ArrayList<Double>();
-	     ArrayList<Double> accy = new ArrayList<Double>();
-	     ArrayList<Double> accz = new ArrayList<Double>();
 
-	     ArrayList<Double> gyrx = new ArrayList<Double>();
-	     ArrayList<Double> gyry = new ArrayList<Double>();
-	     ArrayList<Double> gyrz = new ArrayList<Double>();
-	     ArrayList<Long> acctimestamps = new ArrayList<>();
-	     ArrayList<Long> gyrtimestamps = new ArrayList<>();
-	    
+		ArrayList<Double> accx = new ArrayList<Double>();
+		ArrayList<Double> accy = new ArrayList<Double>();
+		ArrayList<Double> accz = new ArrayList<Double>();
+
+		ArrayList<Double> gyrx = new ArrayList<Double>();
+		ArrayList<Double> gyry = new ArrayList<Double>();
+		ArrayList<Double> gyrz = new ArrayList<Double>();
+		ArrayList<Long> acctimestamps = new ArrayList<>();
+		ArrayList<Long> gyrtimestamps = new ArrayList<>();
+
 		Motion motion = null;
 
 		try {
@@ -97,9 +116,10 @@ public class filecontrol {
 			}
 			in.close();
 			Normal_tool normal = new Normal_tool();
-			motion = new Motion(normal.arraytomatrix(accx), normal.arraytomatrix(accy),normal.arraytomatrix(accz),normal.arraytomatrix_l(acctimestamps),
-					normal.arraytomatrix(gyrx), normal.arraytomatrix(gyry),normal.arraytomatrix(gyrz),normal.arraytomatrix_l(gyrtimestamps));
-			normal=null;
+			motion = new Motion(normal.arraytomatrix(accx), normal.arraytomatrix(accy), normal.arraytomatrix(accz),
+					normal.arraytomatrix_l(acctimestamps), normal.arraytomatrix(gyrx), normal.arraytomatrix(gyry),
+					normal.arraytomatrix(gyrz), normal.arraytomatrix_l(gyrtimestamps));
+			normal = null;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
