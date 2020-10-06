@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 import os     
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
+# os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
 # os.environ["PATH"] += os.pathsep + 'E:/system/python/graphviz/bin'
 import sys
 import wear_data_preprocess 
@@ -18,19 +18,30 @@ if __name__ == "__main__":
 
 	#数据预处理
 	# wear_data_preprocess.all_data(wear_datadir)#提取手势的具体数据段
-	wear_data_preprocess.all_feature(wear_datadir)#提取手势具体数据段的特征
+	# wear_data_preprocess.all_feature(wear_datadir)#提取手势具体数据段的特征
 
 
 	# 将预处理后的数据从文件读到内存
+<<<<<<< Updated upstream
 	# dataset,target,targetnum=filecontrol.dataread()
 	feature,target,targetnum=filecontrol.featureread()
 
 	print("总样本数：",len(target))
 	print("总类别数：",targetnum)	
 	print("总特征数：",len(feature[0]))
+=======
+	dataset,target,targetnum=filecontrol.dataread()
+	# feature,target,targetnum=filecontrol.featureread()
+
+	print("总样本数：",len(target))
+	print("总类别数：",targetnum)	
+	# print("总特征数：",len(feature[0]))
+	# print("总特征数：",len(feature[0]))
+>>>>>>> Stashed changes
 
 
 	# sklrean分类
+	# sklearn_classifier.sklearn_mulclass(feature[:,:76],target,targetnum)
 	# sklearn_classifier.sklearn_mulclass(feature,target,targetnum)
 	# sklearn_classifier.sklearn_finalmulclass(feature,target,targetnum)
 	# sklearn_classifier.sklearn_oneclass(feature,target,1)
@@ -40,19 +51,31 @@ if __name__ == "__main__":
 	
 
 	# siamese分类（基于特征）
-	# siamese_classifier.siamese_feature_classifier(feature,target,targetnum)
+	# siamese_classifier.siamese_feature_classifier(feature[:,:76],target,targetnum)
 	# siamese_classifier.siamese_feature_final_class(feature,target,targetnum,30,5)#只用模型做分类
 	# siamese_classifier.siamese_feature_divide_class(feature,target,targetnum)#用部分数据训练模型，并用剩余数据测试模型
+	# siamese_classifier.siamese_feature_gesture_divide_class(feature,target,targetnum)#用部分数据训练模型，并用剩余数据测试模型
 	# siamese_classifier.siamese_feature_divide_class(feature[:,0:84],target,targetnum)
 	# siamese_classifier.siamese_feature_divide_class(feature[:,84:],target,targetnum)
 	# siamese_classifier.siamese_femotion_test_predature_inidivide_class(feature,target,targetnum)
 	siamese_classifier.siamese_mul_feature_divide_class(feature,target,targetnum)
 
+<<<<<<< Updated upstream
 	# siamese_classifier.siamese_feature_build_class(feature,target,80,30)
 	# siamese_classifier.siamese_feature_final_class(feature,target,80,30,5)
 	
 	# siamese_classifier.siamese_feature_mul_build_class(feature,target,40,30)
 	# siamese_classifier.siamese_feature_mul_final_class(feature,target,40,30,5)
+=======
+	# siamese_classifier.siamese_feature_build_class(feature,target,351,30)
+	# siamese_classifier.siamese_feature_final_class(feature,target,9,30,5)
+
+	# siamese_classifier.siamese_feature_mul_build_class(feature,target,targetnum,30)
+	# siamese_classifier.siamese_feature_mul_final_class(feature,target,targetnum,30,3)
+
+	# trainfeature,testfeature=filecontrol.singlefeatureread()
+	# siamese_classifier.siamese_feature_mul_single(trainfeature,testfeature,60)
+>>>>>>> Stashed changes
 
 
 
@@ -64,7 +87,7 @@ if __name__ == "__main__":
 
 
 	# siamese分类（基于原数据）
-	# siamese_classifier.siamese_oridata_classifier(dataset[:,0:2],target,targetnum)
+	siamese_classifier.siamese_oridata_classifier(dataset[:,0:2],target,targetnum)
 	# siamese_classifier.siamese_ori_final_class(dataset[:,0:2],target,targetnum)
 	
 	# siamese分类（基于连续小波）

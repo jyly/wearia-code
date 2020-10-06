@@ -17,8 +17,8 @@ def sklearn_mulclass(featureset,target,divnum):
 	meanfar=[]
 	meanfrr=[]	
 	for t in range(0,10):
-		# train_data,test_data, train_target, test_target = train_test_split(featureset,target,test_size = 0.15,random_state = t*30,stratify=target)
-		train_data,test_data, train_target, test_target = train_test_split(featureset,target,train_size = 690,random_state = t*30,stratify=target)
+		train_data,test_data, train_target, test_target = train_test_split(featureset,target,test_size = 0.2,random_state = t*30,stratify=target)
+		# train_data,test_data, train_target, test_target = train_test_split(featureset,target,train_size = 690,random_state = t*30,stratify=target)
 		print("进入第",t,"轮分类的信息熵降维阶段")
 		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,30)
 		# print("进入第",t,"轮分类的弹性网降维阶段")

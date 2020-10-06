@@ -192,3 +192,22 @@ def phone_dataread():
 	target=np.array(target)
 
 	return dataset,target,targetnum
+
+def singlefeatureread():
+	filepath='./testfeature/train.csv'
+	trainfeature=[]
+	inputfile=open(filepath,'r+')
+	for i in inputfile:
+		i=list(eval(i))
+		trainfeature.append(i)
+	inputfile.close()	
+	
+	filepath='./testfeature/test.csv'
+	testfeature=[]
+	inputfile=open(filepath,'r+')
+	for i in inputfile:
+		i=list(eval(i))
+		testfeature.append(i)
+	inputfile.close()	
+
+	return trainfeature,testfeature

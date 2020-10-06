@@ -33,8 +33,8 @@ def siamese_feature_classifier(dataset,target,targetnum):
 		# train_data,test_data,pca_mean,pca_components=IAtool.pcapro(train_data,test_data)
 		# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
 
-		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
-		IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
+		# train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		# IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
 
 		train_data=np.array(train_data)
 		train_target=np.array(train_target)
@@ -46,7 +46,7 @@ def siamese_feature_classifier(dataset,target,targetnum):
 		# train_data=train_data.astype('float32')
 		# test_data=test_data.astype('float32')
 
-		score,test_label= siamese_feature(train_data,test_data, train_target, test_target,targetnum,targetnum)
+		score,test_label= siamese_feature(train_data,test_data, train_target, test_target,targetnum,targetnum,3)
 		print('原结果：',test_label)
 		score=[i[0] for i in score]
 		print('预测分数：',score)
@@ -65,13 +65,22 @@ def siamese_feature_classifier(dataset,target,targetnum):
 #对未知数据进行目标分类
 def siamese_feature_build_class(train_data,train_target,trainindex,featurenum):
 	temp=[]
-	train_data,temp,sort=IAtool.minepro(train_data,temp,train_target,featurenum)
-	# train_data,temp,lda_bar,lda_scaling=IAtool.ldapro(train_data,temp,train_target)
-	# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
-	# train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
-	# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
-	train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
-	IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
+	# train_data,temp,sort=IAtool.minepro(train_data,temp,train_target,featurenum)
+	# # train_data,temp,lda_bar,lda_scaling=IAtool.ldapro(train_data,temp,train_target)
+	# # IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
+	# # train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
+	# # IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
+	# train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
+	# IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
+
+	sort,scale_mean,scale_scale=IAtool.filterparameterread('./stdpropara.txt')
+	scale_mean=np.array(scale_mean)
+	scale_scale=np.array(scale_scale)
+
+	train_data=IAtool.scoreselect(train_data,sort,featurenum)
+	train_data=(train_data-scale_mean)/scale_scale
+
+
 
 	train_data=np.array(train_data)
 	train_target=np.array(train_target)
@@ -121,6 +130,19 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		t1=int((target[i]-1)/9)
 		t2=(target[i]-1)%9
 		tempfeature[t1][t2].append(feature[i])
+
+	# 只有一个手势的情况
+	# maxusernum=targetnum
+	# print("数据集中的用户数：",maxusernum)
+	# for i in range(maxusernum):
+	# 	tempfeature.append([])
+	# 	for j in range(1):
+	# 		tempfeature[i].append([])
+	# for i in range(len(target)):
+	# 	t1=int((target[i]-1))
+	# 	tempfeature[t1][0].append(feature[i])
+
+
 	meanacc=[]
 	meanfar=[]
 	meanfrr=[]
@@ -128,11 +150,12 @@ def siamese_feature_divide_class(feature,target,targetnum):
 	#循环次数
 	iternum=30
 	#组合内序号个数
-	comnum=4
+	comnum=2
 	#训练集个数
 	# traincomnum=28
 
 	rangek=list(range(0,maxusernum))
+	# rangek=list(range(0,maxusernum))
 	#得出用户数在2之间的组合
 	com=list(combinations(rangek,comnum))
 	#在组合间，随机选其中的iternum个
@@ -181,6 +204,139 @@ def siamese_feature_divide_class(feature,target,targetnum):
 				testindex=testindex+1		
 		testindex=testindex-1
 		print("测试集项目数：",testindex)
+		train_data=temptraindata
+		train_target=temptraintarget
+		test_data=temptestdata
+		test_target=temptesttarget
+		#将所需的不同手势类别划分为训练集和测试集
+		train_data=np.array(train_data)
+		test_data=np.array(test_data)
+		print("train_data.shape:",train_data.shape)
+		print("test_data.shape:",test_data.shape)
+
+		#特征数，选择的锚数
+		featurenum=30
+		anchornum=5
+
+		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
+		
+		# train_data,test_data,lda_bar,lda_scaling=IAtool.ldapro(train_data,test_data,train_target)
+		# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./ldapropara.txt')
+		
+		# train_data,temp,pca_mean,pca_components=IAtool.pcapro(train_data,temp)
+		# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./pcapropara.txt')
+		
+		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		# IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
+
+		train_data=np.array(train_data)
+		train_target=np.array(train_target)
+		test_data=np.array(test_data)
+		print("train_data.shape:",train_data.shape)
+		print("test_data.shape:",test_data.shape)
+
+		score,label= siamese_feature(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		score=[i[0] for i in score]
+		label=[i for i in label]
+		print('原结果：',label)
+		print('预测分数：',score)
+		accuracy,far,frr=cal_siamese_eer(label,score)
+
+		# siamese_feature_build_class(train_data,train_target,trainindex,featurenum)
+		# accuracy,far,frr=siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
+
+		meanacc.append(accuracy)
+		meanfar.append(far)
+		meanfrr.append(frr)
+	print("meanacc:",np.mean(meanacc),"(",np.std(meanacc),")","meanfar:",np.mean(meanfar),"(",np.std(meanfar),")","meanfrr:",np.mean(meanfrr),"(",np.std(meanfar),")",)
+	for i in range(len(meanacc)):
+		print("被选择的测试集序号：",selectk[i])
+		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
+
+
+def siamese_feature_gesture_divide_class(feature,target,targetnum):
+	#将特征分为不同的人和手势类
+	tempfeature=[[] for i in range(9)]
+	maxusernum=int(targetnum/9)
+	print("数据集中的用户数：",maxusernum)
+
+
+	for i in range(len(target)):
+		t2=(target[i]-1)%9
+		tempfeature[t2].append(feature[i])
+
+	# 只有一个手势的情况
+	# maxusernum=targetnum
+	# print("数据集中的用户数：",maxusernum)
+	# for i in range(maxusernum):
+	# 	tempfeature.append([])
+	# 	for j in range(1):
+	# 		tempfeature[i].append([])
+	# for i in range(len(target)):
+	# 	t1=int((target[i]-1))
+	# 	tempfeature[t1][0].append(feature[i])
+
+
+	meanacc=[]
+	meanfar=[]
+	meanfrr=[]
+
+	#循环次数
+	iternum=30
+	#组合内序号个数
+	comnum=2
+	#训练集个数
+	# traincomnum=28
+
+	rangek=list(range(0,9))
+	# rangek=list(range(0,maxusernum))
+	#得出用户数在2之间的组合
+	com=list(combinations(rangek,comnum))
+	#在组合间，随机选其中的iternum个
+	selectk = random.sample(com, iternum)
+	
+	for t in range(iternum):
+		print("周期：",t)
+		train_data=[]
+		test_data=[]
+
+		# selectks=[]
+		# for i in rangek:
+		# 	if i not in selectk[t]:
+		# 		selectks.append(i)
+		# selectks = random.sample(selectks, traincomnum)
+		# print("被选择的训练集序号：",selectks)
+
+		print("被选择的测试集序号：",selectk[t])
+		for i in range(9):
+			if i in selectk[t]:
+				test_data.append(tempfeature[i])
+			# if i in selectks:
+			else:
+				train_data.append(tempfeature[i])	
+
+		temptraindata=[]
+		temptraintarget=[]
+		trainindex=1
+		for i in range(len(train_data)):
+			for j in range(len(train_data[i])):
+				temptraindata.append(train_data[i][j])
+				temptraintarget.append(trainindex)
+			trainindex=trainindex+1
+		trainindex=trainindex-1
+		print("训练集项目数：" ,trainindex)
+
+		temptestdata=[]
+		temptesttarget=[]
+		testindex=1
+		for i in range(len(test_data)):
+			for j in range(len(test_data[i])):
+				temptestdata.append(test_data[i][j])
+				temptesttarget.append(testindex)
+			testindex=testindex+1		
+		testindex=testindex-1
+		print("测试集项目数：",testindex)
+		print(temptesttarget)
 
 		train_data=temptraindata
 		train_target=temptraintarget
@@ -208,6 +364,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		# IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./stdpropara.txt')
 
 		train_data=np.array(train_data)
+		train_target=np.array(train_target)
 		test_data=np.array(test_data)
 		print("train_data.shape:",train_data.shape)
 		print("test_data.shape:",test_data.shape)
@@ -230,31 +387,33 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		print("被选择的测试集序号：",selectk[i])
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
 
+
+
 def siamese_mul_feature_divide_class(feature,target,targetnum):
 
 	#将特征分为不同的人和手势类
 	tempfeature=[]
 	maxusernum=int(targetnum/9)
 	#将9个手势都加进去
-	print("数据集中的用户数：",maxusernum)
-	for i in range(maxusernum):
-		tempfeature.append([])
-		for j in range(9):
-			tempfeature[i].append([])
-	for i in range(len(target)):
-		t1=int((target[i]-1)/9)
-		t2=(target[i]-1)%9
-		tempfeature[t1][t2].append(feature[i])
-	# 只有一个手势的情况
-	# maxusernum=targetnum
 	# print("数据集中的用户数：",maxusernum)
 	# for i in range(maxusernum):
 	# 	tempfeature.append([])
-	# 	for j in range(1):
+	# 	for j in range(9):
 	# 		tempfeature[i].append([])
 	# for i in range(len(target)):
-	# 	t1=int((target[i]-1))
-	# 	tempfeature[t1][0].append(feature[i])
+	# 	t1=int((target[i]-1)/9)
+	# 	t2=(target[i]-1)%9
+	# 	tempfeature[t1][t2].append(feature[i])
+	# 只有一个手势的情况
+	maxusernum=targetnum
+	print("数据集中的用户数：",maxusernum)
+	for i in range(maxusernum):
+		tempfeature.append([])
+		for j in range(1):
+			tempfeature[i].append([])
+	for i in range(len(target)):
+		t1=int((target[i]-1))
+		tempfeature[t1][0].append(feature[i])
 
 	meanacc=[]
 	meanfar=[]
@@ -263,16 +422,20 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 	#循环次数
 	iternum=30
 	#组合内序号个数
-	comnum=4
+	comnum=30
 	#训练集个数
 	# traincomnum=32
 
 	rangek=list(range(0,maxusernum))
 	#得出用户数在2之间的组合
-	com=list(combinations(rangek,comnum))
-	#在组合间，随机选其中的iternum个
-	selectk = random.sample(com, iternum)
+	# com=list(combinations(rangek,comnum))
+	# #在组合间，随机选其中的iternum个
+	# selectk = random.sample(com, iternum)
 	
+	selectk=[]
+	for i in range(iternum):
+		selectk.append(random.sample(rangek, comnum))
+
 	for t in range(iternum):
 		print("周期：",t)
 		train_data=[]
@@ -323,16 +486,26 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 		test_target=temptesttarget
 		#将所需的不同手势类别划分为训练集和测试集
 		train_data=np.array(train_data)
+		train_target=np.array(train_target)
 		test_data=np.array(test_data)
 		print("train_data.shape:",train_data.shape)
 		print("test_data.shape:",test_data.shape)
 
 		featurenum=30
-		anchornum=5
+		anchornum=3
 
-		ppg_train_data,ppg_test_data,ppg_sort=IAtool.minepro(train_data[:,0:84],test_data[:,0:84],train_target,featurenum)
-		motion_train_data,motion_test_data,motion_sort=IAtool.minepro(train_data[:,84:],test_data[:,84:],train_target,featurenum)
+		# ppg_train_data,ppg_test_data,ppg_sort=IAtool.minepro(train_data[:,0:76],test_data[:,0:76],train_target,featurenum)
+		# motion_train_data,motion_test_data,motion_sort=IAtool.minepro(train_data[:,76:],test_data[:,76:],train_target,featurenum)
 		
+		ppg_sort,motion_sort,scale_mean,scale_scale=IAtool.mulfilterparameterread('./stdpropara.txt')
+		scale_mean=np.array(scale_mean)
+		scale_scale=np.array(scale_scale)
+		ppg_train_data=IAtool.scoreselect(train_data[:,0:76],ppg_sort,featurenum)
+		motion_train_data=IAtool.scoreselect(train_data[:,76:],motion_sort,featurenum)
+		ppg_test_data=IAtool.scoreselect(test_data[:,0:76],ppg_sort,featurenum)
+		motion_test_data=IAtool.scoreselect(test_data[:,76:],motion_sort,featurenum)
+
+
 		train_data=[]
 		test_data=[]
 		for i in range(len(ppg_train_data)):
@@ -351,8 +524,8 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 				temp.append(j)
 			test_data.append(temp)
 
-		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
-		IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./stdpropara.txt')
+		# train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		# IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./stdpropara.txt')
 
 		train_data=np.array(train_data)
 		test_data=np.array(test_data)
@@ -379,9 +552,33 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 
 
 def siamese_feature_mul_build_class(train_data,train_target,trainindex,featurenum):
+	# ppg_sort,motion_sort,scale_mean,scale_scale=IAtool.mulfilterparameterread('./stdpropara.txt')
+	# scale_mean=np.array(scale_mean)
+	# scale_scale=np.array(scale_scale)
+
+	# ppg_train_data=IAtool.scoreselect(train_data[:,0:76],ppg_sort,featurenum)
+	# motion_train_data=IAtool.scoreselect(train_data[:,76:],motion_sort,featurenum)
+
+	# train_data=[]
+	# for i in range(len(ppg_train_data)):
+	# 	temp=[]
+	# 	for j in ppg_train_data[i]:
+	# 		temp.append(j)
+	# 	for j in motion_train_data[i]:
+	# 		temp.append(j)
+	# 	train_data.append(temp)
+	# # temp=[]
+	# # train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
+	# # IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./stdpropara.txt')
+	# train_data=np.array(train_data)
+	# # train_data=(train_data-scale_mean)/scale_scale
+	# print("train_data.shape:",train_data.shape)
+	# print("train_target.shape:",train_target.shape)
+
+
 	temp=[]
-	ppg_train_data,temp,ppg_sort=IAtool.minepro(train_data[:,0:84],temp,train_target,featurenum)
-	motion_train_data,temp,motion_sort=IAtool.minepro(train_data[:,84:],temp,train_target,featurenum)
+	ppg_train_data,temp,ppg_sort=IAtool.minepro(train_data[:,0:76],temp,train_target,featurenum)
+	motion_train_data,temp,motion_sort=IAtool.minepro(train_data[:,76:],temp,train_target,featurenum)
 
 	train_data=[]
 	for i in range(len(ppg_train_data)):
@@ -396,7 +593,9 @@ def siamese_feature_mul_build_class(train_data,train_target,trainindex,featurenu
 	train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
 	IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./stdpropara.txt')
 	train_data=np.array(train_data)
+	train_target=np.array(train_target)
 	print("train_data.shape:",train_data.shape)
+
 	siamese_mul_feature_buildmodel(train_data,train_target,trainindex,featurenum)
 
 def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,anchornum):
@@ -405,8 +604,8 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 	scale_mean=np.array(scale_mean)
 	scale_scale=np.array(scale_scale)
 
-	ppg_test_data=IAtool.scoreselect(test_data[:,0:84],ppg_sort,featurenum)
-	motion_test_data=IAtool.scoreselect(test_data[:,84:],motion_sort,featurenum)
+	ppg_test_data=IAtool.scoreselect(test_data[:,0:76],ppg_sort,featurenum)
+	motion_test_data=IAtool.scoreselect(test_data[:,76:],motion_sort,featurenum)
 
 	test_data=[]
 	for i in range(len(ppg_test_data)):
@@ -418,19 +617,60 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 		test_data.append(temp)
 	
 	# print(test_data[0])
-	test_data=(test_data-scale_mean)/scale_scale
+	# test_data=(test_data-scale_mean)/scale_scale
 	# print(test_data[0])
+	test_data=np.array(test_data)
 	print("test_data.shape:",test_data.shape)
 	print("test_target.shape:",test_target.shape)
 
 	score,label= siamese_mul_feature_final(test_data,test_target,targetnum,featurenum,anchornum)
-	# score=[i[0] for i in score]
+	score=[i[0] for i in score]
 	label=[i for i in label]
 	print('原结果：',label)
 	print('预测分数：',score)
 	accuracy,far,frr=cal_siamese_eer(label,score)
 	return accuracy,far,frr
 
+
+
+def siamese_feature_mul_single(train_data,test_data,featurenum):
+	train_data=np.array(train_data)
+	test_data=np.array(test_data)
+	ppg_sort,motion_sort,scale_mean,scale_scale=IAtool.mulfilterparameterread('./stdpropara.txt')
+	scale_mean=np.array(scale_mean)
+	scale_scale=np.array(scale_scale)
+
+
+	ppg_train_data=IAtool.scoreselect(train_data[:,0:252],ppg_sort,featurenum)
+	motion_train_data=IAtool.scoreselect(train_data[:,252:],motion_sort,featurenum)
+	train_data=[]
+	for i in range(len(ppg_train_data)):
+		temp=[]
+		for j in ppg_train_data[i]:
+			temp.append(j)
+		for j in motion_train_data[i]:
+			temp.append(j)
+		train_data.append(temp)
+	train_data=(train_data-scale_mean)/scale_scale
+
+	ppg_test_data=IAtool.scoreselect(test_data[:,0:252],ppg_sort,featurenum)
+	motion_test_data=IAtool.scoreselect(test_data[:,252:],motion_sort,featurenum)
+	test_data=[]
+	for i in range(len(ppg_test_data)):
+		temp=[]
+		for j in ppg_test_data[i]:
+			temp.append(j)
+		for j in motion_test_data[i]:
+			temp.append(j)
+		test_data.append(temp)
+	test_data=(test_data-scale_mean)/scale_scale
+	print("test_data.shape:",test_data.shape)
+
+	score= siamese_mul_feature_single(train_data,test_data,featurenum)
+	# score=[i[0] for i in score]
+	print('预测分数：',score)
+	# accuracy,far,frr=cal_siamese_eer(label,score)
+	# return accuracy,far,frr
 
 
 
@@ -618,63 +858,64 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 
 
 
-## 对原始序列输入到孪生网络中
-# def siamese_oridata_classifier(dataset,target,targetnum):
-# 	meanacc=[]
-# 	meanfar=[]
-# 	meanfrr=[]	
-# 	dataset=np.array(dataset)
-# 	target=np.array(target)
-# 	for t in range(0,1):
-# 		train_data,test_data, train_target, test_target = train_test_split(dataset,target,test_size = 0.2,random_state = t*30,stratify=target)	
+# 对原始序列输入到孪生网络中
+def siamese_oridata_classifier(dataset,target,targetnum):
+	meanacc=[]
+	meanfar=[]
+	meanfrr=[]	
+	dataset=np.array(dataset)
+	target=np.array(target)
+	for t in range(0,1):
+		train_data,test_data, train_target, test_target = train_test_split(dataset,target,test_size = 0.2,random_state = t*30,stratify=target)	
 
-# 		#将2*300变为300*2
-# 		# temptraindata=[]
-# 		# for i in range(len(train_data)):
-# 		# 	temp=[]
-# 		# 	for j in range(300):
-# 		# 		temp.append([])
-# 		# 		for k in range(len(train_data[0])):
-# 		# 			temp[j].append(test_data[i][k][j])
-# 		# 	temptraindata.append(temp)
-# 		# temptestdata=[]
-# 		# for i in range(len(test_data)):
-# 		# 	temp=[]
-# 		# 	for j in range(300):
-# 		# 		temp.append([])
-# 		# 		for k in range(len(train_data[0]):
-# 		# 			temp[j].append(test_data[i][k][j])
-# 		# 	temptestdata.append(temp)
-# 		# train_data=temptraindata
-# 		# test_data=temptestdata
+		# #将2*300变为300*2
+		# temptraindata=[]
+		# for i in range(len(train_data)):
+		# 	temp=[]
+		# 	for j in range(300):
+		# 		temp.append([])
+		# 		for k in range(len(train_data[0])):
+		# 			temp[j].append(train_data[i][k][j])
+		# 	temptraindata.append(temp)
+		# train_data=temptraindata
+
+		# temptestdata=[]
+		# for i in range(len(test_data)):
+		# 	temp=[]
+		# 	for j in range(300):
+		# 		temp.append([])
+		# 		for k in range(len(test_data[0])):
+		# 			temp[j].append(test_data[i][k][j])
+		# 	temptestdata.append(temp)
+		# test_data=temptestdata
 
 
-# 		#自己的方案
-# 		test_score,test_label= siamese_oridata(train_data,test_data, train_target, test_target,targetnum)
-# 		#emgauth方案
-# 		# score,test_label,threshold= siamese_emgauth(train_data,test_data, train_target, test_target,targetnum)
-# 		# print(score)
+		#自己的方案
+		test_score,test_label= siamese_oridata(train_data,test_data, train_target, test_target,targetnum)
+		#emgauth方案
+		# score,test_label,threshold= siamese_emgauth(train_data,test_data, train_target, test_target,targetnum)
+		# print(score)
 		
-# 		test_score=[i[0] for i in test_score]
-# 		print('原结果：',test_label)
-# 		print('预测分数：',test_score)
-# 		i=0.01
-# 		while i<5:
-# 			tp,tn,fp,fn=siamese_accuracy_score(test_label,test_score,i)
-# 			accuracy=(tp+tn)/(tp+tn+fp+fn)
-# 			far=(fp)/(fp+tn)
-# 			frr=(fn)/(fn+tp)
-# 			# print("i=",i)
-# 			# print("accuracy:",accuracy,"far:",far,"frr:",frr)
-# 			if frr<far:
-# 				break
-# 			i=i+0.005
-# 		print("i=",i)
-# 		print("accuracy:",accuracy,"far:",far,"frr:",frr)
-# 		meanacc.append(accuracy)
-# 		meanfar.append(far)
-# 		meanfrr.append(frr)
-# 	print("meanacc:",np.mean(meanacc),"meanfar:",np.mean(meanfar),"meanfrr:",np.mean(meanfrr))
+		test_score=[i[0] for i in test_score]
+		print('原结果：',test_label)
+		print('预测分数：',test_score)
+		i=0.01
+		while i<5:
+			tp,tn,fp,fn=siamese_accuracy_score(test_label,test_score,i)
+			accuracy=(tp+tn)/(tp+tn+fp+fn)
+			far=(fp)/(fp+tn)
+			frr=(fn)/(fn+tp)
+			# print("i=",i)
+			# print("accuracy:",accuracy,"far:",far,"frr:",frr)
+			if frr<far:
+				break
+			i=i+0.005
+		print("i=",i)
+		print("accuracy:",accuracy,"far:",far,"frr:",frr)
+		meanacc.append(accuracy)
+		meanfar.append(far)
+		meanfrr.append(frr)
+	print("meanacc:",np.mean(meanacc),"meanfar:",np.mean(meanfar),"meanfrr:",np.mean(meanfrr))
 
 
 
