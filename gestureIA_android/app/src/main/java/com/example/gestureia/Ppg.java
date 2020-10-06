@@ -12,6 +12,11 @@ public class Ppg {
         y = ppg_y;
         timestamps=ppgtime;
     }
+    public Ppg(double[] ppg_x, double[] ppg_y) {
+        x = ppg_x;
+        y = ppg_y;
+    }
+
     public Ppg() {}
     public Ppg(int lens) {
         x = new double[lens];

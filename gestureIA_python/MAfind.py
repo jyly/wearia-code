@@ -75,7 +75,7 @@ def fine_grained_segment_2(dn,fre,threshold=1):
 			if 0==flag:
 				pointstartindex=i-100
 				pointendindex=i+200
-				tag=0	
+				tag=1
 	return tag,pointstartindex,pointendindex
 
 def coarse_grained_detect(ppg,threshold=1):

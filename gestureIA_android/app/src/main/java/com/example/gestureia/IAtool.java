@@ -5,16 +5,12 @@ import android.util.Log;
 
 import org.fastica.FastICA;
 import org.fastica.FastICAException;
-
 import java.util.ArrayList;
-
 import org.apache.commons.math3.stat.descriptive.moment.*;
 import org.apache.commons.math3.complex.Complex;
 
 public class IAtool {
     public Normal_tool nortools = new Normal_tool();
-
-
 
     // 将ppg的array转化成矩阵，混合信号矩阵
     public double[][] constructmixsignal(Ppg ppgs) {
@@ -47,6 +43,8 @@ public class IAtool {
             e.printStackTrace();
         }
         Ppg temp = constructnewppg(cleanSignal[0], cleanSignal[1]);
+        mixedSignal=null;
+        cleanSignal=null;
         return temp;
     }
 

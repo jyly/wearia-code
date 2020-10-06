@@ -13,12 +13,6 @@ import org.apache.commons.math3.stat.descriptive.rank.Min;
 import uk.me.berndporr.iirj.Butterworth;
 
 public class Normal_tool {
-    public Variance vars = new Variance();
-    public Mean means = new Mean();
-    public Max maxs = new Max();
-    public Min mins = new Min();
-    public StandardDeviation stds = new StandardDeviation();
-
     public double KL_divergence(double[] P, double[] Q) {
         double KL = 0;
         for (int i = 0; i < P.length; i++) {
@@ -37,13 +31,18 @@ public class Normal_tool {
             M[i] = (_P[i] + _Q[i]) / 2;
         }
         JS = (KL_divergence(_P, M) + KL_divergence(_Q, M)) / 2;
+        M=null;
+        _P=null;
+        _Q=null;
         return JS;
     }
 
     // 相关系数
     public double cal_corr(double[] x, double[] y) {
+        Mean means = new Mean();
         double x_mean = means.evaluate(x);
         double y_mean = means.evaluate(y);
+        means = null;
         double cov_xy = 0;
         double sqx = 0;
         double sqy = 0;
@@ -69,30 +68,53 @@ public class Normal_tool {
             temp1[i] = data[i];
             temp2[i] = data[k + i];
         }
+        Variance vars = new Variance();
+
         double data_var = vars.evaluate(data) * datalen;
+        vars = null;
+        Mean means = new Mean();
+
         double data_mean = means.evaluate(data);
+        means = null;
         double auto_corr = 0;
         for (int i = 0; i < datalen - k; i++) {
             auto_corr += (temp1[i] - data_mean) * (temp2[i] - data_mean) / data_var;
         }
+        temp1=null;
+        temp2=null;
         return auto_corr;
     }
 
     // 按照间隙，进行均值滤波
     public double[] meanfilt(double[] data, int interval) {
         int datasize = data.length;
-        double[] templist = new double[datasize - interval];
-        for (int i = 0; i < datasize - interval; i++) {
-            templist[i] = means.evaluate(data, i, interval);
+        double[] tempdata = new double[datasize + interval];
+        for (int i = 0; i < interval; i++) {
+            tempdata[i] = data[0];
         }
+        for (int i = 0; i < datasize; i++) {
+            tempdata[i + interval] = data[i];
+        }
+        double[] templist = new double[datasize];
+        Mean means = new Mean();
+        for (int i = 0; i < datasize; i++) {
+            templist[i] = means.evaluate(tempdata, i, interval);
+        }
+        means = null;
+        tempdata = null;
         return templist;
     }
 
     // 0-1标准化
     public double[] minmaxscale(double[] data) {
         double[] templist = new double[data.length];
+        Max maxs = new Max();
+        Min mins = new Min();
+
         double tempmax = maxs.evaluate(data);
         double tempmin = mins.evaluate(data);
+        maxs = null;
+        mins = null;
         double interval = tempmax - tempmin;
         for (int i = 0; i < data.length; i++) {
             templist[i] = (data[i] - tempmin) / interval;
@@ -103,10 +125,23 @@ public class Normal_tool {
     // z-score标准化
     public double[] standardscale(double[] data) {
         double[] templist = new double[data.length];
+        Mean means = new Mean();
         double datamean = means.evaluate(data);
+        means=null;
+        StandardDeviation stds = new StandardDeviation();
         double datavar = stds.evaluate(data);
+        stds = null;
         for (int i = 0; i < data.length; i++) {
             templist[i] = (data[i] - datamean) / datavar;
+        }
+        return templist;
+    }
+
+    // 降到100内
+    public double[] innerscale(double[] data) {
+        double[] templist = new double[data.length];
+        for (int i = 0; i < data.length; i++) {
+            templist[i] = data[i] / 100000;
         }
         return templist;
     }
@@ -125,44 +160,46 @@ public class Normal_tool {
     }
 
     // 初始的butterworth滤波会有个收敛的过程，前面的数据手动选择滤除
-    public double[] butterworth_highpass(double[] data, int fre, double  high) {
-        int addinter=300;
+    public double[] butterworth_highpass(double[] data, int fre, double high) {
+        int addinter = 300;
         double[] tempdata = new double[data.length + addinter];
         for (int i = 0; i < addinter; i++)
             tempdata[i] = data[0];
         for (int i = 0; i < data.length; i++) {
-            tempdata[i+addinter]=data[i];
+            tempdata[i + addinter] = data[i];
         }
 
-        double[] templist = new double[data.length+addinter];
+        double[] templist = new double[data.length + addinter];
         Butterworth butterworth = new Butterworth();
         butterworth.highPass(3, fre, high);// order,fre,cutoff
         for (int i = 0; i < tempdata.length; i++) {
             templist[i] = butterworth.filter(tempdata[i]);
         }
-        Normal_tool normal=new Normal_tool();
-        templist=normal.array_dataselect(templist, addinter, data.length);
-        normal=null;
+        Normal_tool normal = new Normal_tool();
+        templist = normal.array_dataselect(templist, addinter, data.length);
+        normal = null;
+        tempdata = null;
         return templist;
     }
 
     public double[] butterworth_lowpass(double[] data, int fre, double low) {
-        int addinter=300;
+        int addinter = 300;
         double[] tempdata = new double[data.length + addinter];
         for (int i = 0; i < addinter; i++)
             tempdata[i] = data[0];
         for (int i = 0; i < data.length; i++) {
-            tempdata[i+addinter]=data[i];
+            tempdata[i + addinter] = data[i];
         }
-        double[] templist = new double[data.length+addinter];
+        double[] templist = new double[data.length + addinter];
         Butterworth butterworth = new Butterworth();
         butterworth.lowPass(3, fre, low);// order,fre,cutoff
         for (int i = 0; i < tempdata.length; i++) {
             templist[i] = butterworth.filter(data[i]);
         }
-        Normal_tool normal=new Normal_tool();
-        templist=normal.array_dataselect(templist, addinter, data.length);
-        normal=null;
+        Normal_tool normal = new Normal_tool();
+        templist = normal.array_dataselect(templist, addinter, data.length);
+        normal = null;
+        tempdata=null;
         return templist;
     }
 
@@ -170,42 +207,41 @@ public class Normal_tool {
         double center = ((high + low) / 2);
         double width = high - low;
 
-        int addinter=300;
+        int addinter = 300;
         double[] tempdata = new double[data.length + addinter];
         for (int i = 0; i < addinter; i++)
             tempdata[i] = data[0];
         for (int i = 0; i < data.length; i++) {
-            tempdata[i+addinter]=data[i];
+            tempdata[i + addinter] = data[i];
         }
 
-        double[] templist = new double[data.length+addinter];
+        double[] templist = new double[data.length + addinter];
         Butterworth butterworth = new Butterworth();
         butterworth.bandPass(3, fre, center, width);// order,fre,center,width
         for (int i = 0; i < tempdata.length; i++) {
             templist[i] = butterworth.filter(data[i]);
         }
-        Normal_tool normal=new Normal_tool();
-        templist=normal.array_dataselect(templist, addinter, data.length);
-        normal=null;
+        Normal_tool normal = new Normal_tool();
+        templist = normal.array_dataselect(templist, addinter, data.length);
+        normal = null;
+        tempdata=null;
         return templist;
     }
 
     // 序列转矩阵
     public double[] arraytomatrix(ArrayList<Double> data) {
-        ArrayList<Double> finaldata=new ArrayList<Double>();
-
+        ArrayList<Double> finaldata = new ArrayList<Double>();
         for (int i = 0; i < data.size(); i++) {
-                if(data.get(i)!=null){
-                    finaldata.add(data.get(i));
-                }
+            if (data.get(i) != null) {
+                finaldata.add(data.get(i));
+            }
         }
-        data=finaldata;
-        int datalength = data.size();
-
+        int datalength = finaldata.size();
         double[] matrix = new double[datalength];
         for (int i = 0; i < datalength; i++) {
-            matrix[i] = data.get(i);
+            matrix[i] = finaldata.get(i);
         }
+        finaldata=null;
         return matrix;
     }
 
@@ -221,25 +257,25 @@ public class Normal_tool {
 
     public double[] array_dataselect(double[] data, int start, int lens) {
         double[] templist = new double[lens];
-        for (int i = 0; i <lens; i++) {
-            templist[i] = data[i +start];
+        for (int i = 0; i < lens; i++) {
+            templist[i] = data[i + start];
         }
         return templist;
     }
-    public double[] strarraytodoublearray(String[] str){
-        double[] lo=new double[str.length];
-        for(int i=0;i<str.length;i++){
-            lo[i]=Double.parseDouble(str[i]);
+
+    public float[] strarraytofloatarray(String[] str) {
+        float[] lo = new float[str.length];
+        for (int i = 0; i < str.length; i++) {
+            lo[i] = Float.parseFloat(str[i]);
         }
         return lo;
     }
 
-    public int[] strarraytointarray(String[] str){
-        int[] lo=new int[str.length];
-        for(int i=0;i<str.length;i++){
-            lo[i]=Integer.parseInt(str[i]);
+    public int[] strarraytointarray(String[] str) {
+        int[] lo = new int[str.length];
+        for (int i = 0; i < str.length; i++) {
+            lo[i] = Integer.parseInt(str[i]);
         }
         return lo;
     }
-
 }

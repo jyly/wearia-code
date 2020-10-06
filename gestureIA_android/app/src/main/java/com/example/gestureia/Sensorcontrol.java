@@ -6,42 +6,42 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class Sensorcontrol {
+
     private SensorManager mSensorManager;
-    private ArrayList<Double> ppgx = new ArrayList<Double>();
-    private ArrayList<Double> ppgy = new ArrayList<Double>();
 
-    private ArrayList<Double> accx = new ArrayList<Double>();
-    private ArrayList<Double> accy = new ArrayList<Double>();
-    private ArrayList<Double> accz = new ArrayList<Double>();
+    float[] ppgx = new float[6000];
+    float[] ppgy = new float[6000];
+    long[] psensortime = new long[6000];
+    int pi = 0;
 
-    private ArrayList<Double> gyrx = new ArrayList<Double>();
-    private ArrayList<Double> gyry = new ArrayList<Double>();
-    private ArrayList<Double> gyrz = new ArrayList<Double>();
+    float[] accx = new float[4000];
+    float[] accy = new float[4000];
+    float[] accz = new float[4000];
+    long[] asensortime = new long[4000];
+    int ai = 0;
 
-    private ArrayList<Long> ppgtimestamps = new ArrayList<>();
-    private ArrayList<Long> acctimestamps = new ArrayList<>();
-    private ArrayList<Long> gyrtimestamps = new ArrayList<>();
-    public List<Sensor> sensorList;
+    float[] gyrx = new float[4000];
+    float[] gyry = new float[4000];
+    float[] gyrz = new float[4000];
+    long[] gsensortime = new long[4000];
+    int gi = 0;
 
     public void StartSensorListening(Context context) {
 
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(65572), 0);//Heart Rate PPG Raw Data 200hz
-//        mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(21), 0);//Heart Rate PPG Raw Data 200hz
-//        mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(17), 0);//Heart Rate PPG Raw Data 200hz
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(1), 0);//Accelerometer 100hz
         mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(4), 0);//Gyroscope 100hz
-//        mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(5), 0);//Gyroscope 100hz
-        sensorList = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+//        mSensorManager.registerListener(listener, mSensorManager.getDefaultSensor(5), 0);//light
+        List<Sensor> sensorList = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         Log.e(">>>", "列出当前设备所有的传感器信息");
         for (Sensor sensor : sensorList) {
             Log.e("List sensors", "Name: " + sensor.getName() + " /Type_String: " + sensor.getStringType() + " /Type_number: " + sensor.getType());
         }
+        sensorList=null;
     }
 
     public void StopSensorListening() {
@@ -55,93 +55,107 @@ public class Sensorcontrol {
         @Override
         public void onAccuracyChanged(Sensor sensor, int i) {
         }
-
         public void onSensorChanged(SensorEvent e) {
             switch (e.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:   //加速度传感器
 //                    Log.d("Test", "Got the ACCELEROMETER : " + String.valueOf(e.values[0]) + "," + String.valueOf(e.values[1]) + "," + String.valueOf(e.values[2]));
-                    accx.add(Double.valueOf(String.valueOf(e.values[0])));
-                    accy.add(Double.valueOf(String.valueOf(e.values[1])));
-                    accz.add(Double.valueOf(String.valueOf(e.values[2])));
-                    acctimestamps.add(System.currentTimeMillis());
+                    accx[ai] = e.values[0];
+                    accy[ai] = e.values[1];
+                    accz[ai] = e.values[2];
+                    asensortime[ai] = System.currentTimeMillis();
+                    ai = ai + 1;
                     break;
                 case Sensor.TYPE_GYROSCOPE:     //陀螺传感器
 //                    Log.d("Test", "Got the GYROSCOPE : " + String.valueOf(e.values[0]) + "," + String.valueOf(e.values[1]) + "," + String.valueOf(e.values[2]));
-
-                    gyrx.add(Double.valueOf(String.valueOf(e.values[0])));
-                    gyry.add(Double.valueOf(String.valueOf(e.values[1])));
-                    gyrz.add(Double.valueOf(String.valueOf(e.values[2])));
-                    gyrtimestamps.add(System.currentTimeMillis());
+                    gyrx[gi] = e.values[0];
+                    gyry[gi] = e.values[1];
+                    gyrz[gi] = e.values[2];
+                    gsensortime[gi] = System.currentTimeMillis();
+                    gi = gi + 1;
                     break;
-
                 case 65572:   //ppg传感器
-//                    Log.d("Test", "raw ppg : "+e.values.length+"," + String.valueOf(e.values[0]) + "," + String.valueOf(e.values[2]));
+//                    Log.d("Test", "raw ppg : "+e.values.length+"," + String.valueOf(e.values[0]) + "," + String.valueOf(e.values[1]));
+//                    String []indicnum=String.valueOf(e.values[0]).split("E");
+//                    Log.d("Test", "indicnum : "+ indicnum[0] + "," + (50+float.valueOf(indicnum[1])));
+//
+//                    float tempx=float.valueOf(indicnum[0])*Math.pow(10, (50+float.valueOf(indicnum[1])))/2;
+//                    indicnum=String.valueOf(e.values[1]).split("E");
+//                    float tempy=float.valueOf(indicnum[0])*Math.pow(10, (50+float.valueOf(indicnum[1])))/2;
+//                    Log.d("Test", "raw ppg : "+e.values.length+"," + tempx + "," + tempy);
 //                    for(int i=0;i<16;i++){
 //                        Log.e(">>>>","e.value:"+i+","+e.values[i]);
 //                    }
-                    ppgx.add(Double.valueOf(String.valueOf(e.values[0])));
-                    //ticwatch的是value1
-                    ppgy.add(Double.valueOf(String.valueOf(e.values[1])));
-                    ppgtimestamps.add(System.currentTimeMillis());
+                    ppgx[pi] = e.values[0];
+                    ppgy[pi] = e.values[1];
+                    psensortime[pi] = System.currentTimeMillis();
+                    pi = pi + 1;
                     break;
 //                case 5:   //光学ppg传感器
 //                    //大于100基本就是没在使用
 //                    Log.d("Test", "light : " +e.values.length+","+ String.valueOf(e.values[0]));
 //                    break;
-//                case 17:   //Significant Motion 传感器
-//                    //大于100基本就是没在使用
-//                    Log.d("Test", "Significant Motion  : " +e.values.length+","+ String.valueOf(e.values[0]));
-//                    break;
-//                case 21:   // Heart Rate PPG 传感器
-//                    //大于100基本就是没在使用
-//                    Log.d("Test", " Heart Rate PPG  : " +e.values.length+","+ String.valueOf(e.values[0]));
-//                    break;
+            }
+            if(pi>4000||ai>2000||gi>2000){
+                datadelete();
             }
         }
     };
 
     public void dataclear() {
-        ppgx.clear();
-        ppgy.clear();
-        ppgtimestamps.clear();
+        ppgx = null;
+        ppgy = null;
+        psensortime = null;
+        accx = null;
+        accy = null;
+        accz = null;
+        asensortime = null;
+        gyrx = null;
+        gyry = null;
+        gyrz = null;
+        gsensortime = null;
 
-        accx.clear();
-        accy.clear();
-        accz.clear();
-        acctimestamps.clear();
+        ppgx = new float[6000];
+        ppgy = new float[6000];
+        psensortime = new long[6000];
+        pi = 0;
+        accx = new float[4000];
+        accy = new float[4000];
+        accz = new float[4000];
+        asensortime = new long[4000];
+        ai = 0;
+        gyrx = new float[4000];
+        gyry = new float[4000];
+        gyrz = new float[4000];
+        gsensortime = new long[4000];
+        gi = 0;
 
-        gyrx.clear();
-        gyry.clear();
-        gyrz.clear();
-        gyrtimestamps.clear();
     }
 
     public Ppg getnewppgseg(int lens) {
-        int length = ppgx.size();
-//        Log.e(">>>", "ppgx.size():" + ppgx.size()+"ppgy.size():" + ppgy.size()+"ppgtimestamps.size():" + ppgtimestamps.size());
+        int length = pi;
         if (lens > length - 100) {
             lens = length - 100;
         }
         double[] x = new double[lens];
         double[] y = new double[lens];
         long[] timestamp = new long[lens];
-
         for (int i = 0; i < lens; i++) {
-            x[i] = ppgx.get(i + length - lens - 10);
-            y[i] = ppgy.get(i + length - lens - 10);
-            timestamp[i] = ppgtimestamps.get(i + length - lens - 10);
+            if (ppgx[i + length - lens - 10] != 0 && ppgy[i + length - lens - 10] != 0) {
+                x[i] = ppgx[i + length - lens - 10];
+                y[i] = ppgy[i + length - lens - 10];
+                timestamp[i] = psensortime[i + length - lens - 10];
+            }
         }
         Ppg ppgs = new Ppg(x, y, timestamp);
-
         return ppgs;
     }
 
     public Ppg getnewppgseg() {
-        return getnewppgseg(ppgx.size());
+        return getnewppgseg(pi);
     }
 
     public Motion getnewmotionseg(int lens) {
-        int length = accx.size();
+        int length = ai;
         if (lens > length - 50) {
             lens = length - 50;
         }
@@ -151,14 +165,15 @@ public class Sensorcontrol {
         long[] acctime = new long[lens];
 
         for (int i = 0; i < lens; i++) {
-            acc_x[i] = accx.get(i + length - lens - 10);
-            acc_y[i] = accy.get(i + length - lens - 10);
-            acc_z[i] = accz.get(i + length - lens - 10);
-            acctime[i] = acctimestamps.get(i + length - lens - 10);
+            if (accx[i + length - lens - 10] != 0 && accy[i + length - lens - 10] != 0 && accz[i + length - lens - 10] != 0) {
+                acc_x[i] = accx[i + length - lens - 10];
+                acc_y[i] = accy[i + length - lens - 10];
+                acc_z[i] = accz[i + length - lens - 10];
+                acctime[i] = asensortime[i + length - lens - 10];
+            }
         }
 
-
-        length = gyrx.size();
+        length = gi;
         if (lens > length - 50) {
             lens = length - 50;
         }
@@ -168,50 +183,67 @@ public class Sensorcontrol {
         long[] gyrtime = new long[lens];
 
         for (int i = 0; i < lens; i++) {
-            gyr_x[i] = gyrx.get(i + length - lens - 10);
-            gyr_y[i] = gyry.get(i + length - lens - 10);
-            gyr_z[i] = gyrz.get(i + length - lens - 10);
-            gyrtime[i] = gyrtimestamps.get(i + length - lens - 10);
+            if (gyrx[i + length - lens - 10] != 0 && gyry[i + length - lens - 10] != 0 && gyrz[i + length - lens - 10] != 0) {
+                gyr_x[i] = gyrx[i + length - lens - 10];
+                gyr_y[i] = gyry[i + length - lens - 10];
+                gyr_z[i] = gyrz[i + length - lens - 10];
+                gyrtime[i] = gsensortime[i + length - lens - 10];
+            }
         }
-        Motion motions = new Motion(acc_x,acc_y,acc_z,acctime,gyr_x,gyr_y,gyr_z,gyrtime);
-
+        Motion motions = new Motion(acc_x, acc_y, acc_z, acctime, gyr_x, gyr_y, gyr_z, gyrtime);
         return motions;
     }
 
-
-
     public void datadelete() {
-//        Log.e(">>>","data_delete");
-        while (ppgx.size() > 3000) {
-            ppgx.remove(0);
-            ppgy.remove(0);
-            ppgtimestamps.remove(0);
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //        Log.e(">>>","data_delete");
+                if (pi > 4000) {
+                    int lens = pi;
+                    for (int i = 0; i < 2000; i++) {
+                        ppgx[i] = ppgx[lens - 2000 + i];
+                        ppgy[i] = ppgy[lens - 2000 + i];
+                        psensortime[i] = psensortime[lens - 2000 + i];
+                    }
+                    pi = 2000;
+                }
 
-        while (accx.size() > 1500) {
-            accx.remove(0);
-            accy.remove(0);
-            accz.remove(0);
-            acctimestamps.remove(0);
-        }
+                if (ai > 2000) {
+                    int lens = ai;
+                    for (int i = 0; i < 1000; i++) {
+                        accx[i] = accx[lens - 1000 + i];
+                        accy[i] = accy[lens - 1000 + i];
+                        accz[i] = accz[lens - 1000 + i];
+                        asensortime[i] = asensortime[lens - 1000 + i];
+                    }
+                    ai = 1000;
+                }
 
-        while (gyrx.size() > 1500) {
-            gyrx.remove(0);
-            gyry.remove(0);
-            gyrz.remove(0);
-            gyrtimestamps.remove(0);
-        }
+                if (gi > 2000) {
+                    int lens = gi;
+                    for (int i = 0; i < 1000; i++) {
+                        gyrx[i] = gyrx[lens - 1000 + i];
+                        gyry[i] = gyry[lens - 1000 + i];
+                        gyry[i] = gyry[lens - 1000 + i];
+                        gsensortime[i] = gsensortime[lens - 1000 + i];
+                    }
+                    gi = 1000;
+                }
+            }
+        }).start();
     }
 
+
     public int getppgsize() {
-        return ppgx.size();
+        return pi;
     }
 
     public int getaccsize() {
-        return accx.size();
+        return ai;
     }
 
     public int getgyrsize() {
-        return gyrx.size();
+        return gi;
     }
 }

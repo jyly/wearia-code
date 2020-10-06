@@ -26,23 +26,27 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Behaviorlisten extends Service {
-    private Energycontrol energycontrol = new Energycontrol();
-    private Sensorcontrol sensors = new Sensorcontrol();
-    private Baedmodel basedmodel = new Baedmodel();
-    Timer timer = new Timer();
-
+    private Energycontrol energycontrol = null;
+    private Sensorcontrol sensors = null;
+    private Baedmodel basedmodel = null;
+    Timer timer = null;
     private int sleepcount = 0;
+
 
     @SuppressLint("InvalidWakeLockTag")
     @Override
     public void onCreate() {
         Log.i("Kathy", "onCreate - Thread ID = " + Thread.currentThread().getId());
         super.onCreate();
-
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        sensors = new Sensorcontrol();
+        energycontrol = new Energycontrol();
+        basedmodel = new Baedmodel();
+
         energycontrol.energyclose();
         energycontrol.energyopen(getApplicationContext());
 //        launch();
@@ -51,6 +55,7 @@ public class Behaviorlisten extends Service {
         sensors.StartSensorListening(getApplicationContext());
         basedmodel.readmodelpara(getApplicationContext());
         basedmodel.readbasedfeature(getApplicationContext());
+        timer = new Timer();
 
         timer.schedule(new TimerTask() {
             @Override
@@ -58,45 +63,38 @@ public class Behaviorlisten extends Service {
                 if (sleepcount > 0) {
                     Log.e(">>>", "sleepcount:" + sleepcount);
                     sleepcount--;
-                    if (sensors.getppgsize() > 2000) {
-                        sensors.datadelete();
-                    }
+//                    if (sensors.getppgsize() > 4000&&0==readlock) {
+////                        sensors.datadelete();
+//                    }
                 }
-//                System.out.println("TimerTask");
 
                 Log.e(">>>", "ppg.size():" + sensors.getppgsize());
 
                 if (sensors.getppgsize() > 2000 && sleepcount == 0) {
-
-//                    Ppg rawppgs = sensors.getnewppgseg(1800);
-//                    Motion motion = sensors.getnewmotionseg(900);
-
                     Ppg ppgs = sensors.getnewppgseg(1800);
                     Motion motion = sensors.getnewmotionseg(900);
+                    System.gc();
 
-                     Normal_tool nortools = new Normal_tool();
-                     MAfind ma = new MAfind();
+//                    sensors.datadelete();
 
+                    Normal_tool nortools = new Normal_tool();
+                    MAfind ma = new MAfind();
                     ppgs.x = nortools.meanfilt(ppgs.x, 20);
                     ppgs.y = nortools.meanfilt(ppgs.y, 20);
-                    sensors.datadelete();
 
                     int coarsetag = ma.coarse_grained_detect(ppgs.x);
                     Log.e(">>>", "coarsetag:" + coarsetag);
                     if (1 == coarsetag) {
-
+                        //对原始的ppg型号做butterworth提取
                         Ppg butterppg = new Ppg();
-                    	//对原始的ppg型号做butterworth提取
                         butterppg.x = nortools.butterworth_highpass(ppgs.x, 200, 2);
                         butterppg.y = nortools.butterworth_highpass(ppgs.y, 200, 2);
-
-                        int inter=600;
                         // 做快速主成分分析
-                         IAtool iatools = new IAtool();
+                        IAtool iatools = new IAtool();
                         Ppg icappg = iatools.fastica(butterppg);
                         // 根据峰值判断那条手势信号和脉冲信号
                         icappg = iatools.machoice(icappg);
-                        iatools=null;
+                        iatools = null;
                         //细粒度手势分析，判断手势区间
 //                        int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
                         int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1);
@@ -107,49 +105,39 @@ public class Behaviorlisten extends Service {
                         } else {
                             Log.e(">>>", "手势点：" + ma.pointstartindex + " " + ma.pointendindex);
                             //特征提取
+                            ppgs.x=nortools.innerscale(ppgs.x);
+                            ppgs.y=nortools.innerscale(ppgs.y);
+
                             ppgs = ma.setppgsegment(ppgs);
                             butterppg = ma.setppgsegment(butterppg);
                             icappg = ma.setppgsegment(icappg);
-                            motion=ma.setmotionsegment(motion);
-                            ma=null;
+                            motion = ma.setmotionsegment(motion);
 
                             Featurecontrol featurecontrol = new Featurecontrol();
-
-                            double[] temp=featurecontrol.return_feature(ppgs,motion,butterppg,icappg);
-
+                            double[] featureset = featurecontrol.return_feature(ppgs, motion, butterppg, icappg);
+                            featurecontrol = null;
+//                            for(int i=0;i<temp.length;i++){
+//                                System.out.print(temp[i]+",");
+//                            }
                             //特征过滤及预处理
-                            int featurelen=30;
-                            float[] inform_feature = new float[featurelen*2];
-                            for (int i = 0; i < featurelen; i++) {
-                                inform_feature[i] = (float) (double) temp[basedmodel.sort1[i]];
-                                inform_feature[i + featurelen] = (float) (double) temp[basedmodel.sort2[i] + 84];
-                            }
-                            inform_feature = featurecontrol.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
-                            featurecontrol=null;
-                            float[] ppg_feature = new float[featurelen];
-                            float[] motion_feature = new float[featurelen];
-                            for (int i = 0; i < featurelen; i++) {
-                                ppg_feature[i] = inform_feature[i];
-                                motion_feature[i] = inform_feature[i + featurelen];
-                            }
+                            float[][] final_feature= basedmodel.dataprocess(featureset);
+                            int predittag = basedmodel.behavior_predit(basedmodel.final_feature, final_feature);
+                            featureset=null;
+                            final_feature=null;
 
-                            float[][] final_feature = new float[2][];
-                            Siamese_model siamese = new Siamese_model();
-                            final_feature[0] = siamese.sample_feature(basedmodel.ppg_tflite, ppg_feature);
-                            final_feature[1] = siamese.sample_feature(basedmodel.motion_tflite, motion_feature);
-
-                            int predittag = siamese.behavior_predit(basedmodel.final_feature, final_feature);
-                            siamese=null;
-
-                            if (predittag == 1) {
-                                sleepcount = 8;
-                            }
+//                            if (predittag == 1) {
+//                                sleepcount = 8;
+//                            }
                         }
+                        butterppg=null;
+                        icappg=null;
+                        motion=null;
                     }
 //                    stopService(new Intent(getBaseContext(), sensorlisten.class));
-                    nortools=null;
-                    ma=null;
-
+                    ppgs=null;
+                    motion=null;
+                    nortools = null;
+                    ma = null;
                 }
             }
         }, 100, 1000);
@@ -169,10 +157,10 @@ public class Behaviorlisten extends Service {
         sensors.StopSensorListening();
         energycontrol.energyclose();
         timer.cancel();
-        sensors=null;
-        energycontrol=null;
-        timer=null;
-        basedmodel=null;
+        sensors = null;
+        energycontrol = null;
+        timer = null;
+        basedmodel = null;
         super.onDestroy();
     }
 }

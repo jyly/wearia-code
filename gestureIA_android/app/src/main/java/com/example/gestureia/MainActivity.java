@@ -58,21 +58,19 @@ public class MainActivity extends WearableActivity {
     private int count = 0;
     //录入状态标记，0是不可录入，1是可录入
     private int uploadtag = 1;
-    private Timer timer = new Timer();
+    private Timer timer = null;
 
-    private Sensorcontrol sensors = new Sensorcontrol();
-    private Energycontrol energycontrolr = new Energycontrol();
-    private Baedmodel basedmodel = new Baedmodel();
+    private Sensorcontrol sensors =null;
+    private Energycontrol energycontrolr=null;
+    private Baedmodel basedmodel = null;
+
     private long starttime = 0;
     private long currenttime = 0;
     private long ensuretime = 0;
 
-
-    private ArrayList<Ppg> ppg_record = new ArrayList<Ppg>();
-    private ArrayList<Motion> motion_record = new ArrayList<Motion>();
     private ArrayList<float[][]> features_record = new ArrayList<float[][]>();
     private int service_flag = 0;
-
+    private double[] featureset=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -86,20 +84,20 @@ public class MainActivity extends WearableActivity {
         //加载下拉列表
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinnervalue, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
         gesture_spinner = (Spinner) findViewById(R.id.gestureSpinner);
         gesture_spinner.setAdapter(adapter);
-
-
         button_register = (Button) findViewById(R.id.register);
         button_listen_start = (Button) findViewById(R.id.listen_start);
         button_listen_stop = (Button) findViewById(R.id.listen_stop);
+        basedmodel = new Baedmodel();
 
-//        后台监听
+//        后台service监听
         button_listen_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.e(">>.", "service start！");
-
+                //获取当前注册样本的特征
                 basedmodel.readbasedfeature(getApplicationContext());
                 if (basedmodel.final_feature == null) {
                     Toast.makeText(getApplicationContext(), "请选择先注册手势！", Toast.LENGTH_LONG).show();
@@ -127,65 +125,66 @@ public class MainActivity extends WearableActivity {
                 }
             }
         });
-
+        //暂停服务
         button_listen_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.e(">>.", "service stop！");
-                sensors.StopSensorListening();
-                service_flag = 0;
-                energycontrolr.energyclose();
+//                sensors.StopSensorListening();
+//                sensors=null;
                 stopService(new Intent(getBaseContext(), Behaviorlisten.class));
-
             }
         });
+
         //注册样本
         button_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 final String gesture_item = gesture_spinner.getSelectedItem().toString();
                 int lens = gesture_item.length();
 //                if (lens > 3) {
                 if (1 == 0) {
                     Toast.makeText(getApplicationContext(), "请选择要登记的手势！", Toast.LENGTH_LONG).show();
                 } else {
+
                     basedmodel.readmodelpara(getApplicationContext());
+
                     Toast.makeText(getApplicationContext(), "系统初始化，请稍后！", Toast.LENGTH_LONG).show();
                     setContentView(R.layout.gesture_record);
 
+                    sensors = new Sensorcontrol();
+                    energycontrolr = new Energycontrol();
+
                     energycontrolr.energyopen(getApplicationContext());
                     sensors.dataclear();
+                    sensors.StartSensorListening(getApplicationContext());
+                    timer = new Timer();
+
                     setcount();
 
                     starttime = System.currentTimeMillis();
                     ensuretime = System.currentTimeMillis();
-
-                    sensors.StartSensorListening(getApplicationContext());
-
                     button_final = (Button) findViewById(R.id.stopcount);
                     button_add = (Button) findViewById(R.id.addcount);
                     gesturecount = (TextView) findViewById(R.id.count);
                     tips = (TextView) findViewById(R.id.tips);
 
-
+                    //样本注册完成
                     button_final.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             Toast.makeText(getApplicationContext(), "已登记手势样本" + getcount() + "条", Toast.LENGTH_LONG).show();
-                            timer.cancel();
-                            sensors.StopSensorListening();
-                            energycontrolr.energyclose();
-                            //将最终向量保存到文件中
 
-//                            for (int i = 0; i < final_feature.length; i++) {
-//                                float[] temp = new float[final_feature[i].length];
-//                                for (int j = 0; j < final_feature[i].length; j++) {
-//                                    temp[j] = (float) (double) final_feature[i][j];
-//                                }
-//                                features_record.add(temp);
-//                            }
+                            timer.cancel();
+                            timer = null;
+                            sensors.StopSensorListening();
+                            sensors=null;
+                            energycontrolr.energyclose();
+                            energycontrolr=null;
+
+                            //将最终向量保存到文件中
                             if (features_record.size() > 0) {
+                                Log.e(">>>", "确认手势样本" + features_record.size() + "条");
                                 basedmodel.writebasedfeature(getApplicationContext(), features_record);
                             } else {
                                 Log.e(">>>", "当前无手势特征录入文件");
@@ -194,23 +193,17 @@ public class MainActivity extends WearableActivity {
                             startActivity(intent);
                         }
                     });
-
+                    //注册单个手势片段
                     button_add.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             if (uploadtag == 1) {
                                 ensuretime = System.currentTimeMillis();
                                 countupdate();
-                                int i = getcount();
-                                Log.e(">>>", "segment：" + i);
-                                gesturecount.setText(String.valueOf(i));
                                 Ppg ppgs = sensors.getnewppgseg(1800);
                                 Motion motions = sensors.getnewmotionseg(900);
+                                System.gc();
                                 segmentupload(RequestURL, motions, ppgs, 10000, "s_segment", gesture_item);
-
-                                //保存当前选择的数据段
-//                                ppg_record.add(rawppgs);
-//                                motion_record.add(motions);
 
                                 Message msg = new Message();
                                 msg.what = 1;
@@ -218,36 +211,13 @@ public class MainActivity extends WearableActivity {
                                 //计算当前片段通过网络后的向量
 
                                 Featurecontrol featurecontrols = new Featurecontrol();
-                                double[] temp = featurecontrols.build_feature(ppgs, motions);
-
-
-                                if (temp!=null) {
-                                    int featurelen=30;
-                                    float[] inform_feature = new float[featurelen*2];
-                                    for (i = 0; i < featurelen; i++) {
-                                        inform_feature[i] = (float) (double) temp[basedmodel.sort1[i]];
-                                        inform_feature[i + featurelen] = (float) (double) temp[basedmodel.sort2[i] + 84];
-                                    }
-                                    inform_feature = featurecontrols.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
-                                    featurecontrols=null;
-                                    float[] ppg_feature = new float[featurelen];
-                                    float[] motion_feature = new float[featurelen];
-                                    for (i = 0; i < featurelen; i++) {
-                                        ppg_feature[i] = inform_feature[i];
-                                        motion_feature[i] = inform_feature[i + featurelen];
-                                    }
-
-                                    float[][] final_feature = new float[2][];
-                                    Siamese_model siamese = new Siamese_model();
-                                    final_feature[0] = siamese.sample_feature(basedmodel.ppg_tflite, ppg_feature);
-                                    final_feature[1] = siamese.sample_feature(basedmodel.motion_tflite, motion_feature);
-                                    siamese=null;
-                                    features_record.add(final_feature);
+                                featureset = featurecontrols.build_feature(ppgs, motions);
+                                featurecontrols = null;
+                                ppgs=null;
+                                motions=null;
+                                if (featureset != null) {
+                                    features_record.add(basedmodel.dataprocess(featureset));
                                 }
-
-                                //实验室中上传人工确认后的短片段
-//                                ppg rawppgs = sensors.getnewppgseg(1800);
-//                                motion motions = sensors.getnewmotionseg(900);
 
                             } else {
                                 Toast.makeText(getApplicationContext(), "请稍等！", Toast.LENGTH_LONG).show();
@@ -255,9 +225,11 @@ public class MainActivity extends WearableActivity {
                         }
                     });
 
+                    //定时更新页面片段
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
+                            sensors.datadelete();
                             System.out.println("TimerTask");
                             currenttime = System.currentTimeMillis();
 //                            Log.e(">>>>",""+(currenttime - starttime)+","+(currenttime - ensuretime));
@@ -268,6 +240,7 @@ public class MainActivity extends WearableActivity {
                                 handler.sendMessage(msg);
                                 uploadtag = 0;
                             } else {
+                                System.gc();
                                 if (((currenttime - ensuretime) < 7000) && (uploadtag != 0)) {
                                     //录入一条手势时的等待
                                     Message msg = new Message();
@@ -646,6 +619,7 @@ public class MainActivity extends WearableActivity {
                     sb.append("Content-Type: application/octet-stream; charset=" + CHARSET + LINE_END);
                     sb.append(LINE_END);
                     dos.write(sb.toString().getBytes());
+                    sb=null;
                     StringBuffer sd = new StringBuffer();
                     for (int i = 0; i < motions.accx.length; i++) {
                         sd.append(0).append(",")
@@ -677,6 +651,9 @@ public class MainActivity extends WearableActivity {
                     byte[] end_data = (PREFIX + BOUNDARY + PREFIX + LINE_END).getBytes();
                     dos.write(end_data);
                     dos.flush();
+                    dos=null;
+                    sd=null;
+
                     int res = conn.getResponseCode();
                     Log.e(">>>", "response code:" + res);
                     Log.e(">>>", "request success");

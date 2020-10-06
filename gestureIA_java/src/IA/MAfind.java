@@ -97,19 +97,18 @@ public class MAfind {
         int tag = 0;
         int datalens = data.length;
         StandardDeviation std = new StandardDeviation();
-
         //若最后一段时间的标准差大于阈值这认为手势未结束
-        if (std.evaluate(data, datalens - fre - 2, fre) > threshold)
+        if (std.evaluate(data, datalens - fre, fre) > threshold)
             return tag;
         //计算能量值
         double[] energy = new double[datalens - fre];
         for (int i = 0; i < (datalens - fre); i++) {
             energy[i] = std.evaluate(data, i, fre);
         }
-        
-        int i = datalens - fre - 350;
+
+        int i = datalens - 2*fre - 50;
         int lens = (int) (1 * fre);
-        while (i > (lens + 50)) {
+        while (i > (3*lens)) {
             i = i - 1;
             // 从后往前判断，当大于阈值时，认为可能存在手势
             if (energy[i] > threshold) {
@@ -128,16 +127,38 @@ public class MAfind {
                             flag = 1;
                             break;
                         }
+
                     }
                 }
                 if (0 == flag) {
-                    pointstartindex=i-100;
-                    pointendindex=i+200;
+                    pointstartindex=i-50;
+                    pointendindex=i+250;
                     tag=1;
                     break;
                 }
+//                if(0==flag) {
+//                    pointstartindex=i-10;
+//                    for(int j=i+lens;j<energy.length-lens;j++) {
+//                        flag=0;
+//                        for(int k=j;k<j+lens/2;k++) {
+//                            if(energy[k]>threshold+0.1) {
+//                                flag=1;
+//                                break;
+//                            }
+//                        }
+//                        if(0==flag) {
+//                            pointendindex=j+10;
+//                            tag=1;
+//                            break;
+//                        }
+//                    }
+//                }
             }
         }
+        if((pointendindex-pointstartindex)>600) {
+            tag=0;
+        }
+        energy=null;
         return tag;
     }
 
@@ -160,10 +181,10 @@ public class MAfind {
 
         double[] alltag = iatools.tagcal(datainter);
 
-        double[] JS = new double[datainter.length - 400];
-        for (int i = 0; i < datainter.length - 400; i = i + 30) {
-            double tempjs = iatools.array_JS_cal(nortools.array_dataselect(datainter, i, 200), nortools.array_dataselect(datainter, i + 200, 200), alltag);
-            JS[i]=tempjs;
+        double[] JS = new double[((datainter.length - 400)/30)];
+        for (int i = 0; i < ((datainter.length - 400)/30); i = i + 1) {
+            double tempjs = iatools.array_JS_cal(nortools.array_dataselect(datainter, i*30, 200), nortools.array_dataselect(datainter, i*30 + 200, 200), alltag);
+            JS[i] = tempjs;
         }
 //        System.out.println("JS_score:");
 //        for(int i=0;i<JS.size();i++) {
@@ -172,9 +193,9 @@ public class MAfind {
 //        System.out.println("");
         for (int i = 0; i < JS.length - 6; i++) {
             int flagnum = 0;
-            if (JS[i] > 0.45) {
+            if (JS[i] > 0.35) {
                 for (int j = i; j < i + 6; j++) {
-                    if (JS[j] > 0.45) {
+                    if (JS[j] > 0.35) {
                         flagnum++;
                     }
                 }
@@ -206,7 +227,7 @@ public class MAfind {
         int lens = (int) (pointendindex / 2) - (int) (pointstartindex / 2);
         Motion semotoin = new Motion(lens);
         int start=(int) (pointstartindex / 2);
-        for (int i = 0; i < lens; i++) {
+        for (int i = 0; i < 150; i++) {
             semotoin.accx[i] = motion.accx[i+start];
             semotoin.accy[i] = motion.accy[i+start];
             semotoin.accz[i] = motion.accz[i+start];

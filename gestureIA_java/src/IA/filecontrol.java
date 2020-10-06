@@ -28,6 +28,25 @@ public class filecontrol {
 		}
 	}
 
+	public void madatawrite(ArrayList<double[][]> featureset, String filename) {
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
+
+			for (int i = 0; i < featureset.size(); i++) {
+				for (int j = 0; j < featureset.get(i).length; j++) {
+					for (int k = 0; k < featureset.get(i)[j].length; k++) {
+						out.write(featureset.get(i)[j][k] + ",");
+					}
+					out.newLine();
+				}
+			}
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public void datawrite(double[] datax, double[] datay, String filename) {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
