@@ -28,11 +28,16 @@ def pairSequence(data,target,batch_size):
                 temppair=[]
                 templabel=[]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 def siamese_data(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)
     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,trainindex)
     # test_pairs, test_label = create_test_pair(test_data, test_target,testindex,anchornum)
     test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
+<<<<<<< HEAD
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
 
@@ -55,6 +60,20 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
            batch_size=2048, epochs=20,
+=======
+
+    print("训练集对数：",train_pairs.shape)
+    print("测试集对数：",test_pairs.shape)
+
+    input_shape = (len(train_data[0]),len(train_data[0][0]))
+    print(input_shape)
+
+    model,based_model=create_siamese_network(input_shape)
+
+    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+    history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
+           batch_size=128, epochs=40,
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
            validation_split=0.2)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
@@ -66,6 +85,11 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     #   epochs=50,steps_per_epoch=(int(len(train_pairs)/batch_size)+1)
     #   )
 
+<<<<<<< HEAD
+=======
+    model.save_weights('./parameter/data_model_weights.h5')
+
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
     train_pred = model.predict([train_pairs[:, 0], train_pairs[:, 1]])
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
 
@@ -91,6 +115,7 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
 
 
 
+<<<<<<< HEAD
 def siamese_data_buildmodel(train_data, train_target,num_classes):
     train_pairs, train_label = create_pairs_incre_1(train_data,train_target,num_classes)
     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
@@ -179,6 +204,8 @@ def siamese_data_final(test_data,test_target,num_classes,anchornum=5):
 
 
 
+=======
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 def siamese_mul_data(train_data,test_data, train_target,test_target, trainindex,testindex,featurenum,anchornum):
 
     train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)

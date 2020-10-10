@@ -13,16 +13,27 @@ from itertools import combinations
 
 
 # 对原始序列输入到孪生网络中
+<<<<<<< HEAD
 def siamese_data_based_classifier(dataset,target,targetnum,anchornum):
+=======
+def siamese_data_based_classifier(dataset,target,targetnum):
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 	meanacc=[]
 	meanfar=[]
 	meanfrr=[]	
 	dataset=np.array(dataset)
 	target=np.array(target)
+<<<<<<< HEAD
 	for t in range(0,10):
 		train_data,test_data, train_target, test_target = train_test_split(dataset,target,test_size = 0.2,random_state = t*30,stratify=target)	
 
 		# 将n*300变为300*n
+=======
+	for t in range(0,1):
+		train_data,test_data, train_target, test_target = train_test_split(dataset,target,test_size = 0.2,random_state = t*30,stratify=target)	
+
+		# #将n*300变为300*n
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 		# temptraindata=[]
 		# for i in range(len(train_data)):
 		# 	temp=[]
@@ -43,15 +54,25 @@ def siamese_data_based_classifier(dataset,target,targetnum,anchornum):
 		# test_data=temptestdata
 
 		#自己的方案
+<<<<<<< HEAD
 		score,test_label= siamese_data(train_data,test_data, train_target, test_target,targetnum,targetnum,anchornum)
 		score=[i[0] for i in score]
 		print('原结果：',test_label)
 		print('预测分数：',score)
 		accuracy,far,frr=cal_siamese_eer(test_label,score)
+=======
+		test_score,test_label= siamese_oridata(train_data,test_data, train_target, test_target,targetnum)
+		test_score=[i[0] for i in test_score]
+		print('原结果：',test_label)
+		print('预测分数：',test_score)
+		accuracy,far,frr=cal_siamese_eer(test_label,score)
+		print("accuracy:",accuracy,"far:",far,"frr:",frr)
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 		meanacc.append(accuracy)
 		meanfar.append(far)
 		meanfrr.append(frr)
 	print("meanacc:",np.mean(meanacc),"(",np.std(meanacc),")","meanfar:",np.mean(meanfar),"(",np.std(meanfar),")","meanfrr:",np.mean(meanfrr),"(",np.std(meanfar),")",)
+<<<<<<< HEAD
 	for i in range(len(meanacc)):
 		# print("被选择的测试集序号：",selectk[i])
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
@@ -87,6 +108,9 @@ def siamese_data_final_class(test_data,test_target,targetnum,anchornum):
 	print('预测分数：',score)
 	accuracy,far,frr=cal_siamese_eer(label,score)
 	return accuracy,far,frr
+=======
+
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 
 
 def siamese_data_divide_class(feature,target,targetnum):
@@ -94,7 +118,11 @@ def siamese_data_divide_class(feature,target,targetnum):
 	# 只有一个手势的情况
 	maxusernum=targetnum
 	print("数据集中的用户数：",maxusernum)
+<<<<<<< HEAD
 	tempfeature=[[] for i in range(maxusernum)]
+=======
+	tempfeature.append([] for i in range(maxusernum))
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 	for i in range(len(target)):
 		tempfeature[int((target[i]-1))].append(feature[i])
 
@@ -103,20 +131,32 @@ def siamese_data_divide_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#循环次数
+<<<<<<< HEAD
 	iternum=5
 	#组合内序号个数
 	comnum=40
+=======
+	iternum=30
+	#组合内序号个数
+	comnum=4
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 	#训练集个数
 	# traincomnum=28
 
 	rangek=list(range(0,targetnum-1))
 	#得出用户数在2之间的组合
+<<<<<<< HEAD
 	# com=list(combinations(rangek,comnum))
 	#在组合间，随机选其中的iternum个
 	# selectk = random.sample(com, iternum)
 	selectk=[]
 	for i in range(iternum):
 		selectk.append(random.sample(rangek, comnum))
+=======
+	com=list(combinations(rangek,comnum))
+	#在组合间，随机选其中的iternum个
+	selectk = random.sample(com, iternum)
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 	
 	for t in range(iternum):
 		print("周期：",t)
@@ -171,6 +211,7 @@ def siamese_data_divide_class(feature,target,targetnum):
 		print("train_data.shape:",train_data.shape)
 		print("test_data.shape:",test_data.shape)
 
+<<<<<<< HEAD
 		#选择的锚数
 		anchornum=3
 
@@ -193,6 +234,31 @@ def siamese_data_divide_class(feature,target,targetnum):
 		# 			temp[j].append(test_data[i][k][j])
 		# 	temptestdata.append(temp)
 		# test_data=temptestdata
+=======
+		#特征数，选择的锚数
+		featurenum=30
+		anchornum=5
+
+		#将n*300变为300*n
+		temptraindata=[]
+		for i in range(len(train_data)):
+			temp=[]
+			for j in range(300):
+				temp.append([])
+				for k in range(len(train_data[0])):
+					temp[j].append(train_data[i][k][j])
+			temptraindata.append(temp)
+		train_data=temptraindata
+		temptestdata=[]
+		for i in range(len(test_data)):
+			temp=[]
+			for j in range(300):
+				temp.append([])
+				for k in range(len(test_data[0])):
+					temp[j].append(test_data[i][k][j])
+			temptestdata.append(temp)
+		test_data=temptestdata
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 
 
 		train_data=np.array(train_data)
@@ -202,7 +268,11 @@ def siamese_data_divide_class(feature,target,targetnum):
 		print("train_data.shape:",train_data.shape)
 		print("test_data.shape:",test_data.shape)
 
+<<<<<<< HEAD
 		score,label= siamese_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+=======
+		score,label= siamese_oridata(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+>>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 		score=[i[0] for i in score]
 		label=[i for i in label]
 		print('原结果：',label)

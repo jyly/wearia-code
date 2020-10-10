@@ -40,6 +40,7 @@ def fine_grained_segment(dn,fre,threshold=1):
 				tag=1
 				break
 	if (pointendindex-pointstartindex)<150:
+<<<<<<< Updated upstream
 		tag=0
 	return tag,pointstartindex,pointendindex
 
@@ -76,6 +77,10 @@ def fine_grained_segment_2(dn,fre,threshold=1):
 				pointstartindex=i-100
 				pointendindex=i+200
 				tag=1
+=======
+		tag=1
+			
+>>>>>>> Stashed changes
 	return tag,pointstartindex,pointendindex
 
 
