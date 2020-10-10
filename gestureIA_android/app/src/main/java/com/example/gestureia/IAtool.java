@@ -10,16 +10,13 @@ import org.apache.commons.math3.stat.descriptive.moment.*;
 import org.apache.commons.math3.complex.Complex;
 
 public class IAtool {
-    public Normal_tool nortools = new Normal_tool();
 
     // 将ppg的array转化成矩阵，混合信号矩阵
     public double[][] constructmixsignal(Ppg ppgs) {
         int arraylength = ppgs.x.length;
         double[][] mixedSignal = new double[2][arraylength];
-        for (int i = 0; i < arraylength; i++) {
-            mixedSignal[0][i] = ppgs.x[i];
-            mixedSignal[1][i] = ppgs.y[i];
-        }
+        mixedSignal[0] = ppgs.x;
+        mixedSignal[1] = ppgs.y;
         return mixedSignal;
     }
 
@@ -54,6 +51,7 @@ public class IAtool {
         Kurtosis kurtosis = new Kurtosis();
         double xkur = kurtosis.evaluate(tempSignal[0]);
         double ykur = kurtosis.evaluate(tempSignal[1]);
+        kurtosis=null;
         System.out.println("xkur:" + xkur + " ykur:" + ykur);
         Ppg temp = new Ppg();
         if (Math.abs(xkur) > (Math.abs(ykur))) {
@@ -61,6 +59,7 @@ public class IAtool {
         } else {
             temp = constructnewppg(tempSignal[1], tempSignal[0]);
         }
+        tempSignal=null;
         return temp;
     }
 
@@ -84,9 +83,12 @@ public class IAtool {
             }
         }
         for (int i = datalen; i < flag; i++) {
-            tempmatrix.add((double) 0);
+            tempmatrix.add((double)0);
         }
+       Normal_tool nortools = new Normal_tool();
         double[] matrix = nortools.arraytomatrix(tempmatrix);
+        nortools=null;
+        tempmatrix=null;
 //		System.out.println(matrix.length);
 //		for (int i = 0; i < matrix.length; i++) {
 //			System.out.println(matrix[i]);
@@ -106,7 +108,8 @@ public class IAtool {
             fluency[i]=(i / (double) (x.length) * fre);
         }
         Fftvalue tempvalue = new Fftvalue(fluency,fftscore);
-
+        fluency=null;
+        fftscore=null;
 //		for (int i = 0; i < xlen; i++) {
 //			System.out.println("fft" + i + "=" + fftscore.get(i) + "   fluency" + i + "=" + fluency.get(i));
 //		}
@@ -128,7 +131,10 @@ public class IAtool {
                 templist.add(data[i]);
             }
         }
-        return nortools.arraytomatrix(templist);
+        Normal_tool nortools = new Normal_tool();
+        double[] tag=nortools.arraytomatrix(templist);
+        nortools=null;
+        return tag;
     }
 
     public double array_JS_cal(double[] P, double[] Q, double[] tag) {
@@ -160,17 +166,22 @@ public class IAtool {
 //	        }
 
         for (int i = 0; i < tag.length; i++) {
-            if (Ptag[i] == 0) {
+            if (0==Ptag[i]) {
                 Ptag[i] = 0.00000001;
 
             }
-            if (Qtag[i] == 0) {
+            if (0==Qtag[i]) {
                 Qtag[i] = 0.00000001;
             }
-//	            Log.e("PQtag","第"+i+"个pg:"+Ptag[i]+","+Qtag[i]);
+
         }
-//	        return tools.KL_divergence(Ptag,Qtag);
-        return nortools.JS_divergence(Ptag, Qtag);
+
+        Normal_tool nortools = new Normal_tool();
+        double score=nortools.JS_divergence(Ptag, Qtag);
+        Ptag=null;
+        Qtag=null;
+        nortools=null;
+        return score;
     }
 
 

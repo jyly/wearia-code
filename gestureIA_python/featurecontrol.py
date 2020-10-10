@@ -24,11 +24,9 @@ def ppg_feature(data):
 
 	mean=np.mean(data)
 	rms=math.sqrt(sum([x ** 2 for x in data]) / len(data))
-	amplitude=sum([abs(i-mean) for i in data])/len(data)
 	diversion=sum([abs(i) for i in data])/len(data)
 
 	feature.append(rms)
-	feature.append(amplitude)
 	feature.append(diversion)
 
 	interval=[]
@@ -39,15 +37,12 @@ def ppg_feature(data):
 	feature.append(np.min(interval))
 	feature.append(kurtosis(interval))
 	feature.append(skew(interval))
-	feature.append(np.median(interval))
 
 	mean=np.mean(interval)
 	rms=math.sqrt(sum([x ** 2 for x in interval]) / len(interval))
-	amplitude=sum([abs(i-mean) for i in interval])/len(interval)
 	diversion=sum([abs(i) for i in interval])/len(interval)
 	
 	feature.append(rms)
-	feature.append(amplitude)
 	feature.append(diversion)
 
 	# print("频域特征提取")
@@ -84,11 +79,9 @@ def ppg_feature(data):
 
 	mean=np.mean(cA3)
 	rms=math.sqrt(sum([x ** 2 for x in cA3]) / len(cA3))
-	amplitude=sum([abs(i-mean) for i in cA3])/len(cA3)
 	diversion=sum([abs(i) for i in cA3])/len(cA3)
 	
 	feature.append(rms)
-	feature.append(amplitude)
 	feature.append(diversion)
 
 	#Wigner Ville Distribution
@@ -123,11 +116,9 @@ def motion_feature(data):
 
 	mean=np.mean(data)
 	rms=math.sqrt(sum([x ** 2 for x in data]) / len(data))
-	amplitude=sum([abs(i-mean) for i in data])/len(data)
 	diversion=sum([abs(i) for i in data])/len(data)
 
 	feature.append(rms)
-	feature.append(amplitude)
 	feature.append(diversion)
 
 	interval=[]
@@ -138,15 +129,12 @@ def motion_feature(data):
 	feature.append(np.min(interval))
 	feature.append(kurtosis(interval))
 	feature.append(skew(interval))
-	feature.append(np.median(interval))
 
 	mean=np.mean(interval)
 	rms=math.sqrt(sum([x ** 2 for x in interval]) / len(interval))
-	amplitude=sum([abs(i-mean) for i in interval])/len(interval)
 	diversion=sum([abs(i) for i in interval])/len(interval)
 	
 	feature.append(rms)
-	feature.append(amplitude)
 	feature.append(diversion)
 	return feature
 

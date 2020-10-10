@@ -78,6 +78,42 @@ def fine_grained_segment_2(dn,fre,threshold=1):
 				tag=1
 	return tag,pointstartindex,pointendindex
 
+
+
+def fine_grained_segment_2(dn,fre,threshold=1):
+	oristd=[]
+	winslen=200
+	for i in range(len(dn)-winslen):
+		ori=np.std(dn[i:i+winslen])
+		oristd.append(ori)
+	# IAtool.indexpicshow(oristd)
+	pointstartindex=0
+	pointendindex=0
+	tag=0
+	i=len(oristd)-fre - 350
+	lens=int(fre)
+	while i >(lens+50):
+		i=i-1
+		#从后往前判断，当大于阈值时，认为可能存在手势，阈值根据经验判断，不同的滤波器的波动变化不同
+		if oristd[i]>threshold:	
+			flag=0
+			#从后往前的一定区间内的值都大于阈值时，认为存在手势
+			for j in range(0,lens):
+				if oristd[i+j]<threshold:
+					flag=1
+					break
+			if 0==flag:
+				for j in range(0,lens):
+					if oristd[i-j]>threshold+0.1:
+						flag=1
+						break
+			if 0==flag:
+				pointstartindex=i-50
+				pointendindex=i+150
+				tag=1	
+	return tag,pointstartindex,pointendindex
+
+
 def coarse_grained_detect(ppg,threshold=1):
 	# indexpicshow(ppg)
 

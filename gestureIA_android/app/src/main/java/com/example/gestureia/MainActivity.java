@@ -60,17 +60,21 @@ public class MainActivity extends WearableActivity {
     private int uploadtag = 1;
     private Timer timer = null;
 
-    private Sensorcontrol sensors =null;
-    private Energycontrol energycontrolr=null;
+    private Sensorcontrol sensors = null;
+    private Energycontrol energycontrolr = null;
     private Baedmodel basedmodel = null;
 
     private long starttime = 0;
     private long currenttime = 0;
     private long ensuretime = 0;
 
-    private ArrayList<float[][]> features_record = new ArrayList<float[][]>();
+    private ArrayList<float[][]> mul_features_record = new ArrayList<float[][]>();
+    private ArrayList<float[]> single_features_record = new ArrayList<float[]>();
     private int service_flag = 0;
-    private double[] featureset=null;
+
+    private double[] featureset = null;
+    private double[][] madata = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -90,7 +94,6 @@ public class MainActivity extends WearableActivity {
         button_register = (Button) findViewById(R.id.register);
         button_listen_start = (Button) findViewById(R.id.listen_start);
         button_listen_stop = (Button) findViewById(R.id.listen_stop);
-        basedmodel = new Baedmodel();
 
 //        后台service监听
         button_listen_start.setOnClickListener(new View.OnClickListener() {
@@ -98,21 +101,26 @@ public class MainActivity extends WearableActivity {
             public void onClick(View v) {
                 Log.e(">>.", "service start！");
                 //获取当前注册样本的特征
-                basedmodel.readbasedfeature(getApplicationContext());
-                if (basedmodel.final_feature == null) {
-                    Toast.makeText(getApplicationContext(), "请选择先注册手势！", Toast.LENGTH_LONG).show();
-                    Log.e(">>.", "请选择先注册手势！");
-                } else {
-                    if (0 == service_flag) {
+                if (0 == service_flag) {
+                    basedmodel = new Baedmodel();
+                    basedmodel.readmulfeature(getApplicationContext());
+//                basedmodel.readfeature(getApplicationContext());
+                    if (basedmodel.single_final_feature == null && basedmodel.mul_final_feature == null) {
+                        Toast.makeText(getApplicationContext(), "请选择先注册手势！", Toast.LENGTH_LONG).show();
+                        Log.e(">>.", "请选择先注册手势！");
+                        basedmodel = null;
+                    } else {
+                        basedmodel = null;
+                        Toast.makeText(getApplicationContext(), "手势检测服务已开始！", Toast.LENGTH_LONG).show();
                         startService(new Intent(getBaseContext(), Behaviorlisten.class));
                         service_flag = 1;
-                    }
-                    //获取当前设备已安装的包名
+
+                        //获取当前设备已安装的包名
 //                    List<PackageInfo> packages = getPackageManager().getInstalledPackages(0);
 //                    for(int i=0;i<packages.size();i++){
 //                        Log.e(">>>","packet name:"+packages.get(i).packageName);
 //                    }
-                    //启动支付宝
+                        //启动支付宝
 //                    PackageManager pm = getApplication().getPackageManager();
 //                    try {
 //                        pm.getPackageInfo("com.eg.android.AlipayGphone", PackageManager.GET_ACTIVITIES);
@@ -122,17 +130,22 @@ public class MainActivity extends WearableActivity {
 //                        e.printStackTrace();
 //                        Log.e(">>>","当前设备不存在支付宝应用，请前往应用市场下载。");
 //                    }
+                    }
                 }
+                System.gc();
             }
         });
         //暂停服务
         button_listen_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e(">>.", "service stop！");
-//                sensors.StopSensorListening();
-//                sensors=null;
-                stopService(new Intent(getBaseContext(), Behaviorlisten.class));
+                if (1 == service_flag) {
+                    Log.e(">>.", "service stop！");
+                    Toast.makeText(getApplicationContext(), "手势检测服务已结束！", Toast.LENGTH_LONG).show();
+                    stopService(new Intent(getBaseContext(), Behaviorlisten.class));
+                    service_flag = 0;
+                    System.gc();
+                }
             }
         });
 
@@ -140,34 +153,32 @@ public class MainActivity extends WearableActivity {
         button_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 final String gesture_item = gesture_spinner.getSelectedItem().toString();
                 int lens = gesture_item.length();
 //                if (lens > 3) {
                 if (1 == 0) {
                     Toast.makeText(getApplicationContext(), "请选择要登记的手势！", Toast.LENGTH_LONG).show();
                 } else {
-
-                    basedmodel.readmodelpara(getApplicationContext());
-
                     Toast.makeText(getApplicationContext(), "系统初始化，请稍后！", Toast.LENGTH_LONG).show();
                     setContentView(R.layout.gesture_record);
-
-                    sensors = new Sensorcontrol();
-                    energycontrolr = new Energycontrol();
-
-                    energycontrolr.energyopen(getApplicationContext());
-                    sensors.dataclear();
-                    sensors.StartSensorListening(getApplicationContext());
-                    timer = new Timer();
-
-                    setcount();
-
                     starttime = System.currentTimeMillis();
                     ensuretime = System.currentTimeMillis();
                     button_final = (Button) findViewById(R.id.stopcount);
                     button_add = (Button) findViewById(R.id.addcount);
                     gesturecount = (TextView) findViewById(R.id.count);
                     tips = (TextView) findViewById(R.id.tips);
+
+                    sensors = new Sensorcontrol();
+                    energycontrolr = new Energycontrol();
+                    timer = new Timer();
+                    basedmodel = new Baedmodel();
+
+                    energycontrolr.energyopen(getApplicationContext());
+                    sensors.StartSensorListening(getApplicationContext());
+                    basedmodel.readmodelpara(getApplicationContext());
+
+                    setcount();
 
                     //样本注册完成
                     button_final.setOnClickListener(new View.OnClickListener() {
@@ -176,16 +187,21 @@ public class MainActivity extends WearableActivity {
                             Toast.makeText(getApplicationContext(), "已登记手势样本" + getcount() + "条", Toast.LENGTH_LONG).show();
 
                             timer.cancel();
-                            timer = null;
-                            sensors.StopSensorListening();
-                            sensors=null;
                             energycontrolr.energyclose();
-                            energycontrolr=null;
-
+                            sensors.StopSensorListening();
+                            sensors = null;
+                            energycontrolr = null;
+                            timer = null;
                             //将最终向量保存到文件中
-                            if (features_record.size() > 0) {
-                                Log.e(">>>", "确认手势样本" + features_record.size() + "条");
-                                basedmodel.writebasedfeature(getApplicationContext(), features_record);
+                            if (mul_features_record.size() > 0 || single_features_record.size() > 0) {
+                                Log.e(">>>", "确认手势样本" + mul_features_record.size() + "条");
+                                basedmodel.writemulfeature(getApplicationContext(), mul_features_record);
+
+//                                Log.e(">>>", "确认手势样本" + single_features_record.size() + "条");
+//                                basedmodel.writefeature(getApplicationContext(), single_features_record,"basedfeature.csv");
+
+                                basedmodel = null;
+                                System.gc();
                             } else {
                                 Log.e(">>>", "当前无手势特征录入文件");
                             }
@@ -200,10 +216,11 @@ public class MainActivity extends WearableActivity {
                             if (uploadtag == 1) {
                                 ensuretime = System.currentTimeMillis();
                                 countupdate();
-                                Ppg ppgs = sensors.getnewppgseg(1800);
-                                Motion motions = sensors.getnewmotionseg(900);
-                                System.gc();
-                                segmentupload(RequestURL, motions, ppgs, 10000, "s_segment", gesture_item);
+                                Ppg ppgs = sensors.getnewppgseg(1600);
+                                Motion motions = sensors.getnewmotionseg(800);
+
+//                                System.gc();
+//                                segmentupload(RequestURL, motions, ppgs, 10000, "s_segment", gesture_item);
 
                                 Message msg = new Message();
                                 msg.what = 1;
@@ -212,13 +229,18 @@ public class MainActivity extends WearableActivity {
 
                                 Featurecontrol featurecontrols = new Featurecontrol();
                                 featureset = featurecontrols.build_feature(ppgs, motions);
-                                featurecontrols = null;
-                                ppgs=null;
-                                motions=null;
-                                if (featureset != null) {
-                                    features_record.add(basedmodel.dataprocess(featureset));
-                                }
+//                                madata = featurecontrols.build_madata(ppgs, motions);
 
+                                featurecontrols = null;
+                                ppgs = null;
+                                motions = null;
+                                if (featureset != null) {
+                                    mul_features_record.add(basedmodel.featureprocess(featureset));
+                                }
+//                                if (madata != null) {
+//                                    single_features_record.add(basedmodel.dataprocess(madata));
+//                                }
+                                System.gc();
                             } else {
                                 Toast.makeText(getApplicationContext(), "请稍等！", Toast.LENGTH_LONG).show();
                             }
@@ -229,7 +251,6 @@ public class MainActivity extends WearableActivity {
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            sensors.datadelete();
                             System.out.println("TimerTask");
                             currenttime = System.currentTimeMillis();
 //                            Log.e(">>>>",""+(currenttime - starttime)+","+(currenttime - ensuretime));
@@ -240,7 +261,6 @@ public class MainActivity extends WearableActivity {
                                 handler.sendMessage(msg);
                                 uploadtag = 0;
                             } else {
-                                System.gc();
                                 if (((currenttime - ensuretime) < 7000) && (uploadtag != 0)) {
                                     //录入一条手势时的等待
                                     Message msg = new Message();
@@ -256,6 +276,8 @@ public class MainActivity extends WearableActivity {
                                     uploadtag = 1;
                                 }
                             }
+                            System.gc();
+
                         }
                     }, 10, 1000);
                 }
@@ -619,7 +641,7 @@ public class MainActivity extends WearableActivity {
                     sb.append("Content-Type: application/octet-stream; charset=" + CHARSET + LINE_END);
                     sb.append(LINE_END);
                     dos.write(sb.toString().getBytes());
-                    sb=null;
+                    sb = null;
                     StringBuffer sd = new StringBuffer();
                     for (int i = 0; i < motions.accx.length; i++) {
                         sd.append(0).append(",")
@@ -651,8 +673,8 @@ public class MainActivity extends WearableActivity {
                     byte[] end_data = (PREFIX + BOUNDARY + PREFIX + LINE_END).getBytes();
                     dos.write(end_data);
                     dos.flush();
-                    dos=null;
-                    sd=null;
+                    dos = null;
+                    sd = null;
 
                     int res = conn.getResponseCode();
                     Log.e(">>>", "response code:" + res);

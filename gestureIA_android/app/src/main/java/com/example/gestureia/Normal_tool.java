@@ -69,12 +69,10 @@ public class Normal_tool {
             temp2[i] = data[k + i];
         }
         Variance vars = new Variance();
-
-        double data_var = vars.evaluate(data) * datalen;
-        vars = null;
         Mean means = new Mean();
-
+        double data_var = vars.evaluate(data) * datalen;
         double data_mean = means.evaluate(data);
+        vars = null;
         means = null;
         double auto_corr = 0;
         for (int i = 0; i < datalen - k; i++) {
@@ -88,6 +86,7 @@ public class Normal_tool {
     // 按照间隙，进行均值滤波
     public double[] meanfilt(double[] data, int interval) {
         int datasize = data.length;
+        //构建临时队列
         double[] tempdata = new double[datasize + interval];
         for (int i = 0; i < interval; i++) {
             tempdata[i] = data[0];
@@ -95,6 +94,7 @@ public class Normal_tool {
         for (int i = 0; i < datasize; i++) {
             tempdata[i + interval] = data[i];
         }
+
         double[] templist = new double[datasize];
         Mean means = new Mean();
         for (int i = 0; i < datasize; i++) {

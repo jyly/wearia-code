@@ -10,6 +10,7 @@ import libsvm.svm_node;
 
 public class IA_main {
 
+	
 	static filecontrol files = new filecontrol();
 	static IAtool iatools = new IAtool();
 	static Normal_tool nortools = new Normal_tool();
@@ -17,9 +18,11 @@ public class IA_main {
 	static Featurecontrol featurecontrol = new Featurecontrol();
 
 	public static void main(String[] args) {
+
+
 		String dirpath = "./selected_oridata/";
-//		all_feature(dirpath);
-		all_madata(dirpath);
+		all_feature(dirpath);
+//		all_madata(dirpath);
 	}
 
 	public static void all_feature(String dirpath) {
@@ -37,11 +40,13 @@ public class IA_main {
 					featureset.add(sampleFeature);
 				}
 			}
-			System.out.println("当前第" + objnum + "个类别手势片段数：" + featureset.size());
-			filenum.add(featureset.size());
-			String featurefile = "./selected_feature/" + objdir.getName() + ".csv";
-			objnum++;
-			files.featurewrite(featureset, featurefile);
+			if (featureset.size() > 0) {
+				System.out.println("当前第" + objnum + "个类别手势片段数：" + featureset.size());
+				filenum.add(featureset.size());
+				String featurefile = "./selected_feature/" + objdir.getName() + ".csv";
+				objnum++;
+				files.featurewrite(featureset, featurefile);
+			}
 		}
 		System.out.println("filenum:");
 		for (int i = 0; i < filenum.size(); i++) {
@@ -72,13 +77,13 @@ public class IA_main {
 		// 根据峰值判断那条手势信号和脉冲信号
 		icappg = iatools.machoice(icappg);
 
-		String featurefile = "./butter/" + filepath.getName();
-		files.datawrite(icappg.x, icappg.y, featurefile);
+//		String featurefile = "./butter/" + filepath.getName();
+//		files.datawrite(icappg.x, icappg.y, featurefile);
 
 		MAfind ma = new MAfind();
 		// 细粒度手势分析，判断手势区间
 //		int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
-		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1);
+		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5);
 		if (0 == finetag) {
 //			Log.e(">>>", "当前片段不存在手势");
 			System.out.println("当前片段不存在手势");
@@ -104,7 +109,8 @@ public class IA_main {
 			ma = null;
 
 			Featurecontrol featurecontrol = new Featurecontrol();
-			samplefeature = featurecontrol.return_feature(ppgs, motion, butterppg, icappg);
+			samplefeature = featurecontrol.return_feature(butterppg, motion);
+//			samplefeature = featurecontrol.return_feature(ppgs, motion);
 		}
 
 		return samplefeature;
@@ -126,11 +132,13 @@ public class IA_main {
 					madata.add(sampledata);
 				}
 			}
-			System.out.println("当前第" + objnum + "个类别手势片段数：" + madata.size());
-			filenum.add(madata.size());
-			String featurefile = "./selected_madata/" + objdir.getName() + ".csv";
-			objnum++;
-			files.madatawrite(madata, featurefile);
+			if (madata.size() > 0) {
+				System.out.println("当前第" + objnum + "个类别手势片段数：" + madata.size());
+				filenum.add(madata.size());
+				String featurefile = "./selected_madata/" + objdir.getName() + ".csv";
+				objnum++;
+				files.madatawrite(madata, featurefile);
+			}
 		}
 		System.out.println("filenum:");
 		for (int i = 0; i < filenum.size(); i++) {
@@ -161,7 +169,7 @@ public class IA_main {
 		MAfind ma = new MAfind();
 		// 细粒度手势分析，判断手势区间
 
-		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1);
+		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5);
 		if (0 == finetag) {
 //			Log.e(">>>", "当前片段不存在手势");
 			System.out.println("当前片段不存在手势");
@@ -176,7 +184,7 @@ public class IA_main {
 				ppgs.y = normal.innerscale(ppgs.y);
 
 			}
-
+//			System.out.println("ppgs.x：" + ppgs.x[0]);
 			sampledata = new double[8][];
 			ppgs = ma.setppgsegment(ppgs);
 
@@ -193,7 +201,6 @@ public class IA_main {
 			ma = null;
 
 			sampledata[0] = ppgs.x;
-
 			sampledata[1] = ppgs.y;
 			sampledata[2] = motion.accx;
 			sampledata[3] = motion.accy;

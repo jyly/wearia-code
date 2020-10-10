@@ -9,11 +9,13 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -25,12 +27,25 @@ public class Baedmodel {
     public float[] scale_scale = null;
     public Interpreter ppg_tflite = null;
     public Interpreter motion_tflite = null;
-    public float[][][] final_feature = null;
+    public Interpreter basedmodel_tflite = null;
+    public float[][][] mul_final_feature = null;
+    public float[][] single_final_feature = null;
 
+
+
+    //将模型加载入系统
     public void readmodelpara(Context context) {
         try {
             ppg_tflite = new Interpreter(loadModelFile(context,"ppg_based_model"));
             motion_tflite = new Interpreter(loadModelFile(context,"motion_based_model"));
+            basedmodel_tflite = new Interpreter(loadModelFile(context,"based_model"));
+//            InputStream based_model = context.getAssets().open("based_model.tflite");
+//            String fileName = context.getExternalFilesDir("").getAbsolutePath() + "based_model.tflite";//文件存储路径
+//            Log.e(">>>", "based_model.tflite filename:" + fileName);
+//            File files = new File(fileName);
+//            inputStream2File(based_model,files);
+//            basedmodel_tflite =  new Interpreter(files);
+
             InputStream parameterinput = context.getAssets().open("stdpropara.txt");
             BufferedReader reader = new BufferedReader(new InputStreamReader(parameterinput));
             String temp_sort1 = reader.readLine();
@@ -60,6 +75,7 @@ public class Baedmodel {
             strsort2=null;
             str_scale_mean=null;
             str_scale_scale=null;
+            System.gc();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,8 +91,8 @@ public class Baedmodel {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
 
-
-    public void readbasedfeature(Context context) {
+    //读取双模型需要的特征
+    public void readmulfeature(Context context) {
         try {
             ArrayList<String> ppg_feature = new ArrayList<String>();
             String fileName = context.getExternalFilesDir("").getAbsolutePath() + "ppgbasedfeature.csv";//文件存储路径
@@ -89,8 +105,6 @@ public class Baedmodel {
                     ppg_feature.add(line);
                 }
                 reader.close();
-                reader=null;
-                file=null;
                 //提取注册样本的向量
                 int listnum = 0;
                 if (ppg_feature.size() > 5) {
@@ -104,10 +118,10 @@ public class Baedmodel {
                 }
                 ppg_feature=null;
 
-                final_feature = new float[listnum][2][ppg_str_feature[0].length];
+                mul_final_feature = new float[listnum][2][ppg_str_feature[0].length];
                 for (int i = 0; i < listnum; i++) {
                     for (int j = 0; j < ppg_str_feature[0].length; j++) {
-                        final_feature[i][0][j] = Float.parseFloat(ppg_str_feature[i][j]);
+                        mul_final_feature[i][0][j] = Float.parseFloat(ppg_str_feature[i][j]);
                     }
                 }
                 ppg_str_feature=null;
@@ -127,68 +141,72 @@ public class Baedmodel {
                 for (int i = 0; i < listnum; i++) {
                     motion_str_feature[i] = motion_feature.get(i).split(",");
                     for (int j = 0; j < motion_str_feature[i].length; j++) {
-                        final_feature[i][1][j] = Float.parseFloat(motion_str_feature[i][j]);
+                        mul_final_feature[i][1][j] = Float.parseFloat(motion_str_feature[i][j]);
                     }
                 }
                 motion_feature=null;
                 motion_str_feature=null;
+                System.gc();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    //将注册样本特征写入文件中
-    public void writebasedfeature(Context context,ArrayList<float[][]> featureset) {
-        int arraylength = featureset.size();
-        int featurelen = featureset.get(0)[0].length;
+    //单特征处理
+    public void readfeature(Context context) {
         try {
-            String fileName = context.getExternalFilesDir("").getAbsolutePath() + "ppgbasedfeature.csv";//文件存储路径
-            Log.e(">>>","filename:"+fileName);
-            File file=new File(fileName);
-            if(file.exists()){
-                file.delete();
-                file.createNewFile();
-            }
-            BufferedWriter out = new BufferedWriter(new FileWriter(file));
-            for (int i = 0; i < arraylength; i++) {
-                for (int j = 0; j < featurelen; j++) {
-                    out.write(featureset.get(i)[0][j] + ",");
+            ArrayList<String> feature = new ArrayList<String>();
+            String fileName = context.getExternalFilesDir("").getAbsolutePath() + "basedfeature.csv";//文件存储路径
+            Log.e(">>>", "basedfeature filename:" + fileName);
+            File file = new File(fileName);
+            if (file.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    feature.add(line);
                 }
-                out.newLine();
-            }
-            out.close();
-
-            fileName = context.getExternalFilesDir("").getAbsolutePath() + "motionbasedfeature.csv";//文件存储路径
-            Log.e(">>>","filename:"+fileName);
-            file=new File(fileName);
-            if(file.exists()){
-                file.delete();
-                file.createNewFile();
-            }
-            out = new BufferedWriter(new FileWriter(file));
-            for (int i = 0; i < arraylength; i++) {
-                for (int j = 0; j < featurelen; j++) {
-                    out.write(featureset.get(i)[1][j] + ",");
+                reader.close();
+                reader=null;
+                file=null;
+                //提取注册样本的向量
+                int listnum = 0;
+                if (feature.size() > 5) {
+                    listnum = 5;
+                } else {
+                    listnum = feature.size();
                 }
-                out.newLine();
+                String[][] str_feature = new String[listnum][];
+                for (int i = 0; i < listnum; i++) {
+                    str_feature[i] = feature.get(i).split(",");
+                }
+                feature=null;
+                single_final_feature = new float[listnum][str_feature[0].length];
+                for (int i = 0; i < listnum; i++) {
+                    for (int j = 0; j < str_feature[0].length; j++) {
+                        single_final_feature[i][j] = Float.parseFloat(str_feature[i][j]);
+                    }
+                }
+                str_feature=null;
+                System.gc();
             }
-            out.close();
-            out=null;
-            file=null;
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+
+
     //将特征转化为通过网络后的特征
-    public float[][] dataprocess(double[] featureset){
+    public float[][] featureprocess(double[] featureset){
         int featurelen = 30;
+        //根据序号提取特征
         float[] inform_feature = new float[featurelen * 2];
         for (int i = 0; i < featurelen; i++) {
             inform_feature[i] = (float)  featureset[sort1[i]];
             inform_feature[i + featurelen] = (float)  featureset[sort2[i] + 76];
         }
+        //对特征做标准化处理
 //                            inform_feature = featurecontrol.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
         float[] ppg_feature = new float[featurelen];
         float[] motion_feature = new float[featurelen];
@@ -203,40 +221,101 @@ public class Baedmodel {
         inform_feature=null;
         ppg_feature=null;
         motion_feature=null;
+        System.gc();
         return final_feature;
     }
 
-    public float[] sample_feature(Interpreter tflite, float[] single_feature) {
-        float[][] outPuts = new float[1][32];//结果分类
-        tflite.run(single_feature, outPuts);
-        float[] final_output = outPuts[0];
-//        for (int i = 0; i < final_output.length; i++) {
-//            System.out.print(final_output[i]+",");
-//        }
-//        System.out.println("");
-        return final_output;
+    //将特征转化为通过网络后的特征
+    public float[] dataprocess(double[][] madata){
+        float [][][][]input=new float[1][2][300][1];
+        for(int i=0;i<2;i++){
+            for(int j=0;j<300;j++){
+                input[0][i][j][0]=(float)madata[i][j];
+            }
+        }
+        float[] final_feature = sample_feature(basedmodel_tflite, input);
+        input=null;
+        System.gc();
+        return final_feature;
     }
 
+    public void writefeature(Context context,ArrayList<float[]> featureset,String filename) {
+        int arraylength = featureset.size();
+        int featurelen = featureset.get(0).length;
+        try {
+            String fileName = context.getExternalFilesDir("").getAbsolutePath() + filename;//文件存储路径
+            Log.e(">>>","filename:"+fileName);
+            File file=new File(fileName);
+            if(file.exists()){
+                file.delete();
+                file.createNewFile();
+            }
+            BufferedWriter out = new BufferedWriter(new FileWriter(file));
+            for (int i = 0; i < arraylength; i++) {
+                for (int j = 0; j < featurelen; j++) {
+                    out.write(featureset.get(i)[j] + ",");
+                }
+                out.newLine();
+            }
+            out.close();
+            out=null;
+            file=null;
+            System.gc();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-    public int behavior_predit(float[][][] final_feature, float[][] temp_final_feature) {
+    //将注册样本特征写入文件中
+    public void writemulfeature(Context context,ArrayList<float[][]> featureset) {
+        ArrayList<float[]> x=new ArrayList<float[]>();
+        ArrayList<float[]> y=new ArrayList<float[]>();
+        for(int i=0;i<featureset.size();i++){
+            x.add(featureset.get(i)[0]);
+            y.add(featureset.get(i)[1]);
+        }
+        writefeature(context,x,"ppgbasedfeature.csv");
+        writefeature(context,y,"motionbasedfeature.csv");
+        x=null;
+        y=null;
+        System.gc();
+    }
+
+//    多信道特征
+    public float[] sample_feature(Interpreter tflite, float[][][][] single_feature) {
+        float[][] outPuts = new float[1][128];//结果分类
+        tflite.run(single_feature, outPuts);
+        float[] final_output = outPuts[0];
+        outPuts=null;
+        return final_output;
+    }
+//    单信道特征
+    public float[] sample_feature(Interpreter tflite, float[] single_feature) {
+        float[][] outPuts = new float[1][128];//结果分类
+        tflite.run(single_feature, outPuts);
+        float[] final_output = outPuts[0];
+        outPuts=null;
+        return final_output;
+    }
+//    多维分数
+    public int behavior_predit( float[][] final_feature) {
         int predittag = 0;
-        int datalen = final_feature.length;
         float score = 0;
-        for (int i = 0; i < datalen; i++) {
+        for (int i = 0; i < mul_final_feature.length; i++) {
             float temp1 = 0;
-            for (int j = 0; j < final_feature[0][0].length; j++) {
-                temp1 += (final_feature[i][0][j] - temp_final_feature[0][j]) * (final_feature[i][0][j] - temp_final_feature[0][j]);
+            for (int j = 0; j < mul_final_feature[0][0].length; j++) {
+                temp1 += (mul_final_feature[i][0][j] - final_feature[0][j]) * (mul_final_feature[i][0][j] - final_feature[0][j]);
             }
             temp1 = (float) Math.sqrt(temp1);
             float temp2 = 0;
-            for (int j = 0; j < final_feature[0][0].length; j++) {
-                temp2 += (final_feature[i][1][j] - temp_final_feature[1][j]) * (final_feature[i][1][j] - temp_final_feature[1][j]);
+            for (int j = 0; j < mul_final_feature[0][0].length; j++) {
+                temp2 += (mul_final_feature[i][1][j] - final_feature[1][j]) * (mul_final_feature[i][1][j] - final_feature[1][j]);
             }
             temp2 = (float) Math.sqrt(temp2);
-//            score += (temp1 + temp2) / 2;
-            score += temp1;
+            score += (temp1 + temp2) / 2;
+//            score += temp1;
         }
-        score = score / datalen;
+        score = score / mul_final_feature.length;
         if (score < 0.5) {
             predittag = 1;
         }
@@ -244,4 +323,42 @@ public class Baedmodel {
         Log.e(">>>", "predittag:" + predittag);
         return predittag;
     }
+
+    public int behavior_predit(float[] final_feature) {
+        int predittag = 0;
+        float score = 0;
+        for (int i = 0; i < single_final_feature.length; i++) {
+            float temp = 0;
+            for (int j = 0; j < single_final_feature[0].length; j++) {
+                temp += (single_final_feature[i][j] - final_feature[j]) * (single_final_feature[i][j] - final_feature[j]);
+            }
+            temp = (float) Math.sqrt(temp);
+            score += temp;
+        }
+        score = score / single_final_feature.length;
+        if (score < 0.5) {
+            predittag = 1;
+        }
+        Log.e(">>>", "score:" + score);
+        Log.e(">>>", "predittag:" + predittag);
+        return predittag;
+    }
+
+
+
+//    public static void inputStream2File(InputStream is, File file) throws IOException {
+//        OutputStream os = null;
+//        try {
+//            os = new FileOutputStream(file);
+//            int len = 0;
+//            byte[] buffer = new byte[8192];
+//
+//            while ((len = is.read(buffer)) != -1) {
+//                os.write(buffer, 0, len);
+//            }
+//        } finally {
+//            os.close();
+//            is.close();
+//        }
+//    }
 }

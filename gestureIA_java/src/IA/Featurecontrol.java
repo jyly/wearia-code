@@ -153,94 +153,105 @@ public class Featurecontrol {
 
 
 
-	public double[] return_feature(Ppg ppgs,Motion motion,Ppg butterppg, Ppg icappg) {
+    public double[] return_feature(Ppg ppgs, Motion motion, Ppg butterppg, Ppg icappg) {
+		Normal_tool nortools = new Normal_tool();
 		ArrayList<Double> samplefeature = new ArrayList<Double>();
-		double[] temp=based_feature(ppgs.x);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		temp=based_feature(ppgs.y);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		temp=based_feature(motion.accx);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		temp=based_feature(motion.accy);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		temp=based_feature(motion.accz);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		temp=based_feature(motion.gyrx);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		temp=based_feature(motion.gyry);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		temp=based_feature(motion.gyrz);
-		for(int i=0;i<temp.length;i++){
-			samplefeature.add(temp[i]);
-		}
-		Normal_tool nortools = new Normal_tool();
-		double []finalfeature=nortools.arraytomatrix(samplefeature);
-		temp=null;
-		samplefeature=null;
-		nortools=null;
+		double[] finalfeature = nortools.arraytomatrix(samplefeature);
+		nortools = null;
 		return finalfeature;
+
 	}
 
+    public double[] return_feature(Ppg ppgs, Motion motion) {
+        ArrayList<Double> samplefeature = new ArrayList<Double>();
+        double[] temp = based_feature(ppgs.x);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(ppgs.y);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(motion.accx);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(motion.accy);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(motion.accz);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(motion.gyrx);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(motion.gyry);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(motion.gyrz);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        Normal_tool nortools = new Normal_tool();
+        double[] finalfeature = nortools.arraytomatrix(samplefeature);
+        temp = null;
+        samplefeature = null;
+        nortools = null;
+        return finalfeature;
+    }
 
 
-	public double[] build_feature(Ppg ppgs,Motion motion) {
-		MAfind ma = new MAfind();
-		Normal_tool nortools = new Normal_tool();
 
-		double[] samplefeature= null;
-		ppgs.x = nortools.meanfilt(ppgs.x, 20);
-		ppgs.y = nortools.meanfilt(ppgs.y, 20);
+    public double[] build_feature(Ppg ppgs, Motion motions) {
+        MAfind ma = new MAfind();
+        Normal_tool nortools = new Normal_tool();
+        IAtool iatools = new IAtool();
 
-		Ppg butterppg = new Ppg();
+        double[] samplefeature = null;
+
+        Ppg orippg = new Ppg();
+        orippg.x = nortools.meanfilt(ppgs.x, 20);
+        orippg.y = nortools.meanfilt(ppgs.y, 20);
+
+        Ppg butterppg = new Ppg();
 //		//对原始的ppg型号做butterworth提取
-		butterppg.x = nortools.butterworth_highpass(ppgs.x, 200, 2);
-		butterppg.y = nortools.butterworth_highpass(ppgs.y, 200, 2);
-		// 做快速主成分分析
-		IAtool iatools = new IAtool();
-		Ppg icappg = iatools.fastica(butterppg);
-		// 根据峰值判断那条手势信号和脉冲信号
-		icappg = iatools.machoice(icappg);
-		iatools=null;
-		//细粒度手势分析，判断手势区间
+        butterppg.x = nortools.butterworth_highpass(orippg.x, 200, 2);
+        butterppg.y = nortools.butterworth_highpass(orippg.y, 200, 2);
+        // 做快速主成分分析
+        Ppg icappg = iatools.fastica(butterppg);
+        // 根据峰值判断那条手势信号和脉冲信号
+        icappg = iatools.machoice(icappg);
+        //细粒度手势分析，判断手势区间
 //		int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
-		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1);
-		if (0 == finetag) {
+        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5);
+        if (0 == finetag) {
+//            Log.e(">>>", "当前片段不存在手势");
+            System.out.println("当前片段不存在手势");
+        } else {
+//            Log.e(">>>", "手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+            System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
+            orippg.x = nortools.innerscale(orippg.x);
+            orippg.y = nortools.innerscale(orippg.y);
+            orippg = ma.setppgsegment(orippg);
+            Motion motion = ma.setmotionsegment(motions);
+            
+            samplefeature = return_feature(orippg, motion);
+            motion = null;
 
-			System.out.println("当前片段不存在手势");
-		} else {
+        }
+        orippg = null;
+        butterppg = null;
+        icappg = null;
+		ma = null;
+		nortools = null;
+        iatools = null;
+        System.gc();
+        return samplefeature;
+    }
 
-			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
-			ppgs.x=nortools.innerscale(ppgs.x);
-			ppgs.y=nortools.innerscale(ppgs.y);
-
-			ppgs = ma.setppgsegment(ppgs);
-			butterppg = ma.setppgsegment(butterppg);
-			icappg = ma.setppgsegment(icappg);
-			motion=ma.setmotionsegment(motion);
-	
-			samplefeature=return_feature(ppgs,motion,butterppg,icappg);
-		}
-		ma=null;
-		ppgs=null;
-		motion=null;
-		butterppg=null;
-		icappg=null;
-		nortools=null;
-		return samplefeature;
-	}
 
 }

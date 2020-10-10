@@ -105,25 +105,25 @@ public class MAfind {
         for (int i = 0; i < (datalens - fre); i++) {
             energy[i] = std.evaluate(data, i, fre);
         }
-
+        //i从energy的后端开始往前走
         int i = datalens - 2*fre - 50;
         int lens = (int) (1 * fre);
         while (i > (3*lens)) {
-            i = i - 1;
+            i = i - 10;
             // 从后往前判断，当大于阈值时，认为可能存在手势
             if (energy[i] > threshold) {
                 int flag = 0;
                 //后面的一定区间内的值都大于阈值时，认为存在手势
                 for (int j = 0; j < lens; j++) {
-                    if (energy[i + j] < threshold) {
+                    if (energy[i + j] < threshold*0.95) {
                         flag = 1;
                         break;
                     }
                 }
                 //前面的的一定区间内的值都小于阈值时，认为存在手势
                 if (0 == flag) {
-                    for (int j = 0; j < lens; j++) {
-                        if (energy[i - j] > threshold+0.1) {
+                    for (int j = 0; j < lens*2; j++) {
+                        if (energy[i - j] > threshold*1.05) {
                             flag = 1;
                             break;
                         }
@@ -155,9 +155,9 @@ public class MAfind {
 //                }
             }
         }
-        if((pointendindex-pointstartindex)>600) {
-            tag=0;
-        }
+//        if((pointendindex-pointstartindex)>600) {
+//            tag=0;
+//        }
         energy=null;
         return tag;
     }
@@ -224,16 +224,16 @@ public class MAfind {
     public Motion setmotionsegment(Motion motion) {
      
 //        Log.e(">>>","手势点/2：" + (int) pointstartindex / 2 + " " + (int) pointendindex / 2);
-        int lens = (int) (pointendindex / 2) - (int) (pointstartindex / 2);
+        int lens = (int) ((pointendindex-pointstartindex) / 2);
         Motion semotoin = new Motion(lens);
-        int start=(int) (pointstartindex / 2);
-        for (int i = 0; i < 150; i++) {
-            semotoin.accx[i] = motion.accx[i+start];
-            semotoin.accy[i] = motion.accy[i+start];
-            semotoin.accz[i] = motion.accz[i+start];
-            semotoin.gyrx[i] = motion.gyrx[i+start];
-            semotoin.gyry[i] = motion.gyry[i+start];
-            semotoin.gyrz[i] = motion.gyrz[i+start];
+        int start = (int) (pointstartindex / 2);
+        for (int i = 0; i < lens; i++) {
+            semotoin.accx[i] = motion.accx[i + start];
+            semotoin.accy[i] = motion.accy[i + start];
+            semotoin.accz[i] = motion.accz[i + start];
+            semotoin.gyrx[i] = motion.gyrx[i + start];
+            semotoin.gyry[i] = motion.gyry[i + start];
+            semotoin.gyrz[i] = motion.gyrz[i + start];
         }
         return semotoin;
     }

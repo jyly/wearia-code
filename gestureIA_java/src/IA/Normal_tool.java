@@ -120,7 +120,12 @@ public class Normal_tool {
 	public double[] innerscale(double[] data) {
 		double[] templist = new double[data.length];
 		for (int i = 0; i < data.length; i++) {
-			templist[i] = data[i] / 100000;
+			if(data[i]>100) {
+				templist[i] = data[i] / 100000;
+			}else {
+				templist[i] = data[i];
+			}
+
 		}
 		return templist;
 	}

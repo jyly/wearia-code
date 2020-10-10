@@ -15,10 +15,8 @@ public class IAtool {
 	public double[][] constructmixsignal(Ppg ppgs) {
 		int arraylength = ppgs.x.length;
 		double[][] mixedSignal = new double[2][arraylength];
-		for (int i = 0; i < arraylength; i++) {
-			mixedSignal[0][i] = ppgs.x[i];
-			mixedSignal[1][i] = ppgs.y[i];
-		}
+		mixedSignal[0] = ppgs.x;
+		mixedSignal[1] = ppgs.y;
 		return mixedSignal;
 	}
 
@@ -165,11 +163,11 @@ public class IAtool {
 //	        }
 
 		for (int i = 0; i < tag.length; i++) {
-			if (Ptag[i] == 0) {
+			if (0 == Ptag[i]) {
 				Ptag[i] = 0.00000001;
 
 			}
-			if (Qtag[i] == 0) {
+			if (0 == Qtag[i]) {
 				Qtag[i] = 0.00000001;
 			}
 //	            Log.e("PQtag","第"+i+"个pg:"+Ptag[i]+","+Qtag[i]);
