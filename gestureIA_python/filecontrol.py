@@ -29,9 +29,10 @@ def orisegmentread(path):
 			gyrz.append(i[3])
 			gyrtime.append(i[4])
 		if i[0]==2:
-			ppgx.append(i[1])
-			ppgy.append(i[2])
-			ppgtime.append(i[3])
+			if(i[1]<100000000 and i[2]<100000000 and i[1]>50000 and i[2]>50000):
+				ppgx.append(i[1])
+				ppgy.append(i[2])
+				ppgtime.append(i[3])
 	inputfile.close()	
 	return ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime
 
@@ -109,17 +110,19 @@ def dataread():
 		temp=[]
 		for i in inputfile:
 			i=list(eval(i))
-			if len(temp)<8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-				temp.append(i)
-			else:
-				dataset.append(temp)
-				target.append(index)
-				temp=[]
-				temp.append(i)
+			if(len(i)==600):
+				if len(temp)<2:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
+					temp.append(i[0:600])
+				else:
+					dataset.append(temp)
+					target.append(index)
+					temp=[]
+					temp.append(i[0:600])
 		inputfile.close()	
 		index=index+1
 	targetnum=index-1
 	dataset=np.array(dataset)
+	
 	target=np.array(target)
 	return dataset,target,targetnum
 

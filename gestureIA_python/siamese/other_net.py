@@ -106,3 +106,36 @@ def ResNet50(input_shape = (64, 64, 3), classes = 6):
     model = Model(inputs = X_input, outputs = X, name = 'ResNet50')
  
     return model
+
+
+def vgg_16_base(input_shape):
+    input = Input(shape=input_shape)
+
+    net = Conv2D(64,(3,3),activation='relu',padding='same')(input)
+    net = Conv2D(64,(3,3),activation='relu',padding='same')(net)
+    net = MaxPooling2D(pool_size=(2,2))(net)
+ 
+    net = Conv2D(128,(3,3),activation='relu',padding='same')(net)
+    net = Conv2D(128,(3,3),activation='relu',padding='same')(net)
+    net = MaxPooling2D(pool_size=(2,2))(net)
+
+ 
+    net = Conv2D(256,(3,3),activation='relu',padding='same')(net)
+    net = Conv2D(256,(3,3),activation='relu',padding='same')(net)
+    net = Conv2D(256,(3,3),activation='relu',padding='same')(net)
+    net = MaxPooling2D(pool_size=(2,2))(net)
+ 
+    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
+    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
+    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
+    net = MaxPooling2D(pool_size=(2,2))(net)
+ 
+    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
+    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
+    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
+    net = MaxPooling2D(pool_size=(2,2))(net)
+
+    net = Flatten()(net)
+    net = Dense(128, activation='relu')(net)
+
+    return Model(input, net)

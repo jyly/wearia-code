@@ -1,20 +1,11 @@
 # -*- coding=utf-8 -*-
-import os     
-# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
-# os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
-# os.environ["PATH"] += os.pathsep + 'E:/system/python/graphviz/bin'
-import tensorflow as tf
 import keras
 import numpy as np
 import random
-from keras.callbacks import TensorBoard
-# from keras.datasets import manhattan_distance
 from keras.models import Model
-from keras.layers import Input, Flatten, Dense, Dropout, Lambda,Conv2D,MaxPooling2D,MaxPooling1D,Conv1D,Reshape
+from keras.layers import Input, Flatten, Dense, Dropout, Lambda,Conv2D,MaxPooling2D,MaxPooling1D,Conv1D,Reshape,BatchNormalization,Activation
 from keras import backend as K
 from keras import regularizers,optimizers
-from keras.models import load_model,model_from_json
-# import resnet_keras 
 
 def euclidean_distance(vects):
     x, y = vects
@@ -52,12 +43,7 @@ def contrastive_loss_2(y_true, y_pred):#实际值，预测值,全部正确时返
     sqaure_pred = K.square(y_pred)
     exp_pred=K.exp(-(float(2.77/Q)*y_pred))
     return K.mean((y_true)*float(2/Q)*sqaure_pred+(1-y_true)*2*Q*exp_pred)
-    # Q = tf.constant(Q, name="Q",dtype=tf.float32)
-    # pos = tf.multiply(tf.multiply(1-y_true,2/Q),tf.square(y_pred))
-    # neg = tf.multiply(tf.multiply(y_true,2*Q),tf.exp(-2.77/Q*y_pred))                
-    # loss = pos + neg                 
-    # loss = tf.reduce_mean(loss)              
-    # return loss
+
 
 def accuracy(y_true, y_pred): # Tensor上的操作
 
@@ -72,339 +58,65 @@ def compute_accuracy(y_true, y_pred): # numpy上的操作
     return np.mean(pred == y_true)
 
 
-#部分内部样本,单敌对样本  
-def create_pairs(data, target,num_classes):
-    #返回目标类别所在的序号构成的列表
-    digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
-    pairs = []
-    labels = []
-    n = min([len(digit_indices[d]) for d in range(num_classes)]) - 1
-    for d in range(num_classes):
-        for i in range(n):
-            z1, z2 = digit_indices[d][i], digit_indices[d][i + 1]
-            pairs += [[data[z1], data[z2]]]
-            inc = random.randrange(1, num_classes)
-            dn = (d + inc) % num_classes
-            z1, z2 = digit_indices[d][i], digit_indices[dn][i]
-            pairs += [[data[z1], data[z2]]]
-            labels += [1, 0]
-    return np.array(pairs), np.array(labels)
-
-#全内部样本,单敌对样本    
-def create_pairs_incre_1(data, target,num_classes):
-    #返回目标类别所在的序号构成的列表
-    digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
-    pairs = []
-    labels = []
-    for d in range(num_classes):
-        n=len(digit_indices[d])-1
-        for i in range(n):
-            for j in range(i+1,n+1):
-                z1, z2 = digit_indices[d][i], digit_indices[d][j]
-                pairs += [[data[z1], data[z2]]]
-                inc_1 = random.randrange(1, num_classes)
-                dn = (d + inc_1) % num_classes
-                inc_2 =random.randrange(0, len(digit_indices[dn]))
-                z1, z2 = digit_indices[d][i], digit_indices[dn][inc_2]
-                pairs += [[data[z1], data[z2]]]
-                labels += [1, 0]
-    return np.array(pairs), np.array(labels)
-
-#全内部样本,5敌对样本      
-def create_pairs_incre_2(data, target,num_classes):
-    pairs = []
-    labels = []
-    digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
-    for d in range(num_classes):
-        n=len(digit_indices[d])-1
-        for i in range(n):
-            for j in range(i+1,n+1):
-                z1, z2 = digit_indices[d][i], digit_indices[d][j]
-                pairs += [[data[z1], data[z2]]]
-                labels += [1]
-                for k in range(2):
-                    inc_1 = random.randrange(1, num_classes)
-                    dn = (d + inc_1) % num_classes
-                    inc_2 =random.randrange(0, len(digit_indices[dn]))
-                    z1, z2 = digit_indices[d][i], digit_indices[dn][inc_2]
-                    pairs += [[data[z1], data[z2]]]
-                    labels += [0]
-                # for iters in range(5):
-                for k in range(4):
-
-                    dn = (d + k+1) % num_classes
-                    inc_2 =random.randrange(1, len(digit_indices[dn]))
-                    z1, z2 = digit_indices[d][i], digit_indices[dn][inc_2]
-                    pairs += [[data[z1], data[z2]]]
-                    labels += [0]
-                    dn = (d - k-1) % num_classes
-                    inc_2 =random.randrange(0, len(digit_indices[dn]))
-                    z1, z2 = digit_indices[d][i], digit_indices[dn][inc_2]
-                    pairs += [[data[z1], data[z2]]]
-                    labels += [0]
-
-
-    return np.array(pairs), np.array(labels)
-
-def create_test_pair(test_data, test_target,num_classes,anchornum):
-    tempdata=[]
-    for i in range(1,num_classes+1):
-        tempdata.append([])
-        for j in range(len(test_target)):
-            if test_target[j]==i:
-                tempdata[i-1].append(test_data[j])
-    pairs = []
-    labels = []   
-    for t in range(1):            
-        test_data_anchor=[]
-        test_data=[]
-        #选择样本的锚和对比样本
-        for i in range(num_classes):
-            test_data_anchor.append([])
-            test_data.append([])
-            rangek=list(range(len(tempdata[i])))
-            selectk = random.sample(rangek, anchornum)
-            for j in range(len(tempdata[i])):
-                if j in selectk:
-                    test_data_anchor[i].append(tempdata[i][j])
-                else:
-                    test_data[i].append(tempdata[i][j])
-        
-        for i in range(num_classes):
-            for j in range(len(test_data[i])):
-                # 添加合法样本对
-                for k in range(anchornum):
-                    pairs+=[[test_data_anchor[i][k],test_data[i][j]]]
-                labels += [1]
-                #添加impost样本对
-                for t in range(3):
-                    # inc_1 = random.randrange(1, 6)
-                    dn = (i + t+1) % num_classes
-                    inc_2 =np.random.randint(0, len(tempdata[dn]))
-                    for k in range(anchornum):
-                        pairs += [[test_data_anchor[i][k],tempdata[dn][inc_2]]]
-                    labels += [0]
-                    dn = (i - t-1) % num_classes
-                    inc_2 =np.random.randint(0, len(tempdata[dn]))
-                    for k in range(anchornum):
-                        pairs += [[test_data_anchor[i][k],tempdata[dn][inc_2]]]
-                    labels += [0]
-    # print("len(test_pairs):",len(pairs))
-    # print("len(test_labels):",len(labels))            
-    return np.array(pairs), np.array(labels)
-
-def create_single_test_pair(train_data, test_data):
-    pairs=[]
-    for i in range(len(test_data)):
-        for j in range(len(train_data)):
-            pairs+=[[test_data[i],train_data[j]]]
-    return np.array(pairs)
-
-
-
-def create_victima_test_pair(test_data, test_target,num_classes,anchornum):
-    tempdata=[[],[]]
-    for j in range(len(test_target)):
-        if test_target[j]==1:
-            tempdata[0].append(test_data[j])
-        else:
-            tempdata[1].append(test_data[j])
-    print("len(tempdata[0]):",len(tempdata[0]))
-    print("len(tempdata[1]):",len(tempdata[1]))
-
-    pairs = []
-    labels = []   
-    for t in range(3):            
-        test_data_anchor=[]
-        test_data=[]
-        #选择样本的锚和对比样本
-        rangek=list(range(len(tempdata[0])))
-        selectk = random.sample(rangek, anchornum)
-        for j in range(len(tempdata[0])):
-            if j in selectk:
-                test_data_anchor.append(tempdata[0][j])
-            else:
-                test_data.append(tempdata[0][j])
-        
-        for j in range(len(test_data)):
-            # 添加合法样本对
-            for k in range(anchornum):
-                pairs+=[[test_data_anchor[k],test_data[j]]]
-            labels += [1]
-            #添加impost样本对
-
-        resultList=random.sample(range(0,len(tempdata[1])),100);            
-
-        for t in resultList:
-            for k in range(anchornum):
-                pairs += [[test_data_anchor[k],tempdata[1][t]]]
-            labels += [0]
-    # print("len(test_pairs):",len(pairs))
-    # print("len(test_labels):",len(labels))            
-    return np.array(pairs), np.array(labels)
-
-
-
 
 def mlp_network(input_shape):
     '''Base network to be shared (eq. to feature extraction).
     '''
     input = Input(shape=(input_shape), name='input')
-    # x = Flatten()(input)
-    x = input
-    #全连接层
-    x = Dense(128, activation='relu')(x)
-    #遗忘层
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.2)(x)
-    x = Dense(128, activation='relu', name='output')(x)
-
-    return Model(input, x)
-
-
-def mlp_network_incre(input_shape):
-    '''Base network to be shared (eq. to feature extraction).
-    '''
-    input = Input(shape=input_shape, name='input')
-    # x = Reshape((2,300,1))(input)
-    # x = Reshape((600,1))(x)
     x = Flatten()(input)
-    # x = input
-    #全连接层
-    x = Dense(32, activation='relu')(x)
+    # x = BatchNormalization(epsilon=1e-06)(x)
+    x = Dense(128, activation='relu')(x)
     x = Dropout(0.1)(x)
-    x = Dense(32, activation='relu')(x)
+    x = Dense(128, activation='relu')(x)
     x = Dropout(0.1)(x)
-    x = Dense(32, activation='relu')(x)
-    x = Dropout(0.1)(x)
-    x = Dense(32, activation='relu')(x)
-    x = Dropout(0.2)(x)
-    x = Dense(32, activation='relu')(x)
+    x = Dense(128, activation='relu')(x)
     x = Dropout(0.2)(x)
     x = Dense(128, activation='relu', name='output')(x)
+
     return Model(input, x)
 
-def conv_network_1(input_shape):
+
+
+def conv_network(input_shape):
 
     input = Input(shape=input_shape, name='input')
     # x = Reshape((2,300,1))(input)
 
-    x = Conv2D(32, (2, 1), activation='relu')(input)
+
+    # x = Conv2D(4, (2, 1))(input)
+    # x = BatchNormalization(epsilon=1e-06)(x)
+    # x = Activation('relu')(x)
+    # x = Dropout(0.1)(x)
+
+    x = Conv2D(4, (1, 3), activation='relu')(input)
     x = Dropout(0.1)(x)
-    x = MaxPooling2D(pool_size=(1, 3))(x) 
-    x = Conv2D(32, (1, 3), activation='relu',padding='same')(x)
+
+
+    x = Conv2D(8, (1, 3), activation='relu',padding='same')(x)
     x = Dropout(0.1)(x)
+    x = MaxPooling2D(pool_size=(1, 4))(x) 
     # x = Conv2D(4, (1, 10), activation='relu',padding='same')(x)
     # x = Dropout(0.1)(x)
-    x = MaxPooling2D(pool_size=(1, 4))(x)
-    x = Conv2D(32, (1,3), activation='relu',padding='same')(x)
+   
+    x = Conv2D(8, (1,5), activation='relu',padding='same')(x)
     x = Dropout(0.2)(x)
-
+    x = MaxPooling2D(pool_size=(1, 5))(x)
     # x = Conv2D(32, (1, 3), activation='relu',padding='same')(x)
     # x = Dropout(0.2)(x)
-    x = Conv2D(8, (1, 1), activation='relu')(x)
+    x = Conv2D(2, (1, 1), activation='relu')(x)
     x = Dropout(0.2)(x)
     x = Flatten()(x)
-    x = Dense(32, activation='relu',name='output')(x)
-    return Model(input, x)
-
-def conv_network_2(input_shape):
-    '''Base network to be shared (eq. to feature extraction).
-    '''
-    input = Input(shape=input_shape, name='input')
-    x = Conv2D(32, (1, 8), activation='relu',padding='same')(input)
-    x = Dropout(0.1)(x)
-    x = Conv2D(32, (3, 1), activation='relu',padding='same')(x)
-    x = Dropout(0.1)(x)
-    x = Conv2D(32, (3, 1), activation='relu',padding='same')(x)
-    x = Dropout(0.2)(x)
-    x = Flatten()(x)
-    x = Dense(32, activation='relu',name='output')(x)
-    return Model(input, x)
-
-def conv_network_3(input_shape):
-    '''Base network to be shared (eq. to feature extraction).
-    '''
-    input = Input(shape=input_shape, name='input')
-    x = Conv2D(32, (1, 3), activation='relu',padding='same')(input)
-    x = Dropout(0.1)(x)
-    x = Conv2D(32, (1, 3), activation='relu',padding='same')(x)
-    x = Dropout(0.1)(x)
-    x = Conv2D(32, (1, 3), activation='relu',padding='same')(x)
-    x = Dropout(0.2)(x)
-    x = Flatten()(x)
-    x = Dense(32, activation='relu',name='output')(x)
+    x = Dense(128, activation='relu',name='output')(x)
     return Model(input, x)
 
 
 
 
-def cwt_network(input_shape):
-    '''Base network to be shared (eq. to feature extraction).
-    '''
-    input = Input(shape=input_shape)
- 
-    # x = MaxPooling2D(pool_size=(2, 2))(input)
-    x = Conv2D(16, (2, 2), activation='relu',padding='same')(input)
-    x = Dropout(0.1)(x)
-
-    # x = MaxPooling2D(pool_size=(2, 2))(input)
-    x = Conv2D(32, (3, 3), activation='relu',padding='same')(x)
-    x = Dropout(0.1)(x)
-
-    # x = MaxPooling2D(pool_size=(2, 2))(input)
-    x = Conv2D(32, (3, 3), activation='relu',padding='same')(x)
-    x = Dropout(0.2)(x)
-
-    x = Flatten()(x)
-    x = Dense(128, activation='relu')(x)
-
-    return Model(input, x)
-
-def vgg_16_base(input_shape):
-    input = Input(shape=input_shape)
-
-    net = Conv2D(64,(3,3),activation='relu',padding='same')(input)
-    net = Conv2D(64,(3,3),activation='relu',padding='same')(net)
-    net = MaxPooling2D(pool_size=(2,2))(net)
- 
-    net = Conv2D(128,(3,3),activation='relu',padding='same')(net)
-    net = Conv2D(128,(3,3),activation='relu',padding='same')(net)
-    net = MaxPooling2D(pool_size=(2,2))(net)
-
- 
-    net = Conv2D(256,(3,3),activation='relu',padding='same')(net)
-    net = Conv2D(256,(3,3),activation='relu',padding='same')(net)
-    net = Conv2D(256,(3,3),activation='relu',padding='same')(net)
-    net = MaxPooling2D(pool_size=(2,2))(net)
- 
-    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
-    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
-    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
-    net = MaxPooling2D(pool_size=(2,2))(net)
- 
-    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
-    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
-    net = Conv2D(512,(3,3),activation='relu',padding='same')(net)
-    net = MaxPooling2D(pool_size=(2,2))(net)
-
-    net = Flatten()(net)
-    net = Dense(128, activation='relu')(net)
-
-    return Model(input, net)
 
 def create_siamese_network(input_shape):
     
-    # base_network = mlp_network(input_shape)
-    base_network = mlp_network_incre(input_shape)
-    # base_network = conv_network_1(input_shape)
+    base_network = mlp_network(input_shape)
+    # base_network = conv_network(input_shape)
     base_network.summary()
     input_a = Input(shape=input_shape)
     input_b = Input(shape=input_shape)
@@ -423,7 +135,6 @@ def create_siamese_network(input_shape):
     
 #     # base_network = conv_network(input_shape)
 #     # base_network_1 = mlp_network(input_shape)
-#     # base_network_2 = mlp_network_incre(input_shape)
 
 #     input_a = Input(shape=input_shape)
 #     input_b = Input(shape=input_shape)
@@ -443,3 +154,27 @@ def create_siamese_network(input_shape):
 #     rms = optimizers.RMSprop()
 #     model.compile(loss=contrastive_loss_1, optimizer=rms, metrics=[accuracy])
 #     return model
+
+
+# def cwt_network(input_shape):
+#     '''Base network to be shared (eq. to feature extraction).
+#     '''
+#     input = Input(shape=input_shape)
+ 
+#     # x = MaxPooling2D(pool_size=(2, 2))(input)
+#     x = Conv2D(16, (2, 2), activation='relu',padding='same')(input)
+#     x = Dropout(0.1)(x)
+
+#     # x = MaxPooling2D(pool_size=(2, 2))(input)
+#     x = Conv2D(32, (3, 3), activation='relu',padding='same')(x)
+#     x = Dropout(0.1)(x)
+
+#     # x = MaxPooling2D(pool_size=(2, 2))(input)
+#     x = Conv2D(32, (3, 3), activation='relu',padding='same')(x)
+#     x = Dropout(0.2)(x)
+
+#     x = Flatten()(x)
+#     x = Dense(128, activation='relu')(x)
+
+#     return Model(input, x)
+

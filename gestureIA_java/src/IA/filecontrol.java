@@ -80,9 +80,13 @@ public class filecontrol {
 //				System.out.println(line);
 				String[] tempppg = line.split(",");
 				if (tempppg[0].equals("2")) {
-					ppgx.add(Double.parseDouble(tempppg[1]));
-					ppgy.add(Double.parseDouble(tempppg[2]));
-					ppgtimestamps.add(Long.parseLong(tempppg[3]));
+					double x = Double.parseDouble(tempppg[1]);
+					double y = Double.parseDouble(tempppg[2]);
+					if (x < 100000000 && y < 100000000 && x > 50000 && y > 50000) {
+						ppgx.add(Double.parseDouble(tempppg[1]));
+						ppgy.add(Double.parseDouble(tempppg[2]));
+						ppgtimestamps.add(Long.parseLong(tempppg[3]));
+					}
 				}
 				line = in.readLine();
 			}

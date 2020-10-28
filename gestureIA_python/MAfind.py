@@ -4,6 +4,7 @@ import IAtool
 from normal_tool import *
 #提取自选间断数据的开始结束点
 def fine_grained_segment(dn,fre,threshold=1):
+
 	oristd=[]
 	winslen=200
 	for i in range(len(dn)-winslen):
@@ -16,6 +17,8 @@ def fine_grained_segment(dn,fre,threshold=1):
 	tag=0
 	i=len(oristd)
 	lens=int(0.8*fre)
+
+
 	while i >lens:
 		i=i-1
 		# print(i)
@@ -31,16 +34,18 @@ def fine_grained_segment(dn,fre,threshold=1):
 				start=i-3*lens
 				if start<0:
 					start=0 
-				for j in range(start,i-lens):
+				for j in range(start,i-100):
 					pointstartindex=j
 					if oristd[j]>threshold:
 						break
+				#补充能量值的偏移量		
 				pointstartindex=pointstartindex+int(0.5*fre)
 				pointendindex=i+int(0.5*fre)
 				tag=1
 				break
+	# print(pointstartindex,pointendindex)
+
 	if (pointendindex-pointstartindex)<150:
-<<<<<<< Updated upstream
 		tag=0
 	return tag,pointstartindex,pointendindex
 
@@ -77,15 +82,11 @@ def fine_grained_segment_2(dn,fre,threshold=1):
 				pointstartindex=i-100
 				pointendindex=i+200
 				tag=1
-=======
-		tag=1
-			
->>>>>>> Stashed changes
 	return tag,pointstartindex,pointendindex
 
 
 
-def fine_grained_segment_2(dn,fre,threshold=1):
+def fine_grained_segment_3(dn,fre,threshold=1):
 	oristd=[]
 	winslen=200
 	for i in range(len(dn)-winslen):

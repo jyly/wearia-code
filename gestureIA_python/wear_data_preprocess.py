@@ -32,7 +32,8 @@ def single_data(filepath):
 	#判断是否存在手势和提取出手势段
 	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#python 的ica是0.03,android的是1
 
-	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_2(icappgx,200,0.03)#python 的ica是0.03,android的是1
+	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_2(icappgx,200,0.03)#python 的ica是0.03,android的是1
+	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_4(icappgx,200,0.03)#python 的ica是0.03,android的是1
 
 	#是否有手势，手势开始点，手势结束点，手势长度
 	print(tag,pointstartindex,pointendindex,pointendindex-pointstartindex)
@@ -130,17 +131,21 @@ def all_data(datadir):
 def single_feature(filepath):
 
 	ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime=filecontrol.orisegmentread(filepath)
+	if len(ppgx)<800:
+		tag=0
+		tempfeature=[]
+		return tag,tempfeature
 
 	orippgx=meanfilt(ppgx,20)
 	orippgy=meanfilt(ppgy,20)
 
-	accx=meanfilt(accx,20)
-	accy=meanfilt(accy,20)
-	accz=meanfilt(accz,20)
+	# accx=meanfilt(accx,20)
+	# accy=meanfilt(accy,20)
+	# accz=meanfilt(accz,20)
 
-	gyrx=meanfilt(gyrx,20)
-	gyry=meanfilt(gyry,20)
-	gyrz=meanfilt(gyrz,20)
+	# gyrx=meanfilt(gyrx,20)
+	# gyry=meanfilt(gyry,20)
+	# gyrz=meanfilt(gyrz,20)
 
 	butterppgx=highpass(2,200,orippgx)
 	butterppgy=highpass(2,200,orippgy)
@@ -151,24 +156,24 @@ def single_feature(filepath):
 	# orippgx=standardscale(orippgx)
 	# tag=MAfind.coarse_grained_detect(orippgx)
 	# print(tag)
-
-	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#0.03,1
-	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_2(icappgx,200,0.03)#python 的ica是0.03,android的是1
+	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#0.03,1
+	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_2(icappgx,200,0.03)#python 的ica是0.03,android的是1
+	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_4(icappgx,200,0.03)#python 的ica是0.03,android的是1
+	# mixindexpicshow(butterppgx,orippgx)
 
 	print(tag,pointstartindex,pointendindex)
 
-	orippgx=standardscale(orippgx)
-	orippgy=standardscale(orippgy)
-	accx=standardscale(accx)
-	accy=standardscale(accy)
-	accz=standardscale(accz)
-	gyrx=standardscale(gyrx)
-	gyry=standardscale(gyry)
-	gyrz=standardscale(gyrz)
+	# orippgx=standardscale(orippgx)
+	# orippgy=standardscale(orippgy)
+	# accx=standardscale(accx)
+	# accy=standardscale(accy)
+	# accz=standardscale(accz)
+	# gyrx=standardscale(gyrx)
+	# gyry=standardscale(gyry)
+	# gyrz=standardscale(gyrz)
 
 	tempfeature=[]
 	if tag==1:
-		
 		temp=featurecontrol.ppg_feature(orippgx[pointstartindex:pointendindex])
 		for i in temp:
 			tempfeature.append(i)
@@ -176,29 +181,29 @@ def single_feature(filepath):
 		for i in temp:
 			tempfeature.append(i)
 
-		temp=featurecontrol.motion_feature(accx[int((pointstartindex)/2):int((pointendindex)/2)])
-		for i in temp:
-			tempfeature.append(i)
+	# 	temp=featurecontrol.motion_feature(accx[int((pointstartindex)/2):int((pointendindex)/2)])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
 
-		temp=featurecontrol.motion_feature(accy[int((pointstartindex)/2):int((pointendindex)/2)])
-		for i in temp:
-			tempfeature.append(i)
+	# 	temp=featurecontrol.motion_feature(accy[int((pointstartindex)/2):int((pointendindex)/2)])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
 
-		temp=featurecontrol.motion_feature(accz[int((pointstartindex)/2):int((pointendindex)/2)])
-		for i in temp:
-			tempfeature.append(i)
+	# 	temp=featurecontrol.motion_feature(accz[int((pointstartindex)/2):int((pointendindex)/2)])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
 
-		temp=featurecontrol.motion_feature(gyrx[int((pointstartindex)/2):int((pointendindex)/2)])
-		for i in temp:
-			tempfeature.append(i)
+	# 	temp=featurecontrol.motion_feature(gyrx[int((pointstartindex)/2):int((pointendindex)/2)])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
 
-		temp=featurecontrol.motion_feature(gyry[int((pointstartindex)/2):int((pointendindex)/2)])
-		for i in temp:
-			tempfeature.append(i)
+	# 	temp=featurecontrol.motion_feature(gyry[int((pointstartindex)/2):int((pointendindex)/2)])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
 
-		temp=featurecontrol.motion_feature(gyrz[int((pointstartindex)/2):int((pointendindex)/2)])
-		for i in temp:
-			tempfeature.append(i)
+	# 	temp=featurecontrol.motion_feature(gyrz[int((pointstartindex)/2):int((pointendindex)/2)])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
 	return tag,tempfeature
 
 # #提取手势具体数据段的特征

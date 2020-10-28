@@ -161,7 +161,7 @@ public class Normal_tool {
 
     // 初始的butterworth滤波会有个收敛的过程，前面的数据手动选择滤除
     public double[] butterworth_highpass(double[] data, int fre, double high) {
-        int addinter = 300;
+        int addinter = 1000;
         double[] tempdata = new double[data.length + addinter];
         for (int i = 0; i < addinter; i++)
             tempdata[i] = data[0];
@@ -183,7 +183,7 @@ public class Normal_tool {
     }
 
     public double[] butterworth_lowpass(double[] data, int fre, double low) {
-        int addinter = 300;
+        int addinter = 1000;
         double[] tempdata = new double[data.length + addinter];
         for (int i = 0; i < addinter; i++)
             tempdata[i] = data[0];
@@ -207,7 +207,7 @@ public class Normal_tool {
         double center = ((high + low) / 2);
         double width = high - low;
 
-        int addinter = 300;
+        int addinter = 1000;
         double[] tempdata = new double[data.length + addinter];
         for (int i = 0; i < addinter; i++)
             tempdata[i] = data[0];

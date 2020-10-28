@@ -5,12 +5,20 @@ from scipy.stats import kurtosis
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from normal_tool import *
 from sklearn.preprocessing import StandardScaler
+from dtw import dtw
+from scipy.signal import argrelmax
+
 
 #根据项目需要，自定义的工具
-
-
 manhattan_distance = lambda x, y: np.abs(x - y)
 euclidean_distance = lambda x, y: np.sqrt(np.power((x - y), 2))
+
+#获取峰值点
+def find_extrema(signal):
+    signal = np.array(signal)
+    extrema_index = np.sort(np.unique(np.concatenate((argrelmax(signal)[0], argrelmin(signal)[0]))))
+    extrema = signal[extrema_index]
+    return zip(extrema_index.tolist(), extrema.tolist())
 
 #根据峰度判断干扰信号是那个
 def maline(data1,data2):	
@@ -37,7 +45,7 @@ def ppgfica(data1,data2):
 	return data1,data2
 
 #根据分数选择分数最高的前topn个特征
-def scoreselect(data,sort,topn=30):
+def scoreselect(data,sort,topn):
 	if len(data)==0:
 		return data
 	if topn>len(data[0]):
@@ -212,6 +220,7 @@ def sequence_incre(data):
 	for i in range(len(data)-1):
 		temp.append(data[i])
 		temp.append((data[i]+data[i+1])/2)
+	temp.append(data[-1])	
 	return temp	
 
 def sequence_to_300(data):
@@ -226,21 +235,18 @@ def sequence_to_300(data):
 	temp=meanfilt(temp,5)
 	return temp
 
-def filterparameterwrite(sort,lda_bar,lda_scaling,filename='./filterparameter.txt'):
+def filterparameterwrite(sort,lda_bar,lda_scaling,filename):
 	
 	outputfile=open(filename,'w+')
 	outputfile.write(str(sort))
 	outputfile.write('\n')
-
 	outputfile.write(str(lda_bar))
 	outputfile.write('\n')
-	
 	outputfile.write(str(lda_scaling))
-
 	outputfile.close()
 
 
-def filterparameterread(filename='./filterparameter.txt'):
+def filterparameterread(filename):
 	
 	inputfile=open(filename,'r+')
 	parameter=[]
@@ -254,23 +260,20 @@ def filterparameterread(filename='./filterparameter.txt'):
 	return sort,lda_bar,lda_scaling
 
 
-def mulfilterparameterwrite(sort1,sort2,lda_bar,lda_scaling,filename='./filterparameter.txt'):
+def mulfilterparameterwrite(sort1,sort2,lda_bar,lda_scaling,filename):
 	
 	outputfile=open(filename,'w+')
 	outputfile.write(str(sort1))
 	outputfile.write('\n')
 	outputfile.write(str(sort2))
 	outputfile.write('\n')
-
 	outputfile.write(str(lda_bar))
 	outputfile.write('\n')
-	
 	outputfile.write(str(lda_scaling))
-
 	outputfile.close()
 
 
-def mulfilterparameterread(filename='./filterparameter.txt'):
+def mulfilterparameterread(filename):
 	
 	inputfile=open(filename,'r+')
 	parameter=[]
@@ -283,3 +286,32 @@ def mulfilterparameterread(filename='./filterparameter.txt'):
 	lda_bar=parameter[2]
 	lda_scaling=parameter[3]
 	return sort1,sort2,lda_bar,lda_scaling
+
+#获取单个数据列中由小到大排序的距离数值
+def calgestureprofile(data):
+	# print(len(data))
+	lens=len(data)
+	dist=[[[] for i in range(lens)] for j in range(lens)]
+	for i in range(lens):
+		dist[i][i]=0
+	for i in range(lens-1):
+		for j in range(i+1,lens):
+			d, cost_matrix, acc_cost_matrix, path = dtw(data[i], data[j], dist=manhattan_distance)
+			print("i=",i,"j=",j,"d=",d)
+			dist[i][j]=d
+			dist[j][i]=d
+	meandist=[np.mean(dist[i]) for i in range(lens)]
+	print(meandist)
+	distsort = np.argsort(meandist)#由小到大排序，得到对应的序号
+	temp=[i for i in distsort]
+	distsort=temp
+	print("distsort：",distsort)
+	samples=[]
+	samples.append(data[distsort[0]])
+	samples.append(data[distsort[1]])
+	samples.append(data[distsort[2]])
+	return samples
+
+def caldtw(a,b):
+	d, cost_matrix, acc_cost_matrix, path = dtw(a, b, dist=manhattan_distance)
+	return d

@@ -223,20 +223,23 @@ public class Featurecontrol {
         //细粒度手势分析，判断手势区间
 
 //		int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
-        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5);
+        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1);
         if (0 == finetag) {
             Log.e(">>>", "当前片段不存在手势");
         } else {
             Log.e(">>>", "手势点：" + ma.pointstartindex + " " + ma.pointendindex);
             orippg.x = nortools.innerscale(orippg.x);
             orippg.y = nortools.innerscale(orippg.y);
+
             orippg = ma.setppgsegment(orippg);
-            butterppg = ma.setppgsegment(butterppg);
+
             Motion motion = ma.setmotionsegment(motions);
 
-            samplefeature = return_feature(butterppg, motion);
-//            samplefeature = return_feature(orippg, motion);
-            motion = null;
+            samplefeature = return_feature(orippg, motion);
+
+//            butterppg = ma.setppgsegment(butterppg);
+//            samplefeature = return_feature(butterppg, motion);
+//            motion = null;
 
         }
         orippg = null;
@@ -271,7 +274,7 @@ public class Featurecontrol {
         icappg = iatools.machoice(icappg);
         //细粒度手势分析，判断手势区间
 //		int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
-        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1);
+        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5);
         if (0 == finetag) {
             Log.e(">>>", "当前片段不存在手势");
         } else {

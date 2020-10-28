@@ -10,12 +10,15 @@ import sklearn_classifier
 import siamese_data_classifier
 import siamese_feature_classifier
 import tripletloss_classifier
-
 if __name__ == "__main__":
-	print(sys.version)
+
+
+	# print(sys.version)
 	#源数据路径
-	wear_datadir='./oridata/'
-	phone_datadir='./payIA_data/'
+	# wear_datadir='./oridata/'
+	# wear_datadir='./oridata_3/'
+	# wear_datadir='./oridata_2/'
+	# phone_datadir='./payIA_data/'
 
 	#数据预处理python版，后期全用java提取特征
 	# wear_data_preprocess.all_data(wear_datadir)#提取手势的具体数据段
@@ -33,36 +36,36 @@ if __name__ == "__main__":
 
 	# sklrean分类
 	# sklearn_classifier.sklearn_mulclass(feature[:,:76],target,targetnum)
-	# sklearn_classifier.sklearn_mulclass(feature,target,targetnum)	
-	# sklearn_classifier.sklearn_finalmulclass(feature,target,targetnum)
-	# sklearn_classifier.sklearn_oneclass(feature,target,1)
-	# sklearn_classifier.sklearn_finaloneclass(feature,target,1)
+	# sklearn_classifier.sklearn_build_class(feature[:,:76],target,targetnum)
+	# sklearn_classifier.sklearn_final_class(feature[:,:76],target,targetnum)
+	# sklearn_classifier.sklearn_TMC_mulclass(feature[:,:2],target,targetnum)
+
+
+	# sklearn_classifier.sklearn_mulclass(feature[:,76:],target,targetnum)
+	# sklearn_classifier.sklearn_build_class(feature[:,76:],target,targetnum)
+	# sklearn_classifier.sklearn_final_class(feature[:,76:],target,targetnum)
+
+
+	# siamese分类（基于特征)
+
+	# siamese_feature_classifier.siamese_feature_divide_class(feature,target,targetnum)
+	# siamese_feature_classifier.siamese_feature_build_class(feature,target,targetnum,30)
+	siamese_feature_classifier.siamese_feature_final_class(feature,target,targetnum,30,5)
+	# siamese_feature_classifier.siamese_feature_based_classifier(feature[:,:38],target,targetnum)
+	# siamese_feature_classifier.siamese_feature_mul_build_class(feature,target,targetnum,30)
+	# siamese_feature_classifier.siamese_feature_mul_final_class(feature,target,targetnum,30,3)
+# 
+
+	
+
+
+
 
 	# siamese分类（基于原数据）
-	# siamese_data_classifier.siamese_data_based_classifier(feature[:,0:2],target,targetnum,3)
-	# siamese_data_classifier.siamese_data_divide_class(feature[:,0:2],target,targetnum)
+	# siamese_data_classifier.siamese_data_divide_class(feature[:,:1],target,targetnum)
+	# siamese_data_classifier.siamese_data_build_class(feature[:,:1],target,targetnum)
+	# siamese_data_classifier.siamese_data_final_class(feature[:,:1],target,targetnum,3)
 	
-	# siamese_data_classifier.siamese_data_build_class(feature[:,0:2],target,targetnum)
-	# siamese_data_classifier.siamese_data_final_class(feature[:,0:2],target,targetnum,5)
-	
-	# siamese分类（基于连续小波）
-	# siamese_classifier.siamese_cwt_classifier(dataset[:,0:2],target,targetnum)
-	
-
-	# siamese分类（基于特征）
-	# siamese_feature_classifier.siamese_feature_based_classifier(feature[:,:76],target,targetnum)
-
-	# siamese_feature_classifier.siamese_feature_build_class(feature[:,:76],target,targetnum,30)
-	# siamese_feature_classifier.siamese_feature_final_class(feature[:,:76],target,targetnum,30)
-	# siamese_feature_classifier.siamese_feature_divide_class(feature[:,:76],target,targetnum)
-	
-	siamese_feature_classifier.siamese_feature_mul_build_class(feature,target,targetnum,30)
-	siamese_feature_classifier.siamese_feature_mul_final_class(feature,target,targetnum,30,3)
-
-
-
-
-
 	# tripletloss
 	# tripletloss_classifier.tripletloss_oridata_classifier(dataset[:,0:2],target,targetnum)
 	# tripletloss_classifier.tripletloss_feature_classifier(feature,target,targetnum)

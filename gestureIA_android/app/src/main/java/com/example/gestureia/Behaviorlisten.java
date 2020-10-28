@@ -66,8 +66,8 @@ public class Behaviorlisten extends Service {
                 Log.e(">>>", "ppg.newindex:" + sensors.getppgsize());
 
                 if (1==sensors.maxflag && sleepcount == 0) {
-                    Ppg ppgs = sensors.getnewppgseg(1600);
-                    Motion motions = sensors.getnewmotionseg(800);
+                    Ppg ppgs = sensors.getnewppgseg(1800);
+                    Motion motions = sensors.getnewmotionseg(900);
 
                     Normal_tool nortools = new Normal_tool();
                     MAfind ma = new MAfind();
@@ -90,8 +90,9 @@ public class Behaviorlisten extends Service {
                         icappg = iatools.machoice(icappg);
                         iatools = null;
                         //细粒度手势分析，判断手势区间
+
 //                        int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
-                        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5);
+                        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1);
 
                         if (0 == finetag) {
                             Log.e(">>>", "当前片段不存在手势");
@@ -106,7 +107,7 @@ public class Behaviorlisten extends Service {
                             butterppg = ma.setppgsegment(butterppg);
                             Motion motion = ma.setmotionsegment(motions);
 
-                            scorerun(butterppg,motion);
+                            scorerun(orippg,motion);
                             motion=null;
                             orippg=null;
                         }
@@ -157,6 +158,8 @@ public class Behaviorlisten extends Service {
 //                            }
 
                 featureset=null;
+                System.gc();
+
             }}).start();
     }
 

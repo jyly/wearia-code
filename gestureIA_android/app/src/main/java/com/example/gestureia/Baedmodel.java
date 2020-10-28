@@ -207,7 +207,9 @@ public class Baedmodel {
             inform_feature[i + featurelen] = (float)  featureset[sort2[i] + 76];
         }
         //对特征做标准化处理
-//                            inform_feature = featurecontrol.featurestd(inform_feature, basedmodel.scale_mean, basedmodel.scale_scale);
+        Featurecontrol featurecontrol=new Featurecontrol();
+        inform_feature = featurecontrol.featurestd(inform_feature, scale_mean, scale_scale);
+        featurecontrol=null;
         float[] ppg_feature = new float[featurelen];
         float[] motion_feature = new float[featurelen];
         for (int i = 0; i < featurelen; i++) {
@@ -312,8 +314,8 @@ public class Baedmodel {
                 temp2 += (mul_final_feature[i][1][j] - final_feature[1][j]) * (mul_final_feature[i][1][j] - final_feature[1][j]);
             }
             temp2 = (float) Math.sqrt(temp2);
-            score += (temp1 + temp2) / 2;
-//            score += temp1;
+//            score += (temp1 + temp2) / 2;
+            score += temp1;
         }
         score = score / mul_final_feature.length;
         if (score < 0.5) {

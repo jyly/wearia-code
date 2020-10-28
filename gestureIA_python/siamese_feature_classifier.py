@@ -30,7 +30,7 @@ def siamese_feature_based_classifier(dataset,target,targetnum):
 		# IAtool.filterparameterwrite(sort,lda_bar,lda_scaling,'./parameter/ldapropara.txt')
 		# train_data,test_data,pca_mean,pca_components=IAtool.pcapro(train_data,test_data)
 		# IAtool.filterparameterwrite(sort,pca_mean,pca_components,'./parameter/pcapropara.txt')
-		# train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
 		# IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./parameter/stdpropara.txt')
 
 		train_data=np.array(train_data)
@@ -49,6 +49,9 @@ def siamese_feature_based_classifier(dataset,target,targetnum):
 		meanfar.append(far)
 		meanfrr.append(frr)
 	print("meanacc:",np.mean(meanacc),"(",np.std(meanacc),")","meanfar:",np.mean(meanfar),"(",np.std(meanfar),")","meanfrr:",np.mean(meanfrr),"(",np.std(meanfar),")",)
+	for i in range(len(meanacc)):
+		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
+
 
 
 #对未知数据进行目标分类模型的训练
@@ -107,18 +110,21 @@ def siamese_feature_divide_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#循环次数
-	iternum=30
+	iternum=10
 	#组合内序号个数
-	comnum=4
+	comnum=40
 	#训练集个数
 	# traincomnum=28
 
 	rangek=list(range(0,targetnum-1))
-	#得出用户数在2之间的组合
-	com=list(combinations(rangek,comnum))
+	#得出用户数在comnum之间的组合
+	# com=list(combinations(rangek,comnum))
 	#在组合间，随机选其中的iternum个
-	selectk = random.sample(com, iternum)
-	
+	# selectk = random.sample(com, iternum)
+	selectk=[]
+	for t in range(iternum):
+		selectk.append(random.sample(rangek, comnum))
+
 	for t in range(iternum):
 		print("周期：",t)
 		train_data=[]
@@ -176,9 +182,13 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		featurenum=30
 		anchornum=5
 
-		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
+
+		sort,scale_mean,scale_scale=IAtool.filterparameterread('./parameter/stdpropara.txt')
+		# train_data=IAtool.scoreselect(train_data,sort,featurenum)
+		# test_data=IAtool.scoreselect(test_data,sort,featurenum)
+		# train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
+		
 		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
-		IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./parameter/stdpropara.txt')
 
 		train_data=np.array(train_data)
 		train_target=np.array(train_target)
@@ -349,33 +359,12 @@ def siamese_mul_feature_divide_class(feature,target,targetnum):
 
 def siamese_feature_mul_build_class(train_data,train_target,trainindex,featurenum):
 	#加载已有信息熵和标准差
-	# ppg_sort,motion_sort,scale_mean,scale_scale=IAtool.mulfilterparameterread('./stdpropara.txt')
-	# scale_mean=np.array(scale_mean)
-	# scale_scale=np.array(scale_scale)
+	ppg_sort,motion_sort,scale_mean,scale_scale=IAtool.mulfilterparameterread('./parameter/stdpropara.txt')
+	scale_mean=np.array(scale_mean)
+	scale_scale=np.array(scale_scale)
 
-	# ppg_train_data=IAtool.scoreselect(train_data[:,0:76],ppg_sort,featurenum)
-	# motion_train_data=IAtool.scoreselect(train_data[:,76:],motion_sort,featurenum)
-
-	# train_data=[]
-	# for i in range(len(ppg_train_data)):
-	# 	temp=[]
-	# 	for j in ppg_train_data[i]:
-	# 		temp.append(j)
-	# 	for j in motion_train_data[i]:
-	# 		temp.append(j)
-	# 	train_data.append(temp)
-	# # temp=[]
-	# # train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
-	# # IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./stdpropara.txt')
-	# train_data=np.array(train_data)
-	# # train_data=(train_data-scale_mean)/scale_scale
-	# print("train_data.shape:",train_data.shape)
-	# print("train_target.shape:",train_target.shape)
-
-	# 重新训练信息熵和标准差
-	temps=[]
-	ppg_train_data,temps,ppg_sort=IAtool.minepro(train_data[:,0:76],temps,train_target,featurenum)
-	motion_train_data,temps,motion_sort=IAtool.minepro(train_data[:,76:],temps,train_target,featurenum)
+	ppg_train_data=IAtool.scoreselect(train_data[:,0:76],ppg_sort,featurenum)
+	motion_train_data=IAtool.scoreselect(train_data[:,76:],motion_sort,featurenum)
 
 	train_data=[]
 	for i in range(len(ppg_train_data)):
@@ -385,12 +374,33 @@ def siamese_feature_mul_build_class(train_data,train_target,trainindex,featurenu
 		for j in motion_train_data[i]:
 			temp.append(j)
 		train_data.append(temp)
-
-	temps_1,temps,scale_mean,scale_scale=IAtool.stdpro(train_data,temps)
+	# train_data=(train_data-scale_mean)/scale_scale
+	temps=[]
+	train_data,temps,scale_mean,scale_scale=IAtool.stdpro(train_data,temps)
 	IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./parameter/stdpropara.txt')
 	train_data=np.array(train_data)
 	train_target=np.array(train_target)
 	print("train_data.shape:",train_data.shape)
+	print("train_target.shape:",train_target.shape)
+
+	# 重新训练信息熵和标准差
+	# temps=[]
+	# ppg_train_data,temps,ppg_sort=IAtool.minepro(train_data[:,0:76],temps,train_target,featurenum)
+	# motion_train_data,temps,motion_sort=IAtool.minepro(train_data[:,76:],temps,train_target,featurenum)
+	# train_data=[]
+	# for i in range(len(ppg_train_data)):
+	# 	temp=[]
+	# 	for j in ppg_train_data[i]:
+	# 		temp.append(j)
+	# 	for j in motion_train_data[i]:
+	# 		temp.append(j)
+	# 	train_data.append(temp)
+	# train_data,temps,scale_mean,scale_scale=IAtool.stdpro(train_data,temps)
+	# IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./parameter/stdpropara.txt')
+	# train_data=np.array(train_data)
+	# train_target=np.array(train_target)
+	# print("train_data.shape:",train_data.shape)
+
 	siamese_mul_feature_buildmodel(train_data,train_target,trainindex,featurenum)
 
 def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,anchornum):
@@ -413,7 +423,7 @@ def siamese_feature_mul_final_class(test_data,test_target,targetnum,featurenum,a
 		test_data.append(temp)
 	
 	# print(test_data[0])
-	# test_data=(test_data-scale_mean)/scale_scale
+	test_data=(test_data-scale_mean)/scale_scale
 	# print(test_data[0])
 	test_data=np.array(test_data)
 	test_target=np.array(test_target)

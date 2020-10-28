@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 from sklearn.model_selection import train_test_split
 from siamese.siamese_base import *
+from siamese.siamese_tools import *
 import numpy as np
 import tensorflow as tf
 from sklearn.utils import shuffle
@@ -35,10 +36,15 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
     # test_pairs, test_label = create_test_pair(test_data, test_target,testindex,anchornum)
     test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
 
+    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
+    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
+
+
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
-    input_shape = (len(train_data[0]),)
-  
+    input_shape = (len(train_data[0]),1)
+
+    print(input_shape)
     model,based_model=create_siamese_network(input_shape)
     # model=create_presudo_siamese_network(input_shape)
 
@@ -82,12 +88,14 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
     # train_pairs, train_label = create_pairs_incre_1(train_data, train_target,num_classes)
     train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
     print("train_pairs.shape:",train_pairs.shape)
-    input_shape = (1,len(train_data[0]))
+    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
+    input_shape = (len(train_data[0]),1)
 
     model,based_model=create_siamese_network(input_shape)
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=8192,epochs=40)  
+           batch_size=8192,epochs=40,
+           validation_split=0.2)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
     #       batch_size=128,
@@ -105,35 +113,38 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
 
 
 def siamese_feature_final(data,target,num_classes,anchornum=5):
-    # test_pairs, test_label = create_pairs_incre_1(data, target,num_classes)
+    test_pairs, test_label = create_pairs_incre_1(data, target,num_classes)
     # based_model=load_model('based_model.h5')
     # based_model.summary()
     # x=based_model.predict(data)
     # featurewrite2(x,target)
 
-    test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
-    input_shape = (1,len(data[0]))
+    # test_pairs, test_label = create_test_pair(data, target,num_classes,anchornum)
+    input_shape = (len(data[0]),1)
+    test_pairs=test_pairs.reshape(len(test_pairs),2,len(data[0]),1)
+
     print(input_shape)
    
     model,based_model=create_siamese_network(input_shape)
     model.load_weights('./parameter/model_weights.h5')
-    based_model =load_model('./parameter/based_model.h5')
-    converter = tf.lite.TFLiteConverter.from_keras_model(based_model)
-    tflite_model = converter.convert()
-    open("./parameter/based_model.tflite", "wb").write(tflite_model)
 
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
     print("len(test_pred):",len(test_pred))
 
+    converter = tf.lite.TFLiteConverter.from_keras_model_file('./parameter/based_model.h5')
+    tflite_model = converter.convert()
+    open("./parameter/based_model.tflite", "wb").write(tflite_model)
+
     #对样本对进行额外处理
-    temp_pred=[]
-    for i in range(int(len(test_label))):
-        temppred=0
-        # temp_label.append(test_label[i*5])
-        for j in range(anchornum):
-            temppred+=test_pred[i*anchornum+j]
-        temp_pred.append(temppred/anchornum)
-    test_pred=temp_pred
+    # temp_pred=[]
+    # for i in range(int(len(test_label))):
+    #     temppred=0
+    #     # temp_label.append(test_label[i*5])
+    #     for j in range(anchornum):
+    #         temppred+=test_pred[i*anchornum+j]
+    #     temp_pred.append(temppred/anchornum)
+    # test_pred=temp_pred
+
     print("len(test_pred):",len(test_pred))
     print("len(test_label):",len(test_label))
     test_label=np.array(test_label)
@@ -203,46 +214,47 @@ def siamese_mul_feature(train_data,test_data, train_target,test_target, trainind
 
 def siamese_mul_feature_buildmodel(train_data, train_target,num_classes,featurenum):
     # train_pairs, train_label = create_pairs_incre_1(train_data, digit_indices,num_classes)
-    train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
+    train_pairs, train_label = create_pairs_incre_1(train_data, train_target,num_classes)
 
-    print("train_pairs.shape:",train_pairs.shape)
     train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
-
     input_shape = (featurenum,1)
+    print("train_pairs.shape:",train_pairs.shape)
     print(input_shape)
     
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+    # train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     ppg_model,ppg_based_model=create_siamese_network(input_shape)
     history = ppg_model.fit([train_pairs[:, 0,:featurenum], train_pairs[:, 1,:featurenum]], train_label,  
-           batch_size=8192, epochs=40)  
+           batch_size=8192, epochs=200)  
     ppg_model.save_weights('./parameter/ppg_model_weights.h5')#原型因有lamdba层，不能直接保存模型
     ppg_based_model.save_weights('./parameter/ppg_based_model_weights.h5')
     ppg_based_model.save('./parameter/ppg_based_model.h5')
   
+    input_shape = (len(train_data[0])-featurenum,1)
     motion_model,motion_based_model=create_siamese_network(input_shape)
-    history = motion_model.fit([train_pairs[:, 0,featurenum:2*featurenum], train_pairs[:, 1,featurenum:2*featurenum]], train_label,  
-           batch_size=8192, epochs=40)  
+    history = motion_model.fit([train_pairs[:, 0,featurenum:], train_pairs[:, 1,featurenum:]], train_label,  
+           batch_size=8192, epochs=200)  
     motion_model.save_weights('./parameter/motion_model_weights.h5')
     motion_based_model.save_weights('./parameter/motion_based_model_weights.h5')
     motion_based_model.save('./parameter/motion_based_model.h5')
 
 def siamese_mul_feature_final(test_data,test_target,num_classes,featurenum,anchornum=5):
-    test_pairs, test_label = create_pairs_incre_1(test_data, test_target,num_classes)
-    # test_pairs, test_label = create_test_pair(test_data, test_target,num_classes,anchornum)
+    # test_pairs, test_label = create_pairs_incre_1(test_data, test_target,num_classes)
+    test_pairs, test_label = create_test_pair(test_data, test_target,num_classes,anchornum)
     # test_pairs, test_label = create_victima_test_pair(test_data, test_target,num_classes,anchornum)
-    input_shape = (featurenum,1)
+   
     test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
-
+    input_shape = (featurenum,1)
+    print("test_pairs.shape:",test_pairs.shape)
     print(input_shape)
-    print(test_pairs.shape)
 
     ppg_model,ppg_based_network=create_siamese_network(input_shape)
     ppg_model.load_weights('./parameter/ppg_model_weights.h5')
-
+   
+    input_shape = (len(test_data[0])-featurenum,1)
     motion_model,motion_based_network=create_siamese_network(input_shape)
     motion_model.load_weights('./parameter/motion_model_weights.h5')
     ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
-    motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:2*featurenum], test_pairs[:, 1,featurenum:2*featurenum]])
+    motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:], test_pairs[:, 1,featurenum:]])
 
 
     # ppg_based_network =load_model('./parameter/ppg_based_model.h5')
@@ -258,29 +270,29 @@ def siamese_mul_feature_final(test_data,test_target,num_classes,featurenum,ancho
 
 
     #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=ppg_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # ppg_test_pred=temp_pred
+    temp_pred=[]
+    for i in range(int(len(test_label))):
+        temppred=0
+        for j in range(anchornum):
+            temppred+=ppg_test_pred[i*anchornum+j]
+        temp_pred.append(temppred/anchornum)
+    ppg_test_pred=temp_pred
 
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=motion_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # motion_test_pred=temp_pred
+    temp_pred=[]
+    for i in range(int(len(test_label))):
+        temppred=0
+        for j in range(anchornum):
+            temppred+=motion_test_pred[i*anchornum+j]
+        temp_pred.append(temppred/anchornum)
+    motion_test_pred=temp_pred
 
-    # print("len(ppg_test_pred):",len(ppg_test_pred))
-    # print("len(motion_test_pred):",len(motion_test_pred))
+    print("len(ppg_test_pred):",len(ppg_test_pred))
+    print("len(motion_test_pred):",len(motion_test_pred))
 
     test_pred=[]
     for i in range(len(ppg_test_pred)):
         test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
-    # test_pred=ppg_test_pred
+    test_pred=ppg_test_pred
 
     test_label=np.array(test_label)
     test_pred=np.array(test_pred)

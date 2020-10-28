@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 from sklearn.model_selection import train_test_split
 from siamese.siamese_base import *
+from siamese.siamese_tools import *
 import numpy as np
 import tensorflow as tf
 from sklearn.utils import shuffle
@@ -28,16 +29,15 @@ def pairSequence(data,target,batch_size):
                 temppair=[]
                 templabel=[]
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 def siamese_data(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
-    train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)
+    # train_pairs, train_label = create_pairs_based(train_data, train_target,trainindex)
+    train_pairs, train_label = create_pairs_based_2(train_data, train_target,trainindex)
+    # train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)
     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,trainindex)
     # test_pairs, test_label = create_test_pair(test_data, test_target,testindex,anchornum)
-    test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
-<<<<<<< HEAD
+    # test_pairs, test_label = create_pairs_based(test_data, test_target,testindex)
+    test_pairs, test_label = create_pairs_based_3(test_data, test_target,testindex)
+    # test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
 
@@ -46,8 +46,9 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     # test_pairs=test_pairs.reshape(len(test_pairs),2,2,300,1)
     # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
     train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
-    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_pairs[0]),len(test_data[0][0]),1)
-
+    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
+    print("训练集对数：",train_pairs.shape)
+    print("测试集对数：",test_pairs.shape)
     input_shape = (len(train_data[0]),len(train_data[0][0]),1)
 
     # train_pairs=train_pairs.reshape(len(train_pairs),2,300,1,2)
@@ -59,21 +60,7 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     model,based_model=create_siamese_network(input_shape)
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=2048, epochs=20,
-=======
-
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-
-    input_shape = (len(train_data[0]),len(train_data[0][0]))
-    print(input_shape)
-
-    model,based_model=create_siamese_network(input_shape)
-
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-    history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=128, epochs=40,
->>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
+           batch_size=4096, epochs=200,
            validation_split=0.2)  
 
     # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
@@ -85,11 +72,6 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     #   epochs=50,steps_per_epoch=(int(len(train_pairs)/batch_size)+1)
     #   )
 
-<<<<<<< HEAD
-=======
-    model.save_weights('./parameter/data_model_weights.h5')
-
->>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
     train_pred = model.predict([train_pairs[:, 0], train_pairs[:, 1]])
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
 
@@ -107,20 +89,18 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     train_pred=np.array(train_pred)
     test_pred=np.array(test_pred)
 
-    tr_acc = compute_accuracy(train_label, train_pred)
-    te_acc = compute_accuracy(test_label, test_pred)
-    print('* Accuracy on training set: %0.2f%%' % (100 * tr_acc))
-    print('* Accuracy on test set: %0.2f%%' % (100 * te_acc))
+
     return test_pred,test_label
 
 
 
-<<<<<<< HEAD
 def siamese_data_buildmodel(train_data, train_target,num_classes):
-    train_pairs, train_label = create_pairs_incre_1(train_data,train_target,num_classes)
+    # train_pairs, train_label = create_pairs_based(train_data,train_target,num_classes)
+    train_pairs, train_label = create_pairs_based_2(train_data,train_target,num_classes)
+    # train_pairs, train_label = create_pairs_incre_1(train_data,train_target,num_classes)
     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
     print("train_pairs.shape:",train_pairs.shape)
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+    # train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
      
     # train_pairs=train_pairs.reshape(len(train_pairs),2,600)
     # train_pairs=train_pairs.reshape(len(train_pairs),2,2,300,1)
@@ -130,8 +110,6 @@ def siamese_data_buildmodel(train_data, train_target,num_classes):
     # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
     # input_shape = [len(train_data[0]),len(train_data[0][0]),1]
     input_shape = [len(train_data[0]),len(train_data[0][0]),1]
-    # input_shape =  [(600)]
-
     # train_pairs=train_pairs.reshape(len(train_pairs),2,300,2,1)
     # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
 
@@ -139,7 +117,7 @@ def siamese_data_buildmodel(train_data, train_target,num_classes):
 
     model,based_model=create_siamese_network(input_shape)
     history = model.fit([train_pairs[:,0], train_pairs[:,1]], train_label,  
-           batch_size=1500, epochs=40,
+           batch_size=4096, epochs=40,
            validation_split=0.2)  
     model.save_weights('./parameter/model_weights.h5')#原型因有lamdba层，不能直接保存模型
     based_model.save_weights('./parameter/based_model_weights.h5')
@@ -162,6 +140,7 @@ def siamese_data_final(test_data,test_target,num_classes,anchornum=5):
     input_shape = [len(test_data[0]),len(test_data[0][0]),1]
     # input_shape = [(600)]
     print(input_shape)
+    print("test_pairs.shape:",test_pairs.shape)
 
     model,based_model=create_siamese_network(input_shape)
     model.load_weights('./parameter/model_weights.h5')
@@ -204,8 +183,6 @@ def siamese_data_final(test_data,test_target,num_classes,anchornum=5):
 
 
 
-=======
->>>>>>> 88fdc2e9bb1da2feafe940a5b00cdf3d8b99ea4a
 def siamese_mul_data(train_data,test_data, train_target,test_target, trainindex,testindex,featurenum,anchornum):
 
     train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)

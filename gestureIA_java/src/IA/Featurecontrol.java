@@ -204,7 +204,23 @@ public class Featurecontrol {
         return finalfeature;
     }
 
-
+    public double[] return_feature(Ppg ppgs) {
+        ArrayList<Double> samplefeature = new ArrayList<Double>();
+        double[] temp = based_feature(ppgs.x);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        temp = based_feature(ppgs.y);
+        for (int i = 0; i < temp.length; i++) {
+            samplefeature.add(temp[i]);
+        }
+        Normal_tool nortools = new Normal_tool();
+        double[] finalfeature = nortools.arraytomatrix(samplefeature);
+        temp = null;
+        samplefeature = null;
+        nortools = null;
+        return finalfeature;
+    }
 
     public double[] build_feature(Ppg ppgs, Motion motions) {
         MAfind ma = new MAfind();

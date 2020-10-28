@@ -5,7 +5,19 @@ import matplotlib.pyplot as plt
 from scipy import signal,stats
 from sklearn.decomposition import FastICA
 import numpy as np
-from scipy.stats import kurtosis
+from scipy.stats import kurtosis,skew
+
+import heartpy as hp
+import padasip as pa
+
+from scipy.signal import argrelmax,argrelmin
+
+#获取峰值点
+def find_extrema(signal):
+    signal = np.array(signal)
+    extrema_index = np.sort(np.unique(np.concatenate((argrelmax(signal)[0], argrelmin(signal)[0]))))
+    extrema = signal[extrema_index]
+    return zip(extrema_index.tolist(), extrema.tolist())
 
 
 def fine_grained_segment(dn,fre,threshold=1):
@@ -97,7 +109,6 @@ def bandpass(start,end,fre,data,order=3):#只保留start到end之间的频率的
 	b, a = signal.butter(order, [wa,we], 'bandpass')
 	data = signal.filtfilt(b, a, data)
 	return data
-
 dirpath='./butter/'
 filespace=os.listdir(dirpath)
 for file in filespace:	
@@ -109,66 +120,175 @@ for file in filespace:
 		i=list(eval(i))
 		feature.append(i)
 	inputfile.close()	
-
-
 	oristd=[]
-	for i in range(len(feature[0])-200):
-		ori=np.std(feature[0][i:i+200])
+
+	tempdata=[]
+	for i in range(100):
+		tempdata.append(feature[0][0])
+	for i in range(len(feature[0])):
+		tempdata.append(feature[0][i])	
+	for i in range(100):
+		tempdata.append(feature[0][-1])
+	for i in range(len(tempdata)-200):
+		ori=np.std(tempdata[i:i+200])
 		oristd.append(ori)
-	tag,pointstartindex,pointendindex=fine_grained_segment(feature[0],200,1.2)
-	print(pointstartindex,pointendindex)
+	# tag,pointstartindex,pointendindex=fine_grained_segment(feature[0],200,1.2)
+	# print(pointstartindex,pointendindex)
 	# feature[0]=feature[0][:-1400]
 	# feature[1]=feature[1][:-1400]
-	plt.subplot(311)
+	plt.subplot(211)
 	plt.plot(range(len(feature[0])), feature[0], 'red')
-	plt.subplot(312)
+	plt.plot(range(len(feature[1])), feature[1], 'green')
+	plt.subplot(212)
 	# plt.plot(range(len(feature[1])), feature[1], 'blue')
 	plt.plot(range(len(oristd)), oristd, 'blue')
-	plt.subplot(313)
-	plt.plot(range(len(feature[0])), feature[0], 'red')
-	plt.plot(range(len(feature[1])), feature[1], 'blue')
+	# plt.subplot(313)
+	# feature[0]=highpass(2,200,feature[0])
+	# feature[1]=highpass(2,200,feature[1])
+	# plt.plot(range(len(feature[0])), feature[0], 'red')
+	# plt.plot(range(len(feature[1])), feature[1], 'blue')
+	plt.xlabel(filepath)
+	# plt.title(filepath,fontsize=12,color='r')
 	plt.show()
 
+'''
+dirpath='./selected_oridata_2/tempuser_1/'
+filespace=os.listdir(dirpath)
+for file in filespace:	
+	filepath=dirpath+str(file)
+	print(filepath)
+	inputfile=open(filepath,'r+')
+	ppgx=[]
+	ppgy=[]
+	for i in inputfile:
+		i=list(eval(i))
+		if i[0]==2:
+			if(i[1]<100000000 and i[2]<100000000 and i[1]>50000 and i[2]>50000):
+				ppgx.append(i[1])
+				ppgy.append(i[2])
+	inputfile.close()	
+	# print(len(ppgx))
+	# ppgx=ppgx[:600]
+	# ppgy=ppgy[:600]
+	# ppgx=ppgx[1200:1500]
+	# ppgy=ppgy[1200:1500]
+	# ppgx=meanfilt(ppgx,20)
+	# butterppgx=highpass(2,200,ppgx)
+	# butterppgx=bandpass(2,10,200,ppgx,3)
+	# butterppgx=bandpass(5,8,200,ppgx,3)
+	# ppgy=meanfilt(ppgy,20)
+	# butterppgy=highpass(2,200,ppgy)
+	# butterppgy=bandpass(2,10,200,ppgy,3)
+	# butterppgy=bandpass(5,8,200,ppgy,3)
 
-# dirpath='./selected_oridata/clx_2/'
-# filespace=os.listdir(dirpath)
-# for file in filespace:	
-# 	filepath=dirpath+str(file)
-# 	print(filepath)
-# 	inputfile=open(filepath,'r+')
-# 	ppgx=[]
-# 	ppgy=[]
-# 	for i in inputfile:
-# 		i=list(eval(i))
-# 		if i[0]==2:
-# 			ppgx.append(i[1])
-# 			ppgy.append(i[2])
-# 	inputfile.close()	
-
-# 	# ppgx=ppgx[400:]
-# 	# ppgy=ppgy[400:]
-# 	ppgx=meanfilt(ppgx,20)
-# 	orippgx=ppgx
-# 	ppgx=highpass(2,200,ppgx)
-# 	# ppgx=bandpass(1,3,200,ppgx)
-# 	ppgy=meanfilt(ppgy,20)
-# 	ppgy=highpass(2,200,ppgy)
-# 	# ppgy=bandpass(1,3,200,ppgy)
+	# ppgx,ppgy=ppgfica(ppgx,ppgy)
 
 
-# 	ppgx,ppgy=ppgfica(ppgx,ppgy)
 
-# 	oristd=[]
-# 	for i in range(len(ppgx)-200):
-# 		ori=np.std(ppgx[i:i+200])
-# 		oristd.append(ori)
-# 	plt.subplot(311)
-# 	plt.plot(range(len(ppgx)), ppgx, 'red')
-# 	plt.subplot(312)
-# 	plt.plot(range(len(orippgx)), orippgx, 'blue')
-# 	plt.subplot(313)
-# 	# plt.plot(range(len(ppgx)), ppgx, 'red')
-# 	# plt.plot(range(len(ppgy)), ppgy, 'blue')
-# 	plt.plot(range(len(oristd)), oristd, 'red')
+	icappgx=bandpass(2,10,200,ppgx,3)
+	icappgy=bandpass(2,10,200,ppgy,3)
 
-# 	plt.show()
+
+	butterppgx=bandpass(2,4,200,ppgx)
+	butterppgy=bandpass(2,4,200,ppgy)
+	# icappgx,icappgy=ppgfica(butterppgx,butterppgy)
+	icappgx,icappgy=ppgfica(icappgx,icappgy)
+
+	oristd1=[]
+	oristd2=[]
+	orikur1=[]
+	orikur2=[]
+	oriskew1=[]
+	oriskew2=[]
+	for i in range(len(butterppgx)-200):
+		ori=np.std(butterppgx[i:i+200])
+		oristd1.append(ori)
+		ori=np.std(butterppgy[i:i+200])
+		oristd2.append(ori)	
+
+		ori=abs(kurtosis(butterppgx[i:i+200]))
+		orikur1.append(ori)
+		ori=abs(kurtosis(butterppgy[i:i+200]))
+		orikur2.append(ori)
+
+		ori=abs(skew(butterppgx[i:i+200]))
+		oriskew1.append(ori)
+		ori=abs(skew(butterppgy[i:i+200]))
+		oriskew2.append(ori)
+
+	# pointindex=[]
+	# last_single_waveform_start_index=None
+	# last_extremum_index = None
+	# last_extremum = None
+	# threshold = (max(butterppgx) - min(butterppgx)) * 0.5
+	# for extremum_index, extremum in find_extrema(butterppgx):
+	# 	print(extremum_index)
+	# 	if last_extremum is not None and extremum - last_extremum > threshold:
+	# 		if last_single_waveform_start_index is not None:
+	# 			pointindex.append(last_single_waveform_start_index)
+	# 		last_single_waveform_start_index = last_extremum_index
+	# 	last_extremum_index = extremum_index
+	# 	last_extremum = extremum
+
+
+	plt.subplot(611)
+	plt.plot(range(len(ppgx)), ppgx, 'red')
+	plt.plot(range(len(ppgy)), ppgy, 'green')
+	plt.subplot(612)
+	plt.plot(range(len(butterppgx)), butterppgx, 'red')
+	plt.plot(range(len(butterppgy)), butterppgy, 'green')
+	# for i in range(len(pointindex)):
+	# 	plt.plot(pointindex[i],butterppgx[pointindex[i]],'o')
+	plt.subplot(613)
+	plt.plot(range(len(icappgx)), icappgx, 'red')
+	plt.plot(range(len(icappgy)), icappgy, 'green')
+	plt.subplot(614)
+	plt.plot(range(len(oristd1)), oristd1, 'red')
+	plt.plot(range(len(oristd2)), oristd2, 'green')
+	plt.subplot(615)
+	plt.plot(range(len(orikur1)), orikur1, 'red')
+	plt.plot(range(len(orikur2)), orikur2, 'green')
+	plt.subplot(616)
+	plt.plot(range(len(oriskew1)), oriskew1, 'red')
+	plt.plot(range(len(oriskew2)), oriskew2, 'green')
+	plt.xlabel(str(file))
+	plt.show()
+
+	# plt.subplot(611)
+	# plt.plot(range(len(ppgx)), ppgx, 'red')
+	# plt.plot(range(len(ppgy)), ppgy, 'green')
+	# plt.subplot(612)
+	# butterppgx=highpass(2,200,ppgx)
+	# butterppgy=highpass(2,200,ppgy)
+	# plt.plot(range(len(butterppgx)), butterppgx, 'red')
+	# plt.plot(range(len(butterppgy)), butterppgy, 'green')
+	# # plt.plot(range(len(icappgx)), icappgx, 'red')
+	# # plt.plot(range(len(icappgy)), icappgy, 'green')
+	# # plt.xlabel("highpass 2")
+	# plt.subplot(613)
+	# butterppgx=bandpass(2,10,200,ppgx)
+	# butterppgy=bandpass(2,10,200,ppgy)
+	# plt.plot(range(len(butterppgx)), butterppgx, 'red')
+	# plt.plot(range(len(butterppgy)), butterppgy, 'green')
+	# # plt.xlabel("bandpass 2,10")
+	# plt.subplot(614)
+	# butterppgx=bandpass(0.5,10,200,ppgx)
+	# butterppgy=bandpass(0.5,10,200,ppgy)
+	# plt.plot(range(len(butterppgx)), butterppgx, 'red')
+	# plt.plot(range(len(butterppgy)), butterppgy, 'green')
+	# # plt.xlabel("bandpass 0.5,10")
+	# plt.subplot(615)
+	# butterppgx=bandpass(0.5,2,200,ppgx)
+	# butterppgy=bandpass(0.5,2,200,ppgy)
+	# plt.plot(range(len(butterppgx)), butterppgx, 'red')
+	# plt.plot(range(len(butterppgy)), butterppgy, 'green')
+	# # plt.xlabel("bandpass 0.5,2")
+	# plt.subplot(616)
+	# butterppgx=bandpass(2,4,200,ppgx)
+	# butterppgy=bandpass(2,4,200,ppgy)
+	# plt.plot(range(len(butterppgx)), butterppgx, 'red')
+	# plt.plot(range(len(butterppgy)), butterppgy, 'green')
+	# # plt.xlabel("bandpass 5,10")
+	# plt.xlabel(str(file))
+	# plt.show()
+'''

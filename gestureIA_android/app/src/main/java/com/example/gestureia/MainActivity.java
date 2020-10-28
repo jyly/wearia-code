@@ -2,6 +2,7 @@ package com.example.gestureia;
 
 import android.Manifest;
 import android.app.AppOpsManager;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -52,7 +53,7 @@ public class MainActivity extends WearableActivity {
     private TextView tips;
 
     //实验室记录上传数据的服务器地址
-    private String RequestURL = "http://192.168.1.101:8888/IA";
+    private String RequestURL = "http://10.28.194.222:8888/IA";
 
     //录入的手势条数
     private int count = 0;
@@ -64,7 +65,6 @@ public class MainActivity extends WearableActivity {
     private Energycontrol energycontrolr = null;
     private Baedmodel basedmodel = null;
 
-    private long starttime = 0;
     private long currenttime = 0;
     private long ensuretime = 0;
 
@@ -74,6 +74,7 @@ public class MainActivity extends WearableActivity {
 
     private double[] featureset = null;
     private double[][] madata = null;
+    private Message msg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,18 +157,23 @@ public class MainActivity extends WearableActivity {
 
                 final String gesture_item = gesture_spinner.getSelectedItem().toString();
                 int lens = gesture_item.length();
-//                if (lens > 3) {
-                if (1 == 0) {
+                if (lens > 3) {
+//                if (1 == 0) {
                     Toast.makeText(getApplicationContext(), "请选择要登记的手势！", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(getApplicationContext(), "系统初始化，请稍后！", Toast.LENGTH_LONG).show();
+                    Log.e(">>>", "初始化，请稍等！");
+                    uploadtag = 0;
+                    setcount();
                     setContentView(R.layout.gesture_record);
-                    starttime = System.currentTimeMillis();
                     ensuretime = System.currentTimeMillis();
                     button_final = (Button) findViewById(R.id.stopcount);
                     button_add = (Button) findViewById(R.id.addcount);
                     gesturecount = (TextView) findViewById(R.id.count);
                     tips = (TextView) findViewById(R.id.tips);
+
+                    tips.setText("初始化中，请稍等！");
+
 
                     sensors = new Sensorcontrol();
                     energycontrolr = new Energycontrol();
@@ -178,20 +184,19 @@ public class MainActivity extends WearableActivity {
                     sensors.StartSensorListening(getApplicationContext());
                     basedmodel.readmodelpara(getApplicationContext());
 
-                    setcount();
 
                     //样本注册完成
                     button_final.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             Toast.makeText(getApplicationContext(), "已登记手势样本" + getcount() + "条", Toast.LENGTH_LONG).show();
-
-                            timer.cancel();
                             energycontrolr.energyclose();
                             sensors.StopSensorListening();
+                            timer.cancel();
                             sensors = null;
                             energycontrolr = null;
-                            timer = null;
+                            uploadtag = 0;
+//                            timer = null;
                             //将最终向量保存到文件中
                             if (mul_features_record.size() > 0 || single_features_record.size() > 0) {
                                 Log.e(">>>", "确认手势样本" + mul_features_record.size() + "条");
@@ -214,23 +219,27 @@ public class MainActivity extends WearableActivity {
                         @Override
                         public void onClick(View v) {
                             if (uploadtag == 1) {
-                                ensuretime = System.currentTimeMillis();
-                                countupdate();
+//                                fossil的是100hz，tic的是200hz
+                                uploadtag = 3;
                                 Ppg ppgs = sensors.getnewppgseg(1600);
                                 Motion motions = sensors.getnewmotionseg(800);
-
-//                                System.gc();
-//                                segmentupload(RequestURL, motions, ppgs, 10000, "s_segment", gesture_item);
-
-                                Message msg = new Message();
-                                msg.what = 1;
-                                handler.sendMessage(msg);
                                 //计算当前片段通过网络后的向量
 
                                 Featurecontrol featurecontrols = new Featurecontrol();
                                 featureset = featurecontrols.build_feature(ppgs, motions);
 //                                madata = featurecontrols.build_madata(ppgs, motions);
+                                segmentupload(RequestURL, motions, ppgs, 10000, "s_segment", gesture_item);
 
+                                if (featureset != null) {
+                                    msg = new Message();
+                                    msg.what = 0;
+                                    handler.sendMessage(msg);
+
+                                } else {
+                                    msg = new Message();
+                                    msg.what = 1;
+                                    handler.sendMessage(msg);
+                                }
                                 featurecontrols = null;
                                 ppgs = null;
                                 motions = null;
@@ -242,7 +251,9 @@ public class MainActivity extends WearableActivity {
 //                                }
                                 System.gc();
                             } else {
-                                Toast.makeText(getApplicationContext(), "请稍等！", Toast.LENGTH_LONG).show();
+                                msg = new Message();
+                                msg.what = 7;
+                                handler.sendMessage(msg);
                             }
                         }
                     });
@@ -251,33 +262,25 @@ public class MainActivity extends WearableActivity {
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
+                            Log.e(">>>", "ppg.newindex:" + sensors.getppgsize()+" acc.newindex:" + sensors.getaccsize()+" gyr.newindex:" + sensors.getgyrsize());
                             System.out.println("TimerTask");
                             currenttime = System.currentTimeMillis();
 //                            Log.e(">>>>",""+(currenttime - starttime)+","+(currenttime - ensuretime));
-                            if (((currenttime - starttime) < 7000) && (uploadtag != 0)) {
-                                //开始录入时的等待
-                                Message msg = new Message();
-                                msg.what = 4;
+                            if (((currenttime - ensuretime) > 9000) && (uploadtag == 2)) {
+                                //错误录入手势后的等待时间过去了
+                                msg = new Message();
+                                msg.what = 6;
                                 handler.sendMessage(msg);
-                                uploadtag = 0;
-                            } else {
-                                if (((currenttime - ensuretime) < 7000) && (uploadtag != 0)) {
-                                    //录入一条手势时的等待
-                                    Message msg = new Message();
-                                    msg.what = 5;
-                                    handler.sendMessage(msg);
-                                    uploadtag = 0;
-                                }
-                                if (((currenttime - ensuretime) > 7000) && (uploadtag == 0)) {
-                                    //录入手势后的等待时间过去了
-                                    Message msg = new Message();
-                                    msg.what = 6;
-                                    handler.sendMessage(msg);
-                                    uploadtag = 1;
-                                }
+                                uploadtag = 1;
+                            }
+                            if (((currenttime - ensuretime) > 7000) && (uploadtag == 0)) {
+                                //正确录入手势后的等待时间过去了
+                                msg = new Message();
+                                msg.what = 6;
+                                handler.sendMessage(msg);
+                                uploadtag = 1;
                             }
                             System.gc();
-
                         }
                     }, 10, 1000);
                 }
@@ -288,10 +291,23 @@ public class MainActivity extends WearableActivity {
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            if (msg.what == 1) {
+            if (msg.what == 0) {
+                countupdate();
                 int i = getcount();
                 Log.e(">>>", "segment：" + i);
+                //手势可以被提取出来
+                ensuretime = System.currentTimeMillis();
+                uploadtag = 0;
                 gesturecount.setText(String.valueOf(i));
+                tips.setText("录入中，请稍等！");
+                Log.e(">>>", "录入中，请稍等！");
+            }
+            if (msg.what == 1) {
+                ensuretime = System.currentTimeMillis();
+                uploadtag = 2;
+                Toast.makeText(getApplicationContext(), "手势提取失败！", Toast.LENGTH_LONG).show();
+                Log.e(">>>", "手势提取失败！");
+                tips.setText("请稍等！");
             }
             if (msg.what == 2) {
                 Toast.makeText(getApplicationContext(), "上传成功！", Toast.LENGTH_LONG).show();
@@ -299,17 +315,12 @@ public class MainActivity extends WearableActivity {
             if (msg.what == 3) {
                 Toast.makeText(getApplicationContext(), "上传失败！", Toast.LENGTH_LONG).show();
             }
-            if (msg.what == 4) {
-                tips.setText("初始化中，请稍等！");
-                Log.e(">>>", "初始化，请稍等！");
-            }
-            if (msg.what == 5) {
-                tips.setText("录入中，请稍等！");
-                Log.e(">>>", "录入中，请稍等！");
-            }
             if (msg.what == 6) {
                 tips.setText("请录入手势！");
                 Log.e(">>>", "请录入手势！");
+            }
+            if (msg.what == 7) {
+                Toast.makeText(getApplicationContext(), "请稍等！", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -632,7 +643,7 @@ public class MainActivity extends WearableActivity {
                     sb.append(LINE_END);
                     JSONObject data = new JSONObject();
 
-                    data.put("username", "tempuser");
+                    data.put("username", "tempuser7");
                     data.put("sensor", tag);
                     data.put("gesture_item", item);
 
