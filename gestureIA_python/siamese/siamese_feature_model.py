@@ -31,10 +31,12 @@ def pairSequence(data,target,batch_size):
 
 
 def siamese_feature(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
-    train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)
+    # train_pairs, train_label = create_pairs_incre_1(train_data, train_target,trainindex)
+    train_pairs, train_label = create_pairs_based(train_data, train_target,trainindex)
     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,trainindex)
     # test_pairs, test_label = create_test_pair(test_data, test_target,testindex,anchornum)
-    test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
+    # test_pairs, test_label = create_pairs_incre_1(test_data, test_target,testindex)
+    test_pairs, test_label = create_pairs_based(test_data, test_target,testindex)
 
     train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
     test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)

@@ -125,18 +125,14 @@ def pointcal(data):
 	start=np.argmax(data[0:100])
 
 	maxp.append(start)
-	i=start+10
-	#是否是在第一圈 顶点为1，终点为1
-	firstin=0
-	#是否是在第二圈顶点
-	secondin=0
+	#1时寻找局部最低点，0时寻找局部最高点
 	maxin=1
 
 	while i<len(data)-50:
 		#寻找最低点
 		if 1==maxin and k_slope[i]>0:
 			count=0
-			for j in range(i+1,i+50):
+			for j in range(i+1,i+40):
 				if k_slope[j]>0:
 					count=count+1
 			if count>20:
@@ -148,7 +144,7 @@ def pointcal(data):
 		#寻找最高点
 		if 0==maxin and k_slope[i]<0:
 			count=0
-			for j in range(i+1,i+50):
+			for j in range(i+1,i+40):
 				if k_slope[j]<0:
 					count=count+1
 			if count>20:

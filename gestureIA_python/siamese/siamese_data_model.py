@@ -96,8 +96,8 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
 
 def siamese_data_buildmodel(train_data, train_target,num_classes):
     # train_pairs, train_label = create_pairs_based(train_data,train_target,num_classes)
-    train_pairs, train_label = create_pairs_based_2(train_data,train_target,num_classes)
-    # train_pairs, train_label = create_pairs_incre_1(train_data,train_target,num_classes)
+    # train_pairs, train_label = create_pairs_based_2(train_data,train_target,num_classes)
+    train_pairs, train_label = create_pairs_incre_1(train_data,train_target,num_classes)
     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
     print("train_pairs.shape:",train_pairs.shape)
     # train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
@@ -117,7 +117,7 @@ def siamese_data_buildmodel(train_data, train_target,num_classes):
 
     model,based_model=create_siamese_network(input_shape)
     history = model.fit([train_pairs[:,0], train_pairs[:,1]], train_label,  
-           batch_size=4096, epochs=40,
+           batch_size=4096, epochs=80,
            validation_split=0.2)  
     model.save_weights('./parameter/model_weights.h5')#原型因有lamdba层，不能直接保存模型
     based_model.save_weights('./parameter/based_model_weights.h5')

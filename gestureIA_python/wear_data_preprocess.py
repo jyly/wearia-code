@@ -151,6 +151,7 @@ def single_feature(filepath):
 	butterppgy=highpass(2,200,orippgy)
 
 	icappgx,icappgy=IAtool.ppgfica(butterppgx,butterppgy)
+	icappgx,icappgy=IAtool.ppgfica(icappgx,icappgy)
 	
 	# orippgx=minmaxscale(orippgx)
 	# orippgx=standardscale(orippgx)
@@ -159,9 +160,9 @@ def single_feature(filepath):
 	tag,pointstartindex,pointendindex=MAfind.fine_grained_segment(icappgx,200,0.03)#0.03,1
 	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_2(icappgx,200,0.03)#python 的ica是0.03,android的是1
 	# tag,pointstartindex,pointendindex=MAfind.fine_grained_segment_4(icappgx,200,0.03)#python 的ica是0.03,android的是1
-	# mixindexpicshow(butterppgx,orippgx)
 
 	print(tag,pointstartindex,pointendindex)
+	# mixindexpicshow(orippgx,icappgx)
 
 	# orippgx=standardscale(orippgx)
 	# orippgy=standardscale(orippgy)

@@ -2,6 +2,10 @@
 import numpy as np
 import IAtool
 from normal_tool import *
+
+
+
+
 #提取自选间断数据的开始结束点
 def fine_grained_segment(dn,fre,threshold=1):
 
@@ -119,6 +123,69 @@ def fine_grained_segment_3(dn,fre,threshold=1):
 				tag=1	
 	return tag,pointstartindex,pointendindex
 
+def incretempdata(data,incre):
+	tempdata=[]
+	for i in range(incre):
+		tempdata.append(data[0])
+	for i in range(len(data)):
+		tempdata.append(data[i])
+	for i in range(incre):
+		tempdata.append(data[-1])
+	return tempdata		
+
+def fine_grained_segment_4(dn,fre,top,bottom):
+	pointstartindex=0
+	pointendindex=0
+	tag=0
+	datalens=len(dn)
+	tempdata=incretempdata(dn,int(fre/2))
+	energy=[]
+	for i in range(datalens):
+		energy.append(np.std(tempdata[i:i+fre]))
+	i=datalens
+	while(i>fre):
+		i=i-1
+		if energy[i]>top:
+			flag=0
+			finalcount=0
+			# 尾端半秒内小于阈值
+			for j in range(100):
+				if energy[i+j]<top:
+					finalcount=finalcount+1
+			if finalcount<80:
+				flag=1
+			if 0==flag:
+				gesturecount=0
+				for j in range(fre):
+					if energy[i-j]>top:
+						gesturecount=gesturecount+1
+				if gesturecount<150:
+					flag=1
+			if 0==flag:
+				t=i-150
+				while t>2*lens:
+					t=t-1
+					if energy[t]<top:
+						startcount=0
+						for j in range(2*fre):
+							if energy[t-j]<bottom:
+								startcount=startcount+1
+						if startcount>350:
+							tag=1
+							pointendindex=i
+							pointstartindex=t
+							break
+		if tag==1:
+			break		
+	seglen=(pointstartindex-pointstartindex)								
+	if seglen>400 :
+		pointstartindex=0
+		pointendindex=0
+		tag=0
+	return tag,pointstartindex,pointendindex
+
+
+
 
 def coarse_grained_detect(ppg,threshold=1):
 	# indexpicshow(ppg)
@@ -167,3 +234,6 @@ def coarse_grained_detect(ppg,threshold=1):
 				tag=1
 				break
 	return tag
+
+
+

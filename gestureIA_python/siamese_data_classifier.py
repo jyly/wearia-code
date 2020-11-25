@@ -12,6 +12,37 @@ from itertools import combinations
 
 
 
+def siamese_data_build_class(train_data,train_target,trainindex):
+	#将2*300转为300*2
+	# temptraindata=[]
+	# for i in range(len(train_data)):
+	# 	temp=[]
+	# 	for j in range(300):
+	# 		temp.append([])
+	# 		for k in range(len(train_data[0])):
+	# 			temp[j].append(train_data[i][k][j])
+	# 	temptraindata.append(temp)
+	# train_data=temptraindata
+	siamese_data_buildmodel(train_data,train_target,trainindex)
+
+def siamese_data_final_class(test_data,test_target,targetnum,anchornum):
+	# temptestdata=[]
+	# for i in range(len(test_data)):
+	# 	temp=[]
+	# 	for j in range(300):
+	# 		temp.append([])
+	# 		for k in range(len(test_data[0])):
+	# 			temp[j].append(test_data[i][k][j])
+	# 	temptestdata.append(temp)
+	# test_data=temptestdata
+	score,label= siamese_data_final(test_data,test_target,targetnum,anchornum)
+	score=[i[0] for i in score]
+	label=[i for i in label]
+	print('原结果：',label)
+	print('预测分数：',score)
+	accuracy,far,frr=cal_siamese_eer(label,score)
+	return accuracy,far,frr
+
 
 
 def siamese_data_divide_class(feature,target,targetnum):

@@ -58,7 +58,8 @@ def siamese_feature_based_classifier(dataset,target,targetnum):
 def siamese_feature_build_class(train_data,train_target,trainindex,featurenum):
 	##训练降维模型
 	temp=[]
-	train_data,temp,sort=IAtool.minepro(train_data,temp,train_target,featurenum)
+	# train_data,temp,sort=IAtool.minepro(train_data,temp,train_target,featurenum)
+	# sort,scale_mean,scale_scale=IAtool.filterparameterread('./parameter/stdpropara.txt')
 	train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
 	IAtool.filterparameterwrite(sort,scale_mean,scale_scale,'./parameter/stdpropara.txt')
 
@@ -112,7 +113,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 	#循环次数
 	iternum=10
 	#组合内序号个数
-	comnum=40
+	comnum=30
 	#训练集个数
 	# traincomnum=28
 
@@ -146,6 +147,11 @@ def siamese_feature_divide_class(feature,target,targetnum):
 			else:
 				train_data.append(tempfeature[i])	
 
+		train_data=np.array(train_data)
+		test_data=np.array(test_data)
+		print("train_data.shape:",train_data.shape)
+		print("test_data.shape:",test_data.shape)
+		
 		temptraindata=[]
 		temptraintarget=[]
 		trainindex=1
@@ -184,8 +190,8 @@ def siamese_feature_divide_class(feature,target,targetnum):
 
 
 		sort,scale_mean,scale_scale=IAtool.filterparameterread('./parameter/stdpropara.txt')
-		# train_data=IAtool.scoreselect(train_data,sort,featurenum)
-		# test_data=IAtool.scoreselect(test_data,sort,featurenum)
+		train_data=IAtool.scoreselect(train_data,sort,featurenum)
+		test_data=IAtool.scoreselect(test_data,sort,featurenum)
 		# train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
 		
 		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)

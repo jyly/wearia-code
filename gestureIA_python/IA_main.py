@@ -48,9 +48,9 @@ if __name__ == "__main__":
 
 	# siamese分类（基于特征)
 
-	# siamese_feature_classifier.siamese_feature_divide_class(feature,target,targetnum)
+	siamese_feature_classifier.siamese_feature_divide_class(feature,target,targetnum)
 	# siamese_feature_classifier.siamese_feature_build_class(feature,target,targetnum,30)
-	siamese_feature_classifier.siamese_feature_final_class(feature,target,targetnum,30,5)
+	# siamese_feature_classifier.siamese_feature_final_class(feature,target,targetnum,30,5)
 	# siamese_feature_classifier.siamese_feature_based_classifier(feature[:,:38],target,targetnum)
 	# siamese_feature_classifier.siamese_feature_mul_build_class(feature,target,targetnum,30)
 	# siamese_feature_classifier.siamese_feature_mul_final_class(feature,target,targetnum,30,3)

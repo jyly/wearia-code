@@ -76,16 +76,44 @@ public class filecontrol {
 			BufferedReader in = new BufferedReader(new FileReader(filepath));
 			String line = "";
 			line = in.readLine();
+			double oldx = 0;
+			double oldy = 0;
 			while (line != null) {
 //				System.out.println(line);
 				String[] tempppg = line.split(",");
 				if (tempppg[0].equals("2")) {
-					double x = Double.parseDouble(tempppg[1]);
-					double y = Double.parseDouble(tempppg[2]);
-					if (x < 100000000 && y < 100000000 && x > 50000 && y > 50000) {
-						ppgx.add(Double.parseDouble(tempppg[1]));
-						ppgy.add(Double.parseDouble(tempppg[2]));
+
+					double xvalue = Double.parseDouble(tempppg[1]);
+					double yvalue = Double.parseDouble(tempppg[2]);
+					
+					if ((xvalue == 0) || (yvalue == 0)) {
+						line = in.readLine();
+						continue;
+					}
+
+
+					if (ppgx.size() < 1  ) {
+						
+						if(xvalue > 1000000 || yvalue > 1000000 || xvalue < 1000 || yvalue < 1000) {
+							line = in.readLine();
+							continue;
+						}
+						else {
+							oldx = xvalue;
+							oldy = yvalue;
+						}
+											
+					} 
+
+					double x = Math.abs(xvalue / oldx);
+					double y = Math.abs(yvalue / oldy);
+//					System.out.print(oldx);
+					if (x < 10 && x > 0.1 && y < 10 && y > 0.1) {
+						ppgx.add(xvalue);
+						ppgy.add(yvalue);
 						ppgtimestamps.add(Long.parseLong(tempppg[3]));
+						oldx = xvalue;
+						oldy = yvalue;
 					}
 				}
 				line = in.readLine();
@@ -123,16 +151,19 @@ public class filecontrol {
 			while (line != null) {
 //				System.out.println(line);
 				String[] tempppg = line.split(",");
+				double xvalue = Double.parseDouble(tempppg[1]);
+				double yvalue = Double.parseDouble(tempppg[2]);
+				double zvalue = Double.parseDouble(tempppg[2]);	
 				if (tempppg[0].equals("0")) {
-					accx.add(Double.parseDouble(tempppg[1]));
-					accy.add(Double.parseDouble(tempppg[2]));
-					accz.add(Double.parseDouble(tempppg[3]));
+					accx.add(xvalue);
+					accy.add(yvalue);
+					accz.add(zvalue);
 					acctimestamps.add(Long.parseLong(tempppg[4]));
 				}
 				if (tempppg[0].equals("1")) {
-					gyrx.add(Double.parseDouble(tempppg[1]));
-					gyry.add(Double.parseDouble(tempppg[2]));
-					gyrz.add(Double.parseDouble(tempppg[3]));
+					gyrx.add(xvalue);
+					gyry.add(yvalue);
+					gyrz.add(zvalue);
 					gyrtimestamps.add(Long.parseLong(tempppg[4]));
 				}
 				line = in.readLine();

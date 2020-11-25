@@ -243,7 +243,7 @@ public class Featurecontrol {
         icappg = iatools.machoice(icappg);
         //细粒度手势分析，判断手势区间
 //		int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
-        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5);
+        int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5,0.7);
         if (0 == finetag) {
 //            Log.e(">>>", "当前片段不存在手势");
             System.out.println("当前片段不存在手势");

@@ -110,14 +110,14 @@ def dataread():
 		temp=[]
 		for i in inputfile:
 			i=list(eval(i))
-			if(len(i)==600):
+			if(len(i)==400):
 				if len(temp)<2:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-					temp.append(i[0:600])
+					temp.append(i[0:400])
 				else:
 					dataset.append(temp)
 					target.append(index)
 					temp=[]
-					temp.append(i[0:600])
+					temp.append(i[0:400])
 		inputfile.close()	
 		index=index+1
 	targetnum=index-1

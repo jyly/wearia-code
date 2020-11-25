@@ -23,6 +23,20 @@ public class MAfind {
 		return energy;
 	}
 
+	public double[] incretempdata(double[] data, int incre) {
+		double[] tempdata = new double[data.length + 2 * incre];
+		for (int i = 0; i < incre; i++) {
+			tempdata[i] = data[0];
+		}
+		for (int i = 0; i < data.length; i++) {
+			tempdata[i + incre] = data[i];
+		}
+		for (int i = 0; i < incre; i++) {
+			tempdata[i + incre + data.length] = data[data.length - 1];
+		}
+		return tempdata;
+	}
+
 	// 寻找片段中的开始点和结束点
 	public int fine_grained_segment(double[] data, int fre, double threshold) {
 		pointstartindex = 0;
@@ -30,27 +44,35 @@ public class MAfind {
 		int tag = 0;
 		int datalens = data.length;
 		StandardDeviation std = new StandardDeviation();
-		double[] energy = new double[datalens - fre];
-//		if (std.evaluate(data, datalens - fre - 2, fre) > threshold)
-//			return tag;
-		for (int i = 0; i < (datalens - fre); i++) {
-			energy[i] = std.evaluate(data, i, fre);
+//		double[] energy = new double[datalens - fre];
+////		if (std.evaluate(data, datalens - fre - 2, fre) > threshold)
+////			return tag;
+//		for (int i = 0; i < (datalens - fre); i++) {
+//			energy[i] = std.evaluate(data, i, fre);
+//		}
+//		
+		double[] tempdata = incretempdata(data, (int) (fre / 2));
+
+		double[] energy = new double[datalens];
+		for (int i = 0; i < (datalens); i++) {
+			energy[i] = std.evaluate(tempdata, i, fre);
 		}
+		
 
 //		System.out.println("energy list");
 //		for (int i = 0; i < energy.length; i++) {
 //			System.out.print(energy[i]+",");
 //		}
-		int i = datalens - 2 * fre;
+		int i = datalens -   50;
 		int lens = (int) (1 * fre);
-		while (i > lens) {
+		while (i > fre) {
 //			System.out.println(i);
 			i = i - 1;
 			// 从后往前判断，当大于阈值时，认为可能存在手势
 			if (energy[i] > threshold) {
 				int flag = 0;
 				// 从后往前的一定区间内的值都大于阈值时，认为存在手势
-				for (int j = (i - lens); j < i; j++) {
+				for (int j = (i - fre); j < i; j++) {
 					if (energy[j] < threshold) {
 						flag = 1;
 						break;
@@ -58,14 +80,14 @@ public class MAfind {
 				}
 				if (0 == flag) {
 
-					int start = (i - 3 * lens);
+					int start = (i - 3 * fre);
 					if (start < 0) {
 						start = 0;
 					}
-					if ((i - start) < lens) {
+					if ((i - start) < fre) {
 						break;
 					}
-					for (int t = start; t < (i - 100); t++) {
+					for (int t = start; t < (i - fre); t++) {
 
 						pointstartindex = t;
 						if (energy[t] > threshold) {
@@ -73,137 +95,108 @@ public class MAfind {
 						}
 					}
 					// 补充能量值的偏移量
-					pointstartindex = pointstartindex+100;
-					pointendindex = i +100;
+				
+					pointendindex = i;
 					tag = 1;
 					break;
 				}
 
 			}
 		}
-		if ((pointendindex-pointstartindex)<150){
-			tag=0;
+		if ((pointendindex - pointstartindex) < 150) {
+			tag = 0;
 		}
 		return tag;
 	}
 
-	// 寻找片段中的开始点和结束点
-	public int fine_grained_segment_2(double[] data, int fre, double threshold) {
+	// 寻找手势片段中的开始点和结束点
+	public int fine_grained_segment_2(double[] data, int fre, double top, double bottom) {
 		pointstartindex = 0;
 		pointendindex = 0;
 		int tag = 0;
 		int datalens = data.length;
 		StandardDeviation std = new StandardDeviation();
-		// 若最后一段时间的标准差大于阈值这认为手势未结束
-//        if (std.evaluate(data, datalens - fre, fre) > threshold)
-//            return tag;
 		// 计算能量值
-		double[] tempdata = new double[datalens + fre];
-		for (int i = 0; i < fre / 2; i++) {
-			tempdata[i] = data[0];
-		}
-		for (int i = 0; i < datalens; i++) {
-			tempdata[i + fre / 2] = data[i];
-		}
-		for (int i = 0; i < fre / 2; i++) {
-			tempdata[i + fre / 2 + datalens] = data[datalens - 1];
-		}
+		double[] tempdata = incretempdata(data, (int) (fre / 2));
+
 		double[] energy = new double[datalens];
 		for (int i = 0; i < (datalens); i++) {
 			energy[i] = std.evaluate(tempdata, i, fre);
 		}
-
 		// i从energy的后端开始往前走
-		int i = datalens - 2 * fre - 50;
-		int lens = (int) (1 * fre);
-		while (i > (3 * lens)) {
+		int i = datalens - 100;
+
+		while (i > fre) {
 			i = i - 1;
-//            System.out.println("i="+i+","+energy[i]);
 			// 从后往前判断，当大于阈值时，认为可能存在手势
-			if (energy[i] > threshold) {
+			if (energy[i] > bottom) {
 				int flag = 0;
+				int finalcount = 0;
 				// 后面的一定区间内的值都大于阈值时，认为存在手势
-				for (int j = 0; j < lens; j++) {
-					if (energy[i + j] < threshold * 0.9) {
-						flag = 1;
-						break;
+				for (int j = 0; j < 100; j++) {
+					if (energy[i + j] < top) {
+						finalcount++;
 					}
 				}
-
-				// 前面的的一定区间内的值都小于阈值时，认为存在手势
+				if (finalcount < 80) {
+					flag = 1;
+				}
 				if (0 == flag) {
-					for (int j = 0; j < lens; j++) {
-						if (energy[i - j] > threshold * 1.1) {
-							flag = 1;
-							break;
+					int gesturecount = 0;
+					for (int j = 0; j < fre; j++) {
+						if (energy[i - j] > top) {
+							gesturecount++;
 						}
 					}
-					// 前面的区间大部都在阈值之下
-					if (flag == 0) {
-						int tags = 0;
-						for (int j = lens; j < 2 * lens; j++) {
-							if (energy[i - j] > threshold * 0.7) {
-								flag = 1;
+					if (gesturecount < 150) {
+						flag = 1;
+					}
+				}
+				if (0 == flag) {
+					int t = i - 150;
+					while (t > 2 * fre) {
+						t = t - 1;
+						if (energy[t] < top) {
+							int startcount = 0;
+							for (int j = 0; j < 2 * fre; j++) {
+								if (energy[t - j] < bottom) {
+									startcount++;
+								}
+							}
+							if (startcount > 350) {
+								tag = 1;
+								pointendindex = i;
+								pointstartindex = t;
+//								pointendindex=pointstartindex+400;
 								break;
 							}
 						}
 					}
 				}
-
-				if (0 == flag) {
-
-					pointstartindex = i - 50;
-					pointendindex = i + 350;
-					tag = 1;
-					break;
-				}
-//                if(0==flag) {
-//                    pointstartindex=i-10;
-//                    for(int j=i+lens;j<energy.length-lens;j++) {
-//                        flag=0;
-//                        for(int k=j;k<j+lens/2;k++) {
-//                            if(energy[k]>threshold+0.1) {
-//                                flag=1;
-//                                break;
-//                            }
-//                        }
-//                        if(0==flag) {
-//                            pointendindex=j+10;
-//                            tag=1;
-//                            break;
-//                        }
-//                    }
-//                }
+			}
+			if (tag == 1) {
+				break;
 			}
 		}
-//        if((pointendindex-pointstartindex)>600) {
-//            tag=0;
-//        }
 		energy = null;
+		if ((pointendindex - pointstartindex) > 400) {
+			pointstartindex = 0;
+			pointendindex = 0;
+			tag = 0;
+		}
 		return tag;
 	}
 
-	// 寻找片段中的开始点和结束点
+	// 寻找片段中的开始点和结束点//寻找无手势段
 	public int fine_grained_segment_3(double[] data, int fre, double threshold) {
 		pointstartindex = 0;
 		pointendindex = 0;
 		int tag = 0;
 		int datalens = data.length;
 		StandardDeviation std = new StandardDeviation();
-		// 若最后一段时间的标准差大于阈值这认为手势未结束
-//        if (std.evaluate(data, datalens - fre, fre) > threshold)
-//            return tag;
+
 		// 计算能量值
-		double[] tempdata = new double[datalens + fre];
-		for (int i = 0; i < fre / 2; i++) {
-			tempdata[i] = data[0];
-		}
-		for (int i = 0; i < datalens; i++) {
-			tempdata[i + fre / 2] = data[i];
-		}
-		for (int i = 0; i < fre / 2; i++) {
-			tempdata[i + fre / 2 + datalens] = data[datalens - 1];
-		}
+		double[] tempdata = incretempdata(data, (int) (fre / 2));
 		double[] energy = new double[datalens];
 		for (int i = 0; i < (datalens); i++) {
 			energy[i] = std.evaluate(tempdata, i, fre);
@@ -211,12 +204,12 @@ public class MAfind {
 
 		int i = 20;
 		int lens = datalens - fre;
-		while (i < (lens - 400)) {
+		while (i < (lens - 600)) {
 			i = i + 1;
 			if (energy[i] < threshold) {
 				int flag = 0;
-				// 寻找一个3s内的无干扰手势段
-				for (int j = 0; j < 400; j++) {
+				// 寻找一个3s内的无手势段
+				for (int j = 0; j < 600; j++) {
 					if (energy[i + j] > threshold) {
 						flag = 1;
 						break;
@@ -225,10 +218,10 @@ public class MAfind {
 				if (0 == flag) {
 					tag = 1;
 					pointstartindex = i;
-					pointendindex = i + 400;
+					pointendindex = i + 600;
 
 					// 把当前区间设置为i和i+400，并往后尽可能寻找静止段的终点
-					for (int j = (i + 400); j < lens; j++) {
+					for (int j = (i + 600); j < lens; j++) {
 						if (energy[j] < threshold) {
 							pointendindex = j;
 						} else {
@@ -256,16 +249,7 @@ public class MAfind {
 		int datalens = data.length;
 
 		StandardDeviation std = new StandardDeviation();
-		double[] tempdata = new double[datalens + fre];
-		for (int i = 0; i < fre / 2; i++) {
-			tempdata[i] = data[0];
-		}
-		for (int i = 0; i < datalens; i++) {
-			tempdata[i + fre / 2] = data[i];
-		}
-		for (int i = 0; i < fre / 2; i++) {
-			tempdata[i + fre / 2 + datalens] = data[datalens - 1];
-		}
+		double[] tempdata = incretempdata(data, (int) (fre / 2));
 		double[] energy = new double[datalens];
 		for (int i = 0; i < (datalens); i++) {
 			energy[i] = std.evaluate(tempdata, i, fre);

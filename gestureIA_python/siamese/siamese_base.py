@@ -65,13 +65,15 @@ def mlp_network(input_shape):
     input = Input(shape=(input_shape), name='input')
     x = Flatten()(input)
     # x = BatchNormalization(epsilon=1e-06)(x)
-    x = Dense(128, activation='relu')(x)
+ 
+    x = Dense(256, activation='relu')(x)
     x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
     x = Dropout(0.1)(x)
-    x = Dense(128, activation='relu')(x)
+    x = Dense(256, activation='relu')(x)
     x = Dropout(0.2)(x)
     x = Dense(128, activation='relu', name='output')(x)
+    # x = Dense(128, name='output')(x)
 
     return Model(input, x)
 

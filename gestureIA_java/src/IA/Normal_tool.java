@@ -80,11 +80,14 @@ public class Normal_tool {
 	public double[] meanfilt(double[] data, int interval) {
 		int datasize = data.length;
 		double[] tempdata = new double[datasize + interval];
-		for (int i = 0; i < interval; i++) {
+		for (int i = 0; i < (int)(interval/2); i++) {
 			tempdata[i] = data[0];
 		}
 		for (int i = 0; i < datasize; i++) {
-			tempdata[i + interval] = data[i];
+			tempdata[i + (int)(interval/2)] = data[i];
+		}
+		for (int i = 0; i < (int)(interval/2); i++) {
+			tempdata[datasize+(int)(interval/2)+i] = data[datasize-1];
 		}
 		double[] templist = new double[datasize];
 		for (int i = 0; i < datasize; i++) {
@@ -262,5 +265,18 @@ public class Normal_tool {
 		tempdata[(data.length-1)*2+1]=data[(data.length-1)];
 		return tempdata;
 		
+	}
+	
+	
+	public double[] changehz(double data[],int newhz) {
+		int newlens=data.length*newhz/200;
+		
+		double [] finaldata=new double[newlens];
+		
+		for(int i=0;i<newlens;i++) {
+			int newindex=i*200/newhz;
+			finaldata[i]=data[newindex];
+		}
+		return finaldata;
 	}
 }

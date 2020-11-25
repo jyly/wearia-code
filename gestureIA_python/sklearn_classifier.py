@@ -139,21 +139,22 @@ def sklearn_mulclass(featureset,target,divnum):
 	meanfar=[]
 	meanfrr=[]	
 	for t in range(0,10):
-		train_data,test_data, train_target, test_target = train_test_split(featureset,target,test_size = 0.2,random_state = t*30,stratify=target)
+		train_data,test_data, train_target, test_target = train_test_split(featureset,target,test_size = 0.1,random_state = t*30,stratify=target)
 		# train_data,test_data, train_target, test_target = train_test_split(featureset,target,train_size = 225,random_state = t*30,stratify=target)
 		print("进入第",t,"轮分类的信息熵降维阶段")
-		# train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,30)
+		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,30)
 
-		sort,scale_mean,scale_scale=IAtool.filterparameterread('./parameter/stdpropara.txt')
-		train_data=np.array(train_data)
-		test_data=np.array(test_data)
-		train_data=IAtool.scoreselect(train_data,sort,30)
-		test_data=IAtool.scoreselect(test_data,sort,30)
+		# sort,scale_mean,scale_scale=IAtool.filterparameterread('./parameter/stdpropara.txt')
+		# train_data=np.array(train_data)
+		# test_data=np.array(test_data)
+		# train_data=IAtool.scoreselect(train_data,sort,30)
+		# test_data=IAtool.scoreselect(test_data,sort,30)
 		
 		# print("进入第",t,"轮分类的弹性网降维阶段")
 		# train_data,test_data=IAtool.elasticnetpro(train_data,test_data,train_target,30)
-		print("进入第",t,"轮分类的线性判别式分析阶段")
-		train_data,test_data,lda_bar,lda_scaling=IAtool.ldapro(train_data,test_data,train_target)
+		# print("进入第",t,"轮分类的线性判别式分析阶段")
+		# train_data,test_data,lda_bar,lda_scaling=IAtool.ldapro(train_data,test_data,train_target)
+		# train_data,temp,scale_mean,scale_scale=IAtool.stdpro(train_data,temp)
 	
 
 		# print("进入第",t,"轮分类的主成分分析阶段")
