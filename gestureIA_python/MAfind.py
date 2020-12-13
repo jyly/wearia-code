@@ -3,7 +3,26 @@ import numpy as np
 import IAtool
 from normal_tool import *
 
+	
+def same_incretempdata(data,incres):
+	tempdata=[]
+	for i in range(incres):
+		tempdata.append(data[i])
+	for i in data:
+		tempdata.append(i)
+	for i in range(incres):
+		tempdata.append(data[-1-i])
+	return tempdata
 
+def incretempdata(data,incre):
+	tempdata=[]
+	for i in range(incre):
+		tempdata.append(data[0])
+	for i in range(len(data)):
+		tempdata.append(data[i])
+	for i in range(incre):
+		tempdata.append(data[-1])
+	return tempdata		
 
 
 #提取自选间断数据的开始结束点
@@ -123,15 +142,7 @@ def fine_grained_segment_3(dn,fre,threshold=1):
 				tag=1	
 	return tag,pointstartindex,pointendindex
 
-def incretempdata(data,incre):
-	tempdata=[]
-	for i in range(incre):
-		tempdata.append(data[0])
-	for i in range(len(data)):
-		tempdata.append(data[i])
-	for i in range(incre):
-		tempdata.append(data[-1])
-	return tempdata		
+
 
 def fine_grained_segment_4(dn,fre,top,bottom):
 	pointstartindex=0
@@ -187,53 +198,89 @@ def fine_grained_segment_4(dn,fre,top,bottom):
 
 
 
+# def coarse_grained_detect(ppg,threshold=1):
+# 	# indexpicshow(ppg)
+
+# 	ppginter=IAtool.interationcal(ppg)
+# 	# print(ppginter)
+# 	# ppginter=[round(i,6) for i in ppg]
+# 	# ppginter=meanfilt(ppginter,20)
+
+# 	# ppginter=minmaxscale(ppginter)
+# 	ppginter=standardscale(ppginter)
+# 	ppginter=[round(i,1) for i in ppginter]
+
+# 	indexpicshow(ppginter)
+# 	# print(ppginter)
+
+# 	# score=IAtool.energy(ppginter)
+# 	# indexpicshow(score)
+
+# 	alltag=IAtool.tagcal(ppginter)
+
+# 	JS=[]
+# 	for i in range(0,len(ppginter)-400,30):
+# 		score1=IAtool.array_distribute_cal(ppginter[i:i+200],alltag)
+# 		score2=IAtool.array_distribute_cal(ppginter[i+200:i+400],alltag)
+# 		# tempjs=JS_divergence(score1,score2)
+# 		# tempjs=cos_distance(score1,score2)
+# 		# tempjs=calc_corr(score1,score2)
+# 		tempjs=jaccard_distance(ppginter[i:i+200],ppginter[i+200:i+400])
+# 		JS.append(tempjs)
+# 	# print(JS)	
+# 	# ppginter=meanfilt(ppginter,40)
+# 	# indexpicshow(ppg)
+
+# 	pointpicshow(JS)
+# 	tag=0
+# 	for i in range(len(JS)-6):
+# 		flagnum=0
+# 		# if JS[i]>0.35:
+# 		if JS[i]<0.5:
+# 			for j in range(i,i+6):
+# 				# if JS[j]>0.35:
+# 				if JS[j]<0.5:
+# 					flagnum=flagnum+1
+# 			if flagnum>4:
+# 				tag=1
+# 				break
+# 	return tag
+
+
 def coarse_grained_detect(ppg,threshold=1):
-	# indexpicshow(ppg)
-
+	ppg=meanfilt(ppg,10)
+	ppg=minmaxscale(ppg)
 	ppginter=IAtool.interationcal(ppg)
-	# print(ppginter)
-	# ppginter=[round(i,6) for i in ppg]
-	# ppginter=meanfilt(ppginter,20)
 
-	# ppginter=minmaxscale(ppginter)
-	ppginter=standardscale(ppginter)
-	ppginter=[round(i,1) for i in ppginter]
-
-	indexpicshow(ppginter)
-	# print(ppginter)
-
-	# score=IAtool.energy(ppginter)
-	# indexpicshow(score)
-
-	alltag=IAtool.tagcal(ppginter)
-
+	ppginter=minmaxscale(ppginter)
+	orippginter=[round(i,1) for i in ppginter]
+	alltag=IAtool.tagcal(orippginter)
+	ppginter=same_incretempdata(orippginter,200)
 	JS=[]
-	for i in range(0,len(ppginter)-400,30):
+	for i in range(0,len(ppginter)-400):
 		score1=IAtool.array_distribute_cal(ppginter[i:i+200],alltag)
 		score2=IAtool.array_distribute_cal(ppginter[i+200:i+400],alltag)
-		# tempjs=JS_divergence(score1,score2)
-		# tempjs=cos_distance(score1,score2)
-		# tempjs=calc_corr(score1,score2)
-		tempjs=jaccard_distance(ppginter[i:i+200],ppginter[i+200:i+400])
-		JS.append(tempjs)
-	# print(JS)	
-	# ppginter=meanfilt(ppginter,40)
-	# indexpicshow(ppg)
 
-	pointpicshow(JS)
-	tag=0
-	for i in range(len(JS)-6):
-		flagnum=0
-		# if JS[i]>0.35:
-		if JS[i]<0.5:
-			for j in range(i,i+6):
-				# if JS[j]>0.35:
-				if JS[j]<0.5:
-					flagnum=flagnum+1
-			if flagnum>4:
-				tag=1
-				break
-	return tag
+
+		# tempppginter=minmaxscale(ppginter[i:i+400])
+		# alltag=IAtool.tagcal(tempppginter)
+
+		# score1=IAtool.array_distribute_cal(tempppginter[0:200],alltag)
+		# score2=IAtool.array_distribute_cal(tempppginter[200:400],alltag)
+
+
+		tempjs=JS_divergence(score1,score2)
+		JS.append(tempjs)
+	return JS
+
+def calenergy(data):
+	tempdata=incretempdata(data,100)
+	energy=[]
+	for i in range(len(data)):
+		energy.append(np.mean(tempdata[i:i+200])+3*np.std(tempdata[i:i+200]))
+		# energy.append(np.std(tempdata[i:i+200]))
+	return energy
+
 
 
 

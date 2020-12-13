@@ -349,7 +349,7 @@ public class MAfind {
 	}
 
 	// 根据开始点和结束点，提取出有手势的片段出来
-	public Ppg setppgsegment(Ppg ppgs) {
+	public Ppg setsegment(Ppg ppgs) {
 		int lens = pointendindex - pointstartindex;
 		Ppg seppgs = new Ppg(lens);
 		for (int i = 0; i < lens; i++) {
@@ -359,19 +359,24 @@ public class MAfind {
 		return seppgs;
 	}
 
-	public Motion setmotionsegment(Motion motion) {
-
-//        Log.e(">>>","手势点/2：" + (int) pointstartindex / 2 + " " + (int) pointendindex / 2);
-		int lens = (int) ((pointendindex - pointstartindex) / 2);
+	public Motion setsegment(Motion motion) {
+		Normal_tool normal = new Normal_tool();
+		motion.accx = normal.increto_2(motion.accx);
+		motion.accy = normal.increto_2(motion.accy);
+		motion.accz = normal.increto_2(motion.accz);
+		motion.gyrx = normal.increto_2(motion.gyrx);
+		motion.gyry = normal.increto_2(motion.gyry);
+		motion.gyrz = normal.increto_2(motion.gyrz);
+		normal = null;
+		int lens = pointendindex - pointstartindex;
 		Motion semotoin = new Motion(lens);
-		int start = (int) (pointstartindex / 2);
 		for (int i = 0; i < lens; i++) {
-			semotoin.accx[i] = motion.accx[i + start];
-			semotoin.accy[i] = motion.accy[i + start];
-			semotoin.accz[i] = motion.accz[i + start];
-			semotoin.gyrx[i] = motion.gyrx[i + start];
-			semotoin.gyry[i] = motion.gyry[i + start];
-			semotoin.gyrz[i] = motion.gyrz[i + start];
+			semotoin.accx[i] = motion.accx[i + pointstartindex];
+			semotoin.accy[i] = motion.accy[i + pointstartindex];
+			semotoin.accz[i] = motion.accz[i + pointstartindex];
+			semotoin.gyrx[i] = motion.gyrx[i + pointstartindex];
+			semotoin.gyry[i] = motion.gyry[i + pointstartindex];
+			semotoin.gyrz[i] = motion.gyrz[i + pointstartindex];
 		}
 		return semotoin;
 	}

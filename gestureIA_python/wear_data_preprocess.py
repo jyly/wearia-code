@@ -6,6 +6,11 @@ from normal_tool import *
 import IAtool 
 import MAfind
 
+
+
+
+
+
 def single_data(filepath):
 	ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime=filecontrol.orisegmentread(filepath)
 	

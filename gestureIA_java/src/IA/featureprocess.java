@@ -10,7 +10,7 @@ public class featureprocess {
 	MAfind ma = new MAfind();
 	Featurecontrol featurecontrol = new Featurecontrol();
 
-	// 求相对静止状态下的特征
+	// 求相对静止状态下的特征，用40组
 	public void static_feature(String dirpath) {
 		File dirFile = new File(dirpath);
 		File[] objdirName = dirFile.listFiles();
@@ -44,8 +44,8 @@ public class featureprocess {
 			System.out.print(filenum.get(i) + ",");
 		}
 	}
-
-	// 求手势的特征
+	
+	// 求手势的特征，360组
 	public void all_feature(String dirpath) {
 		File dirFile = new File(dirpath);
 		File[] objdirName = dirFile.listFiles();
@@ -115,9 +115,9 @@ public class featureprocess {
 		Normal_tool normal = new Normal_tool();
 		Featurecontrol featurecontrol = new Featurecontrol();
 		// 细粒度手势分析，判断手势区间
-		int finetag = ma.fine_grained_segment(icappg.x, 200, 0.7);
-//		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5, 0.7);
-//		int finetag = ma.fine_grained_segment_3(icappg.x, 200, 0.6);
+		int finetag = ma.fine_grained_segment(icappg.x, 200, 0.7);//旧手势提取方法
+//		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5, 0.7);//新手势提取方法
+//		int finetag = ma.fine_grained_segment_3(icappg.x, 200, 0.6);//粗粒度无手势段提取方法
 		if (0 == finetag) {
 //				Log.e(">>>", "当前片段不存在手势");
 			System.out.println("当前片段不存在手势");
@@ -125,51 +125,28 @@ public class featureprocess {
 //				Log.e(">>>","手势点：" + ma.pointstartindex + " " + ma.pointendindex);
 			System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
 
-//			orippg.x = normal.innerscale(orippg.x);
-//			orippg.y = normal.innerscale(orippg.y);
-//			orippg.x=normal.standardscale(orippg.x);
-//			orippg.y=normal.standardscale(orippg.y);
-//			ppgs.x = normal.innerscale(ppgs.x);
-//			ppgs.y = normal.innerscale(ppgs.y);
 			ppgs.x = nortools.meanfilt(ppgs.x, 20);
 			ppgs.y = nortools.meanfilt(ppgs.y, 20);
-			ppgs = ma.setppgsegment(ppgs);
+			ppgs = ma.setsegment(ppgs);
 			
-			ppgs.x = nortools.changehz(ppgs.x, 10);
-			ppgs.y = nortools.changehz(ppgs.y, 10);
-			
-
+//			ppgs.x = nortools.changehz(ppgs.x, 10);
+//			ppgs.y = nortools.changehz(ppgs.y, 10);
 			
 //			System.out.printf("newlens"+ppgs.x.length);
 
+			Motion motion = files.orimotionread(filepath);
+			motion.accx = nortools.meanfilt(motion.accx, 20);
+			motion.accy = nortools.meanfilt(motion.accy, 20);
+			motion.accz = nortools.meanfilt(motion.accz, 20);
+			motion.gyrx = nortools.meanfilt(motion.gyrx, 20);
+			motion.gyry = nortools.meanfilt(motion.gyry, 20);
+			motion.gyrz = nortools.meanfilt(motion.gyrz, 20);
+			motion = ma.setsegment(motion);
 			
-//			orippg = ma.setppgsegment(orippg);
-//			butterppg=ma.setppgsegment(butterppg);
-
-			// ppgs.x=normal.minmaxscale(ppgs.x);
-//			ppgs.y=normal.minmaxscale(ppgs.y);
-			// orippg.x=normal.minmaxscale(orippg.x);
-//			orippg.y=normal.minmaxscale(orippg.y);
-//			//			butterppg.x=normal.minmaxscale(butterppg.x);
-//			butterppg.y=normal.minmaxscale(butterppg.y);
-
-//			butterppg = ma.setppgsegment(butterppg);
-//			ppgs = ma.setppgsegment(ppgs);
-//			icappg = ma.setppgsegment(icappg);
-//
-//			Motion motion = files.orimotionread(filepath);
-//			motion.accx = nortools.meanfilt(motion.accx, 20);
-//			motion.accy = nortools.meanfilt(motion.accy, 20);
-//			motion.accz = nortools.meanfilt(motion.accz, 20);
-//			motion.gyrx = nortools.meanfilt(motion.gyrx, 20);
-//			motion.gyry = nortools.meanfilt(motion.gyry, 20);
-//			motion.gyrz = nortools.meanfilt(motion.gyrz, 20);
-//			motion = ma.setmotionsegment(motion);
-//			samplefeature = featurecontrol.return_feature(ppgs, motion);
-			samplefeature = featurecontrol.return_feature(ppgs);
+			samplefeature = featurecontrol.return_feature(ppgs, motion);
+//			samplefeature = featurecontrol.return_feature(ppgs);
 //			System.out.println("特征数：" + samplefeature.length);
 		}
-
 		return samplefeature;
 	}
 

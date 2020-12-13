@@ -2,12 +2,12 @@
 import numpy as np
 from scipy import signal,stats
 import matplotlib.pyplot as plt
+import math
 from minepy import MINE
 from tftb.processing import WignerVilleDistribution,PseudoWignerVilleDistribution
 from sklearn.linear_model import ElasticNet
 from sklearn import preprocessing
 import pywt
-from math import log,sqrt
 
 #多个项目通用的工具
 
@@ -67,10 +67,10 @@ def JS_divergence(p,q):
 	# Qnorm=sum([i for i in q])
 	# _P = p / Pnorm
 	# _Q = q / Qnorm
-	# _P = p 
-	# _Q = q 
-	_P = p / np.linalg.norm(p, ord=1)
-	_Q = q / np.linalg.norm(q, ord=1)
+	_P = p 
+	_Q = q 
+	# _P = p / np.linalg.norm(p, ord=1)
+	# _Q = q / np.linalg.norm(q, ord=1)
 	M=(_P+_Q)/2
 	JS=0.5*(KL_divergence(_P,M)+KL_divergence(_Q,M))
 	# JS=0.5*stats.entropy(p, M)+0.5*stats.entropy(q, M)
@@ -94,7 +94,7 @@ def calc_corr(a, b):
 	# 计算分子，协方差————按照协方差公式，本来要除以n的，由于在相关系数中上下同时约去了n，于是可以不除以n	
 	cov_ab = sum([(x - a_avg)*(y - b_avg) for x,y in zip(a, b)]) 	
 	# 计算分母，方差乘积————方差本来也要除以n，在相关系数中上下同时约去了n，于是可以不除以n
-	sq = sqrt(sum([(x - a_avg)**2 for x in a])*sum([(x - b_avg)**2 for x in b])) 	
+	sq = math.sqrt(sum([(x - a_avg)**2 for x in a])*sum([(x - b_avg)**2 for x in b])) 	
 	corr_factor = cov_ab/sq 	
 	return corr_factor
 
@@ -219,17 +219,3 @@ def get_auto_corr(timeSeries,k):
 		temp = (timeSeries1[i]-timeSeries_mean)*(timeSeries2[i]-timeSeries_mean)/timeSeries_var
 		auto_corr = auto_corr + temp 
 	return auto_corr
-
-def calcShannonEnt(dataSet):
-	numEntires = len(dataSet)                       #返回数据集的行数
-	labelCounts = {}                                #保存每个标签(Label)出现次数的字典
-	for featVec in dataSet:                         #对每组特征向量进行统计
-		currentLabel = featVec[-1]                  #提取标签(Label)信息
-		if currentLabel not in labelCounts.keys():  #如果标签(Label)没有放入统计次数的字典,添加进去
-			labelCounts[currentLabel] = 0
-		labelCounts[currentLabel] += 1              #Label计数
-	shannonEnt = 0.0                                #经验熵(香农熵)
-	for key in labelCounts:                         #计算香农熵
-		prob = float(labelCounts[key]) / numEntires #选择该标签(Label)的概率
-		shannonEnt -= prob * log(prob, 2)           #利用公式计算
-	return shannonEnt 

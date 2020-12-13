@@ -252,8 +252,8 @@ public class Featurecontrol {
             System.out.println("手势点：" + ma.pointstartindex + " " + ma.pointendindex);
             orippg.x = nortools.innerscale(orippg.x);
             orippg.y = nortools.innerscale(orippg.y);
-            orippg = ma.setppgsegment(orippg);
-            Motion motion = ma.setmotionsegment(motions);
+            orippg = ma.setsegment(orippg);
+            Motion motion = ma.setsegment(motions);
             
             samplefeature = return_feature(orippg, motion);
             motion = null;

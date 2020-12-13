@@ -115,7 +115,7 @@ def tripletloss_accuracy_score(target,scores,threshold):#目标，结果，第i�
 
 	for j in range(len(scores)):
 
-		if scores[j]<threshold:
+		if scores[j]>threshold:
 			if target[j]==1:
 				tp=tp+1
 			else:
@@ -141,5 +141,35 @@ def cal_siamese_eer(test_label,score,startindex=0.01,maxindex=3,addindex=0.005):
 			break
 		i=i+addindex
 	print("i=",i)
+	pre=tp/(tp+fp)
+	recall=tp/(tp+fn)
 	print("accuracy:",accuracy,"far:",far,"frr:",frr)
+	print("pre:",pre,"recall:",recall)
 	return accuracy,far,frr
+
+
+def siamese_far_frr(test_label,score,startindex=0.01,maxindex=3,addindex=0.005):
+	i=startindex
+	allfar=[]
+	allfrr=[]
+	infar=0
+	infrr=1
+	while i<maxindex:
+		tp,tn,fp,fn=siamese_accuracy_score(test_label,score,i)
+		# print(tp,tn,fp,fn)
+		accuracy=(tp+tn)/(tp+tn+fp+fn)
+		far=(fp)/(fp+tn)
+		frr=(fn)/(fn+tp)
+
+		if (far-infar)>0.02 or (infrr-frr)>0.02:
+			infar=far
+			infrr=frr
+			allfar.append(far)
+			allfrr.append(frr)
+
+
+		i=i+addindex
+		# print("i=",i)
+		# print("accuracy:",accuracy,"far:",far,"frr:",frr)
+	print("far:",allfar)	
+	print("frr:",allfrr)	

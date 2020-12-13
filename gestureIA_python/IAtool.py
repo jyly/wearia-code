@@ -7,7 +7,7 @@ from normal_tool import *
 from sklearn.preprocessing import StandardScaler
 from dtw import dtw
 from scipy.signal import argrelmax
-
+import math
 
 #根据项目需要，自定义的工具
 manhattan_distance = lambda x, y: np.abs(x - y)
@@ -235,6 +235,27 @@ def sequence_to_300(data):
 	temp=meanfilt(temp,5)
 	return temp
 
+#把数据重采样为指定长度
+def data_resize(data,resize):
+	datalens=len(data[0])
+	inters=float(datalens)/resize
+	temp=[]
+	for i in range(len(data)):
+		temp.append([])
+		for j in range(resize):
+			temp[i].append(data[i][int(j*inters)])
+	return temp
+
+
+def datainner(data):
+	innersize=len(str(round(data[0])))
+	temp=[]
+	for i in range(len(data)):
+		# temp.append(float(data[i])/math.pow( 10, (innersize-1)))
+		temp.append(float(data[i])/100000)
+	return temp
+
+
 def filterparameterwrite(sort,lda_bar,lda_scaling,filename):
 	
 	outputfile=open(filename,'w+')
@@ -315,3 +336,90 @@ def calgestureprofile(data):
 def caldtw(a,b):
 	d, cost_matrix, acc_cost_matrix, path = dtw(a, b, dist=manhattan_distance)
 	return d
+
+
+
+#将队列数据化为目标分类的队列
+def listtodic(data,target):
+	index=0
+	dicdata=[[]]
+	for i in range(len(target)):
+		if target[i]==(index+1):
+			dicdata[index].append(data[i])
+		else:
+			index=index+1
+			dicdata.append([])
+	return dicdata
+
+#将目标分类的队列化为队列数据
+def dictolist(data):
+	feature=[]
+	target=[]
+	index=1
+	for i in range(len(data)):
+		for j in range(len(data[i])):
+			feature.append(data[i][j])
+			target.append(index)
+		index=index+1	
+	index=index-1	
+	return feature,target,index
+
+
+
+
+
+
+
+def same_gesture_selected(feature,target,targetnum,selectnumber=1):# 数据，标记，选择的手势
+
+	dicdata=listtodic(feature,target)
+	#选择对应的手势
+	selectfeature=[]
+	selectedtarget=[]
+	#选择的手势
+	index=1
+	while selectnumber<targetnum:
+		for i in dicdata[selectnumber]:
+			selectfeature.append(i)
+			selectedtarget.append(index)
+		selectnumber=selectnumber+9
+		index=index+1
+	
+	# print(selectfeature[0])
+	# print(selectedtarget)
+	# print(len(selectedtarget))
+	feature=selectfeature
+	feature=np.array(feature)
+	target=selectedtarget
+	targetnum=index-1
+	return feature,target,targetnum
+
+
+def datashape(train_data,test_data,train_target,test_target):
+	train_data=np.array(train_data)
+	train_target=np.array(train_target)
+	test_data=np.array(test_data)
+	test_target=np.array(test_target)
+	print("train_data.shape:",train_data.shape)
+	print("test_data.shape:",test_data.shape)
+	return train_data,test_data,train_target,test_target
+
+
+def datacombine(ppg_data,motion_data):
+	data=[]
+	for i in range(len(ppg_data)):
+		temp=[]
+		for j in ppg_data[i]:
+			temp.append(j)
+		for j in motion_data[i]:
+			temp.append(j)
+		data.append(temp)
+	return data
+
+#数据转置，将n*m转为m*n
+def datatranspose(data):
+	data=np.array(data)
+	tempdata=[]
+	for i in range(len(data)):
+		tempdata.append(data[i].T)
+	return tempdata	

@@ -80,14 +80,14 @@ public class Normal_tool {
 	public double[] meanfilt(double[] data, int interval) {
 		int datasize = data.length;
 		double[] tempdata = new double[datasize + interval];
-		for (int i = 0; i < (int)(interval/2); i++) {
+		for (int i = 0; i < (int) (interval / 2); i++) {
 			tempdata[i] = data[0];
 		}
 		for (int i = 0; i < datasize; i++) {
-			tempdata[i + (int)(interval/2)] = data[i];
+			tempdata[i + (int) (interval / 2)] = data[i];
 		}
-		for (int i = 0; i < (int)(interval/2); i++) {
-			tempdata[datasize+(int)(interval/2)+i] = data[datasize-1];
+		for (int i = 0; i < (int) (interval / 2); i++) {
+			tempdata[datasize + (int) (interval / 2) + i] = data[datasize - 1];
 		}
 		double[] templist = new double[datasize];
 		for (int i = 0; i < datasize; i++) {
@@ -118,14 +118,20 @@ public class Normal_tool {
 		}
 		return templist;
 	}
-
+	public double[] outterscale(double[] data) {
+		double[] templist = new double[data.length];
+		for (int i = 0; i < data.length; i++) {
+			templist[i] = data[i] * 100000;
+		}
+		return templist;
+	}
 	// 降到100内
 	public double[] innerscale(double[] data) {
 		double[] templist = new double[data.length];
 		for (int i = 0; i < data.length; i++) {
-			if(data[i]>100) {
+			if (data[i] > 100) {
 				templist[i] = data[i] / 100000;
-			}else {
+			} else {
 				templist[i] = data[i];
 			}
 
@@ -133,13 +139,19 @@ public class Normal_tool {
 		return templist;
 	}
 
-	public double[] outterscale(double[] data) {
+	// 降到个位数
+	public double[] smallscale(double[] data) {
+		int small = String.valueOf(Math.round(data[0])).length();
+		small = (int) Math.pow(10, (small - 1));
 		double[] templist = new double[data.length];
 		for (int i = 0; i < data.length; i++) {
-			templist[i] = data[i] *100000;
+			templist[i] = data[i] / small;
 		}
 		return templist;
 	}
+
+
+
 	// 归一化，范数1
 	public double[] normalscale(double[] data) {
 		double[] templist = new double[data.length];
@@ -255,27 +267,27 @@ public class Normal_tool {
 		}
 		return templist;
 	}
-	public double[] increto_2(double[]data){
-		double[] tempdata=new double[data.length*2];
-		for(int i=0;i<(data.length-1);i++) {
-			tempdata[i*2]=data[i];
-			tempdata[i*2+1]=(data[i]+data[i+1])/2;
+
+	//行为传感器的数据拓展为2倍
+	public double[] increto_2(double[] data) {
+		double[] tempdata = new double[data.length * 2];
+		for (int i = 0; i < (data.length - 1); i++) {
+			tempdata[i * 2] = data[i];
+			tempdata[i * 2 + 1] = (data[i] + data[i + 1]) / 2;
 		}
-		tempdata[(data.length-1)*2]=data[(data.length-1)];
-		tempdata[(data.length-1)*2+1]=data[(data.length-1)];
+		tempdata[(data.length - 1) * 2] = data[(data.length - 1)];
+		tempdata[(data.length - 1) * 2 + 1] = data[(data.length - 1)];
 		return tempdata;
-		
+
 	}
-	
-	
-	public double[] changehz(double data[],int newhz) {
-		int newlens=data.length*newhz/200;
-		
-		double [] finaldata=new double[newlens];
-		
-		for(int i=0;i<newlens;i++) {
-			int newindex=i*200/newhz;
-			finaldata[i]=data[newindex];
+
+	//改变采样频率
+	public double[] changehz(double data[], int newhz) {
+		int newlens = data.length * newhz / 200;
+		double[] finaldata = new double[newlens];
+		for (int i = 0; i < newlens; i++) {
+			int newindex = i * 200 / newhz;
+			finaldata[i] = data[newindex];
 		}
 		return finaldata;
 	}

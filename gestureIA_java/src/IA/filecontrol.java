@@ -47,6 +47,22 @@ public class filecontrol {
 		}
 	}
 
+	public void madatawrite(double[][] featureset, String filename) {
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
+			for (int j = 0; j < featureset.length; j++) {
+				for (int k = 0; k < featureset[j].length; k++) {
+					out.write(featureset[j][k] + ",");
+				}
+				out.newLine();
+			}
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public void datawrite(double[] datax, double[] datay, String filename) {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(filename));
@@ -85,25 +101,23 @@ public class filecontrol {
 
 					double xvalue = Double.parseDouble(tempppg[1]);
 					double yvalue = Double.parseDouble(tempppg[2]);
-					
+
 					if ((xvalue == 0) || (yvalue == 0)) {
 						line = in.readLine();
 						continue;
 					}
 
+					if (ppgx.size() < 1) {
 
-					if (ppgx.size() < 1  ) {
-						
-						if(xvalue > 1000000 || yvalue > 1000000 || xvalue < 1000 || yvalue < 1000) {
+						if (xvalue > 1000000 || yvalue > 1000000 || xvalue < 1000 || yvalue < 1000) {
 							line = in.readLine();
 							continue;
-						}
-						else {
+						} else {
 							oldx = xvalue;
 							oldy = yvalue;
 						}
-											
-					} 
+
+					}
 
 					double x = Math.abs(xvalue / oldx);
 					double y = Math.abs(yvalue / oldy);
@@ -153,7 +167,7 @@ public class filecontrol {
 				String[] tempppg = line.split(",");
 				double xvalue = Double.parseDouble(tempppg[1]);
 				double yvalue = Double.parseDouble(tempppg[2]);
-				double zvalue = Double.parseDouble(tempppg[2]);	
+				double zvalue = Double.parseDouble(tempppg[2]);
 				if (tempppg[0].equals("0")) {
 					accx.add(xvalue);
 					accy.add(yvalue);

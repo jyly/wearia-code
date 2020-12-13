@@ -1,9 +1,10 @@
 # -*- coding=utf-8 -*-
 import os
 import numpy as np
+import IAtool
 
 #读取原始数据，从文件中将所有数据按传感器进行分类
-def orisegmentread(path):
+def oridataread(path):
 	ppgx=[]
 	ppgy=[]
 	ppgtime=[]
@@ -15,6 +16,8 @@ def orisegmentread(path):
 	gyry=[]
 	gyrz=[]
 	gyrtime=[]
+	oldx=0
+	oldy=0
 	inputfile=open(path,'r+')
 	for i in inputfile:
 		i=list(eval(i))
@@ -29,27 +32,27 @@ def orisegmentread(path):
 			gyrz.append(i[3])
 			gyrtime.append(i[4])
 		if i[0]==2:
-			if(i[1]<100000000 and i[2]<100000000 and i[1]>50000 and i[2]>50000):
+			if(i[1]==0 or i[2]==0):
+				continue
+			if(i[1]>1000000 and i[2]>1000000 and i[1]<1000 and i[2]<1000):
+				continue
+			if(len(ppgx)<1):
+				oldx=i[1]
+				oldy=i[2]
+			x=abs(i[1]/oldx)
+			y=abs(i[2]/oldy)
+			if(x<10 and x>0.1 and y<10 and y>0.1):			
 				ppgx.append(i[1])
 				ppgy.append(i[2])
 				ppgtime.append(i[3])
+				oldx=i[1]
+				oldy=i[2]
 	inputfile.close()	
 	return ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime
 
-#将采集特征按类别名存放到硬盘中
-def featurewrite(feature,filename):
-	dirpath='./selected_feature/'
-	featurefilepath=dirpath+filename+'.csv'
-	outputfile=open(featurefilepath,'w+')
-	for i in range(len(feature)):
-		for j in range(len(feature[i])):
-			outputfile.write(str(feature[i][j]))
-			outputfile.write(',')
-		outputfile.write('\n')
-	outputfile.close()
 
-#将特征和对应的类别写入文件中
-def featurewrite2(feature,target):
+#将孪生网络的特征和对应的类别写入文件中
+def siamesefeaturewrite(feature,target):
 	featurefilepath='tempfeature.csv'
 	outputfile=open(featurefilepath,'w+')
 	for i in range(len(feature)):
@@ -61,8 +64,20 @@ def featurewrite2(feature,target):
 		outputfile.write('\n')
 	outputfile.close()
 
-#将文件中的特征读出
-def featureread(dirpath='./selected_feature/'):
+#将训练时采集特征按类别名存放到硬盘中
+def featurewrite(feature,filename):
+	dirpath='./selected/feature/'
+	featurefilepath=dirpath+filename+'.csv'
+	outputfile=open(featurefilepath,'w+')
+	for i in range(len(feature)):
+		for j in range(len(feature[i])):
+			outputfile.write(str(feature[i][j]))
+			outputfile.write(',')
+		outputfile.write('\n')
+	outputfile.close()
+
+#将文件中的训练时的特征读出
+def featureread(dirpath='./selected/feature/'):
 	filespace=os.listdir(dirpath)
 	feature=[]
 	target=[]
@@ -83,9 +98,9 @@ def featureread(dirpath='./selected_feature/'):
 	target=np.array(target)
 	return feature,target,targetnum
 
-#将手势段的原始数据写入文件中
+#将训练时截取的手势段的原始数据写入文件中
 def datawrite(data,filesname):
-	dirpath='./selected_madata/'
+	dirpath='./selected/madata/'
 	datafilepath=dirpath+filesname+'.csv'
 	outputfile=open(datafilepath,'w+')
 	for i in range(len(data)):
@@ -96,9 +111,9 @@ def datawrite(data,filesname):
 			outputfile.write('\n')
 	outputfile.close()
 
-# 将手势段的原始数据读出来
+# 将取数手势段的原始数据读出来
 def dataread():
-	dirpath='./selected_madata/'
+	dirpath='./selected/madata/'
 	filespace=os.listdir(dirpath)
 	dataset=[]
 	target=[]
@@ -110,19 +125,21 @@ def dataread():
 		temp=[]
 		for i in inputfile:
 			i=list(eval(i))
-			if(len(i)==400):
-				if len(temp)<2:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-					temp.append(i[0:400])
-				else:
-					dataset.append(temp)
-					target.append(index)
-					temp=[]
-					temp.append(i[0:400])
+			# if(len(i)>400):
+			if len(temp)<8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
+				temp.append(i)
+			else:
+				temp=IAtool.data_resize(temp,200)
+				temp[0]=IAtool.datainner(temp[0])
+				temp[1]=IAtool.datainner(temp[1])
+				dataset.append(temp)
+				target.append(index)
+				temp=[]
+				temp.append(i)
 		inputfile.close()	
 		index=index+1
 	targetnum=index-1
 	dataset=np.array(dataset)
-	
 	target=np.array(target)
 	return dataset,target,targetnum
 
@@ -143,8 +160,9 @@ def singlefeatureread():
 		i=list(eval(i))
 		testfeature.append(i)
 	inputfile.close()	
-
 	return trainfeature,testfeature
+
+
 
 # def phone_datawrite(data):
 # 	dirpath='./selected_madata/'
