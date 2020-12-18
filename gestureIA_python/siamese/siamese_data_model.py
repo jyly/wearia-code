@@ -6,28 +6,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.utils import shuffle
 from siamese.filecontrol import * 
-
-#fit_generator的迭代器，从内存中输入数据段到gpu显存中
-def pairSequence(data,target,batch_size):
-    datalen=len(data)
-    print(datalen)
-    print("迭代次数：",(int(datalen/batch_size)+1))
-    while 1:  
-        cnt = 0
-        temppair=[]
-        templabel=[]
-        for i in range(0,datalen):
-            temppair.append(data[i])
-            templabel.append(target[i])
-            cnt += 1
-            if cnt==batch_size or i==(datalen-1):
-                cnt = 0
-                temppair=np.array(temppair)
-                templabel=np.array(templabel)
-                tempdata=[temppair[:, 0],temppair[:, 1]]
-                yield(tempdata,templabel)      
-                temppair=[]
-                templabel=[]
+import IAtool
 
 def siamese_data(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
@@ -37,125 +16,155 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     print("测试集对数：",test_pairs.shape)
 
     #长-宽-高
-    # train_pairs=train_pairs.reshape(len(train_pairs),2,2,300,1)
-    # test_pairs=test_pairs.reshape(len(test_pairs),2,2,300,1)
+    # train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
+    # test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
+    # print("训练集对数：",train_pairs.shape)
+    # print("测试集对数：",test_pairs.shape)
+    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+
+    input_shape = (len(train_data[0]),len(train_data[0][0]))
     # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
-    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
-    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-
-    input_shape = (len(train_data[0]),len(train_data[0][0]),1)
-
-    # train_pairs=train_pairs.reshape(len(train_pairs),2,300,1,2)
-    # test_pairs=test_pairs.reshape(len(test_pairs),2,300,1,2)
-    # input_shape = (len(train_data[0]),1,len(train_data[0][0]))
-
     print(input_shape)
 
     model,based_model=create_siamese_network(input_shape)
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=256, epochs=10,
-           validation_split=0.2)  
+           batch_size=1024, epochs=5)  
 
-    test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
-
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # test_pred=temp_pred
-    # print("len(test_pred):",len(test_pred))
-    # print("len(test_label):",len(test_label))
-    
+    test_pred = model.predict([test_pairs[:,0], test_pairs[:,1]])
+    # test_pred=repro_test_pred(test_pred,test_label,anchornum)
     test_pred=np.array(test_pred)
-
-
     return test_pred,test_label
 
 
 
+#2*200*200+6*200*200
+# def siamese_weighted_data(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
 
 
-def siamese_mul_data(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
+#     train_pairs, train_label = create_pairs_based(train_data, train_target,trainindex)
+#     test_pairs, test_label = create_pairs_based(test_data, test_target,testindex)
 
+#     print("训练集对数：",train_pairs.shape)
+#     print("测试集对数：",test_pairs.shape)
+   
+
+
+#     # train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
+#     # test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
+#     # print("训练集对数：",train_pairs.shape)
+#     # print("测试集对数：",test_pairs.shape)
+#     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+
+#     # train_pairs=IAtool.pairtopic(train_pairs)
+#     # test_pairs=IAtool.pairtopic(test_pairs)
+
+
+#     ppg_input_shape = (2,len(train_data[0][0]),len(test_data[0][0][0]))
+#     print("ppg_input_shape:",ppg_input_shape)
+
+#     # ppg_model,ppg_based_model=create_siamese_network_lstm(ppg_input_shape)
+#     ppg_model,ppg_based_model=create_siamese_network_conv(ppg_input_shape)
+#     #2*200
+#     history = ppg_model.fit([train_pairs[:, 0,:2], train_pairs[:, 1,:2]], train_label,  
+#            batch_size=512, epochs=40)  
+#     ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:2], test_pairs[:, 1,:2]])
+
+#     motion_input_shape = (6,len(train_data[0][0]),len(test_data[0][0][0]))
+#     print("motion_input_shape:",motion_input_shape)
+
+#     # motion_model,motion_based_model=create_siamese_network_lstm(motion_input_shape)
+#     motion_model,motion_based_model=create_siamese_network_conv(motion_input_shape)
+#     history = motion_model.fit([train_pairs[:, 0,2:], train_pairs[:, 1,2:]], train_label,  
+#            batch_size=512, epochs=10)  
+#     motion_test_pred = motion_model.predict([test_pairs[:, 0,2:], test_pairs[:, 1,2:]])
+
+
+#     test_pred=[]
+#     for i in range(len(ppg_test_pred)):
+#         test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+#     # test_pred=ppg_test_pred
+#     return test_pred,test_label
+
+
+
+#2*200+6*200
+def siamese_weighted_data(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
     test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
 
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
    
-    # train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
-    # test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
+    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
+    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
 
+    ppg_input_shape = (2,len(train_data[0][0]),1)
+    print("ppg_input_shape:",ppg_input_shape)
 
+    # ppg_model,ppg_based_model=create_siamese_network_lstm(ppg_input_shape)
+    ppg_model,ppg_based_model=create_siamese_network_conv(ppg_input_shape)
+    #2*200
+    history = ppg_model.fit([train_pairs[:, 0,:2], train_pairs[:, 1,:2]], train_label,  
+           batch_size=512, epochs=40)  
+    ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:2], test_pairs[:, 1,:2]])
 
-    ppg_input_shape = (200,2)
-    # ppg_input_shape = (2,len(train_data[0][0]),1)
-    print(ppg_input_shape)
+    motion_input_shape = (6,len(train_data[0][0]),1)
+    print("motion_input_shape:",motion_input_shape)
 
-    ppg_model,ppg_based_model=create_siamese_network(ppg_input_shape)
-    # history = ppg_model.fit([train_pairs[:, 0,:2], train_pairs[:, 1,:2]], train_label,  
-    #        batch_size=256, epochs=10)  
-    history = ppg_model.fit([train_pairs[:, 0,:,:2], train_pairs[:, 1,:,:2]], train_label,  
-       batch_size=2048, epochs=10)  
-    ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:,:2], test_pairs[:, 1,:,:2]])
-    # ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:2], test_pairs[:, 1,:2]])
-    
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=ppg_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # ppg_test_pred=temp_pred
-    # print("len(ppg_test_pred):",len(ppg_test_pred))
-    # print("len(test_label):",len(test_label))
+    # motion_model,motion_based_model=create_siamese_network_lstm(motion_input_shape)
+    motion_model,motion_based_model=create_siamese_network_conv(motion_input_shape)
+    history = motion_model.fit([train_pairs[:, 0,2:], train_pairs[:, 1,2:]], train_label,  
+           batch_size=512, epochs=10)  
+    motion_test_pred = motion_model.predict([test_pairs[:, 0,2:], test_pairs[:, 1,2:]])
 
-
-    motion_input_shape = (200,6)
-    # motion_input_shape = (6,len(train_data[0][0]),1)
-    print(motion_input_shape)
-
-    motion_model,motion_based_model=create_siamese_network(motion_input_shape)
-    # history = motion_model.fit([train_pairs[:, 0,2:], train_pairs[:, 1,2:]], train_label,  
-           # batch_size=256, epochs=10)  
-    history = ppg_model.fit([train_pairs[:, 0,:,2:], train_pairs[:, 1,:,2:]], train_label,  
-       batch_size=2048, epochs=10)  
-    motion_test_pred = motion_model.predict([test_pairs[:, 0,:,2:], test_pairs[:, 1,:,2:]])
-    # motion_test_pred = motion_model.predict([test_pairs[:, 0,2:], test_pairs[:, 1,2:]])
-
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=motion_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # motion_test_pred=temp_pred
-    # print("len(motion_test_pred):",len(motion_test_pred))
-    # print("len(test_label):",len(test_label))
-
-
-    # ppg_test_pred=[i for i in ppg_test_pred]
-    # motion_test_pred=[i for i in motion_test_pred]
-    # print("ppg_test_pred:",ppg_test_pred)
-    # print("motion_test_pred:",motion_test_pred)
-
+    r=0.1
     test_pred=[]
     for i in range(len(ppg_test_pred)):
-        test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+        # test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+        test_pred.append(r*ppg_test_pred[i]+(1-r)*motion_test_pred[i])
     # test_pred=ppg_test_pred
+
     return test_pred,test_label
 
+
+
+# 200*2+200*6
+# def siamese_weighted_data(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
+#     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
+#     test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
+
+#     print("训练集对数：",train_pairs.shape)
+#     print("测试集对数：",test_pairs.shape)
+   
+#     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+
+#     ppg_input_shape = (200,2)
+#     print("ppg_input_shape:",ppg_input_shape)
+
+#     # ppg_model,ppg_based_model=create_siamese_network_lstm(ppg_input_shape)
+#     ppg_model,ppg_based_model=create_siamese_network_conv(ppg_input_shape)
+#     history = ppg_model.fit([train_pairs[:, 0,:,:2], train_pairs[:, 1,:,:2]], train_label,  
+#        batch_size=512, epochs=10)  
+#     ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:,:2], test_pairs[:, 1,:,:2]])
+
+
+#     motion_input_shape = (200,6)
+#     print("motion_input_shape:",motion_input_shape)
+
+#     # motion_model,motion_based_model=create_siamese_network_lstm(motion_input_shape)
+#     motion_model,motion_based_model=create_siamese_network_conv(motion_input_shape)
+#     history = motion_model.fit([train_pairs[:, 0,:,2:], train_pairs[:, 1,:,2:]], train_label,  
+#        batch_size=512, epochs=10)  
+#     motion_test_pred = motion_model.predict([test_pairs[:, 0,:,2:], test_pairs[:, 1,:,2:]])
+
+#     test_pred=[]
+#     for i in range(len(ppg_test_pred)):
+#         test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+#     # test_pred=ppg_test_pred
+#     return test_pred,test_label
 
 def siamese_mul_model_data(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
@@ -165,9 +174,6 @@ def siamese_mul_model_data(train_data,test_data, train_target,test_target,traini
     print("测试集对数：",test_pairs.shape)
 
     #长-宽-高
-    # train_pairs=train_pairs.reshape(len(train_pairs),2,2,300,1)
-    # test_pairs=test_pairs.reshape(len(test_pairs),2,2,300,1)
-    # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
     train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
     test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
     print("训练集对数：",train_pairs.shape)
@@ -183,21 +189,10 @@ def siamese_mul_model_data(train_data,test_data, train_target,test_target,traini
 
     test_pred = model.predict([test_pairs[:, 0,:2], test_pairs[:, 1,:2],test_pairs[:, 0,2:], test_pairs[:, 1,2:]])
 
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # test_pred=temp_pred
-    # print("len(test_pred):",len(test_pred))
-    # print("len(test_label):",len(test_label))
-    
     test_pred=np.array(test_pred)
-
-
     return test_pred,test_label
+
+
 
 
 

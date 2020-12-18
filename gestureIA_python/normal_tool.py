@@ -8,6 +8,7 @@ from sklearn.linear_model import ElasticNet
 from sklearn import preprocessing
 import pywt
 from math import log,sqrt
+from pyts.image import RecurrencePlot,MarkovTransitionField,GramianAngularField
 
 #多个项目通用的工具
 
@@ -56,7 +57,7 @@ def fft(data, sampling_rate, fft_size=None):
 
 def KL_divergence(P,Q):
 	# KL = stats.entropy(P,Q)
-	KL=sum(_p * math.log(_p / _q) for _p, _q in zip(P, Q) if _p != 0) 
+	KL=sum(_p * log(_p / _q) for _p, _q in zip(P, Q) if _p != 0) 
 	# KL=np.sum([v for v in P * np.log2(P/Q) if not np.isnan(v)])
 	return KL
 
@@ -233,3 +234,18 @@ def calcShannonEnt(dataSet):
 		prob = float(labelCounts[key]) / numEntires #选择该标签(Label)的概率
 		shannonEnt -= prob * log(prob, 2)           #利用公式计算
 	return shannonEnt 
+
+def recurrenceplot(data):
+	result=[]
+	result.append(data)
+	result=np.array(result)
+	rp = RecurrencePlot(threshold='point', percentage=20)
+	X_rp = rp.fit_transform(result)
+	# plt.imshow(X_rp[0], cmap='binary', origin='lower')
+	# plt.title('Recurrence Plot', fontsize=16)
+	# plt.tight_layout()
+	# plt.show()
+	# print(X_rp[0].shape)
+	# print(X_rp[0])
+
+	return X_rp[0]

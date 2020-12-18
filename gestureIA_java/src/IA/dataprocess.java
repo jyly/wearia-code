@@ -142,11 +142,17 @@ public class dataprocess {
 
 
 			sampledata = new double[8][];
-//			orippg = ma.setppgsegment(orippg);
-//			butterppg = ma.setppgsegment(butterppg);
+			ppgs.x = nortools.meanfilt(ppgs.x, 20);
+			ppgs.y = nortools.meanfilt(ppgs.y, 20);
 			ppgs = ma.setsegment(ppgs);
 
 			Motion motion = files.orimotionread(filepath);
+			motion.accx = nortools.meanfilt(motion.accx, 20);
+			motion.accy = nortools.meanfilt(motion.accy, 20);
+			motion.accz = nortools.meanfilt(motion.accz, 20);
+			motion.gyrx = nortools.meanfilt(motion.gyrx, 20);
+			motion.gyry = nortools.meanfilt(motion.gyry, 20);
+			motion.gyrz = nortools.meanfilt(motion.gyrz, 20);
 			motion = ma.setsegment(motion);
 			ma = null;
 

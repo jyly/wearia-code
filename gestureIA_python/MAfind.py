@@ -2,7 +2,7 @@
 import numpy as np
 import IAtool
 from normal_tool import *
-
+import math
 	
 def same_incretempdata(data,incres):
 	tempdata=[]

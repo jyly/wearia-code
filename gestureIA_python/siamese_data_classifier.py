@@ -9,30 +9,14 @@ import random
 from itertools import combinations
 
 
-def siamese_data_build_class(train_data,train_target,trainindex):
-	train_data=datatranspose(train_data)
-	siamese_data_buildmodel(train_data,train_target,trainindex)
-
-def siamese_data_final_class(test_data,test_target,targetnum,anchornum):
-	test_data=datatranspose(test_data)
-	score,label= siamese_data_final(test_data,test_target,targetnum,anchornum)
-	score=[i[0] for i in score]
-	label=[i for i in label]
-	print('原结果：',label)
-	print('预测分数：',score)
-	accuracy,far,frr=cal_siamese_eer(label,score)
-	return accuracy,far,frr
-
-
-
 def siamese_data_class(feature,target,targetnum):
-
 	tempfeature=IAtool.listtodic(feature,target)
-
 	meanacc=[]
 	meanfar=[]
 	meanfrr=[]
 
+	#选择的锚数
+	anchornum=3
 	#循环次数
 	iternum=10
 	#组合内序号个数
@@ -79,19 +63,14 @@ def siamese_data_class(feature,target,targetnum):
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-		#选择的锚数
-		anchornum=3
-
-
 		#将n*m变为m*n
-		train_data=datatranspose(train_data)
-		test_data=datatranspose(test_data)
+		# train_data=IAtool.datatranspose(train_data)
+		# test_data=IAtool.datatranspose(test_data)
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-
 		# score,label= siamese_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
-		score,label= siamese_mul_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		score,label= siamese_weighted_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		# score,label= siamese_mul_model_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		score=[i[0] for i in score]
 		label=[i for i in label]
@@ -106,6 +85,22 @@ def siamese_data_class(feature,target,targetnum):
 		print("被选择的测试集序号：",selectk[i])
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
 
+
+
+
+def siamese_data_build_class(train_data,train_target,trainindex):
+	train_data=IAtool.datatranspose(train_data)
+	siamese_data_buildmodel(train_data,train_target,trainindex)
+
+def siamese_data_final_class(test_data,test_target,targetnum,anchornum):
+	test_data=IAtool.datatranspose(test_data)
+	score,label= siamese_data_final(test_data,test_target,targetnum,anchornum)
+	score=[i[0] for i in score]
+	label=[i for i in label]
+	print('原结果：',label)
+	print('预测分数：',score)
+	accuracy,far,frr=cal_siamese_eer(label,score)
+	return accuracy,far,frr
 
 
 

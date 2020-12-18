@@ -5,9 +5,11 @@ import filecontrol
 import sklearn_classifier
 import siamese_data_classifier
 import siamese_feature_classifier
+import siamese_combine_classifier
 import tripletloss_classifier
 import gesture_detect_stistical
 import IAtool
+import numpy as np
 
 #屏蔽GPU
 # import os     
@@ -15,11 +17,12 @@ import IAtool
 # os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
 
 if __name__ == "__main__":
+
 	# print(sys.version)
 
 	#粗过滤手势检测率计算
 	# onlygesture='./gesture_detect/onlygesture/'#存在手势的数据
-	# nogesturedir='./gesture_detect/nogesturedir/'#前500个人眼过滤过的无手势数据
+	# nogesturedir='./gesture_detect/nogesture/'#前500个人眼过滤过的无手势数据
 	# gesture_detect_stistical.detect_cal_true(onlygesture)
 	# gesture_detect_stistical.detect_cal_false(nogesturedir)
 
@@ -42,15 +45,10 @@ if __name__ == "__main__":
 
 
 
+# 
 	# siamese分类（基于特征)
 
-	# siamese_feature_classifier.siamese_feature_divide_class(feature,target,targetnum)
-	# siamese_feature_classifier.siamese_feature_build_class(feature,target,targetnum,30)
-	# siamese_feature_classifier.siamese_feature_final_class(feature,target,targetnum,30,5)
-	# siamese_feature_classifier.siamese_feature_based_classifier(feature[:,:38],target,targetnum)
-	# siamese_feature_classifier.siamese_feature_mul_divide_class(feature,target,targetnum)
-	# siamese_feature_classifier.siamese_feature_mul_build_class(feature,target,targetnum,30)
-	# siamese_feature_classifier.siamese_feature_mul_final_class(feature,target,targetnum,30,3)
+	# siamese_feature_classifier.siamese_feature_mul_class(feature,target,targetnum)
 
 	
 
@@ -59,10 +57,31 @@ if __name__ == "__main__":
 
 	# siamese分类（基于原数据）
 	siamese_data_classifier.siamese_data_class(feature,target,targetnum)
-	# siamese_data_classifier.siamese_data_divide_class(feature[:,:1],target,targetnum)
-	# siamese_data_classifier.siamese_data_build_class(feature[:,:1],target,targetnum)
-	# siamese_data_classifier.siamese_data_final_class(feature[:,:1],target,targetnum,3)
+
 	
+
+
+	#siamese分类（特征和原数据的组合）
+	# data,target,targetnum=filecontrol.dataread()#将手势段直接作为特征输入
+	# print(len(target))
+	# print(targetnum)
+	# feature,target,targetnum=filecontrol.featureread()#人工利用统计量提取特征
+	# print(len(target))
+	# print(targetnum)
+	# data=np.array(data)
+	# feature=np.array(feature)
+	# print(data.shape,feature.shape)
+	# data,datatarget,datatargetnum=IAtool.same_gesture_selected(data,target,targetnum,3)
+	# feature,target,targetnum=IAtool.same_gesture_selected(feature,target,targetnum,3)
+	# print(data.shape,feature.shape)
+
+	# print("总样本数：",len(target))
+	# print("总类别数：",targetnum)	
+	# print("总特征数：",len(feature[0]))
+	# print("总样本长数：",len(data[0][0]))
+
+	# siamese_combine_classifier.siamese_combine_class(data,feature,target,targetnum)
+
 
 
 	# tripletloss

@@ -2,7 +2,7 @@
 import os
 import numpy as np
 import IAtool
-
+import normal_tool
 #读取原始数据，从文件中将所有数据按传感器进行分类
 def oridataread(path):
 	ppgx=[]
@@ -125,17 +125,18 @@ def dataread():
 		temp=[]
 		for i in inputfile:
 			i=list(eval(i))
-			# if(len(i)>400):
-			if len(temp)<8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-				temp.append(i)
-			else:
+			temp.append(i)
+			if len(temp)==8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
 				temp=IAtool.data_resize(temp,200)
 				temp[0]=IAtool.datainner(temp[0])
 				temp[1]=IAtool.datainner(temp[1])
+				# normal_tool.recurrenceplot(temp[0])
+
+				# for i in range(len(temp)):
+				# 	freqs,temp[i]=normal_tool.fft(temp[i],200)
 				dataset.append(temp)
 				target.append(index)
 				temp=[]
-				temp.append(i)
 		inputfile.close()	
 		index=index+1
 	targetnum=index-1

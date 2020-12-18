@@ -3,6 +3,52 @@ import os
 import filecontrol 
 from normal_tool import *
 import MAfind
+import math
+import numpy as np 
+import pylab as pl
+from scipy import fftpack  
+import scipy.signal as signal
+from scipy import interpolate
+
+
+
+
+        
+#寻找当前时间序列的极值点
+def findpeaks(x):
+    return signal.argrelextrema(x,np.greater)[0]
+#判断当前的序列是否为 IMF 序列
+def isImf(x):
+    N=np.size(x)
+    pass_zero=np.sum(x[0:N-2]*x[1:N-1]<0)#过零点的个数
+    peaks_num=np.size(findpeaks(x))+np.size(findpeaks(-x))#极值点的个数
+    if abs(pass_zero-peaks_num)>1:
+        return False
+    else:
+        return True
+#获取当前样条曲线
+def getspline(x):
+    N=np.size(x)
+    peaks=findpeaks(x)
+    peaks=np.concatenate(([0],peaks))
+    peaks=np.concatenate((peaks,[N-1]))
+    print(len(peaks))
+    if(len(peaks)<=3):
+        t=interpolate.splrep(peaks,y=x[peaks], w=None, xb=None, xe=None,k=3)
+        return interpolate.splev(np.arange(N),t)
+    t=interpolate.splrep(peaks,y=x[peaks])
+    return interpolate.splev(np.arange(N),t)
+
+def emd(data):
+	x1=data
+	sd=np.inf
+	while sd>0.1 or (not isImf(x1)):
+		s1=getspline(x1)
+		s2=-getspline(-1*x1)
+		x2=x1-(s1+s2)/2
+		sd=np.sum((x1-x2)**2)/np.sum(x1**2)
+		x1=x2
+	return x1
 
 
 #对有手势的数据进行手势判断
@@ -22,16 +68,18 @@ def detect_cal_true(datadir):
 			print(filepath)
 			ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime=filecontrol.oridataread(filepath)
 
+			# recurrenceplot(ppgx)
 			butter=bandpass(2,5,200,ppgx)
 			energy=MAfind.calenergy(butter)
 
-			# plt.subplot(3,1,1)
-			# plt.plot(range(len(butter)), butter, 'red',linewidth=0.6)
-			# plt.subplot(3,1,2)
-			# plt.plot(range(len(energy)), energy, 'red',linewidth=0.6)
-			# plt.subplot(3,1,3)
-			# plt.plot(range(len(JS)), JS, 'red',linewidth=0.6)
-			# plt.show()
+			x1=emd(butter)
+			plt.subplot(3,1,1)
+			plt.plot(range(len(butter)), butter, 'red',linewidth=0.6)
+			plt.subplot(3,1,2)
+			plt.plot(range(len(energy)), energy, 'red',linewidth=0.6)
+			plt.subplot(3,1,3)
+			plt.plot(range(len(x1)), x1, 'red',linewidth=0.6)
+			plt.show()
 
 			indexcal=indexcal+1
 			for i in range(len(energy)):
@@ -141,14 +189,15 @@ def detect_cal_false(datadir):
 					# plt.show()	
 					break
 
+		x1=emd(butter)
 
-		# plt.subplot(3,1,1)
-		# plt.plot(range(len(butter)), butter, 'red',linewidth=0.6)
-		# plt.subplot(3,1,2)
-		# plt.plot(range(len(energy)), energy, 'red',linewidth=0.6)
-		# plt.subplot(3,1,3)
-		# plt.plot(range(len(JS)), JS, 'red',linewidth=0.6)
-		# plt.show()
+		plt.subplot(3,1,1)
+		plt.plot(range(len(butter)), butter, 'red',linewidth=0.6)
+		plt.subplot(3,1,2)
+		plt.plot(range(len(energy)), energy, 'red',linewidth=0.6)
+		plt.subplot(3,1,3)
+		plt.plot(range(len(x1)), x1, 'red',linewidth=0.6)
+		plt.show()
 					
 		print(indexcal,energycal,shannoncal,jscal)
 	print(indexcal,energycal,shannoncal,jscal)

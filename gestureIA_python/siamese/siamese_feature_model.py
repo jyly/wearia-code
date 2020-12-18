@@ -7,94 +7,95 @@ import tensorflow as tf
 from sklearn.utils import shuffle
 from siamese.filecontrol import * 
 
+def siamese_feature(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
+
+    train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
+    test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
+    print("训练集对数：",train_pairs.shape)
+    print("测试集对数：",test_pairs.shape)
+
+    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
+    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
+    print("训练集对数：",train_pairs.shape)
+    print("测试集对数：",test_pairs.shape)
+    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+
+    input_shape = (len(train_data[0]),1)
+    print(input_shape)
+
+    model,based_model=create_siamese_network(input_shape)
+    history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
+           batch_size=8159, epochs=40)  
+    #计算训练集中的判定分数的均值
+    test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
+
+    test_pred=np.array(test_pred)
+    return test_pred,test_label
+
+def siamese_weighted_feature(train_data,test_data, train_target,test_target, trainindex,testindex,featurenum,anchornum):
+
+    train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
+    test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
+    print("训练集对数：",train_pairs.shape)
+    print("测试集对数：",test_pairs.shape)
+   
+    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
+    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
+    print("训练集对数：",train_pairs.shape)
+    print("测试集对数：",test_pairs.shape)
+    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+
+    input_shape = (featurenum,1)
+    print(input_shape)
+
+    ppg_model,ppg_based_model=create_siamese_network_mlp(input_shape)
+    history = ppg_model.fit([train_pairs[:, 0,:featurenum], train_pairs[:, 1,:featurenum]], train_label,  
+           batch_size=512, epochs=10)  
+    ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
+    ppg_test_pred=np.array(ppg_test_pred)
+   
+
+    motion_model,motion_based_model=create_siamese_network_mlp(input_shape)
+    history = motion_model.fit([train_pairs[:, 0,featurenum:], train_pairs[:, 1,featurenum:]], train_label,  
+           batch_size=4096, epochs=10)  
+    motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:], test_pairs[:, 1,featurenum:]])
+    motion_test_pred=np.array(motion_test_pred)
+
+    test_pred=[]
+    for i in range(len(ppg_test_pred)):
+        test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+    # test_pred=ppg_test_pred
+    return test_pred,test_label
+
 
 
 def siamese_mul_model_feature(train_data,test_data, train_target,test_target, trainindex,testindex,featurenum,anchornum):
 
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
     test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
-    train_label=np.array(train_label)
-    test_label=np.array(test_label)
-
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
    
     train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
     test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
 
-
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
-
+    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
 
     input_shape = (featurenum,1)
 
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-
-    mul_model,base_model_1,base_network_2=create_mul_siamese_network(input_shape,input_shape)
+    mul_model,base_model_1,base_network_2=create_mul_feature_siamese_network(input_shape,input_shape)
 
     history = mul_model.fit([train_pairs[:, 0,:featurenum], train_pairs[:, 1,:featurenum], train_pairs[:, 0,featurenum:], train_pairs[:, 1,featurenum:]],
-        train_label, batch_size=4096, epochs=40)
+        train_label, batch_size=512, epochs=10)
     test_pred = mul_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum],test_pairs[:, 0,featurenum:], test_pairs[:, 1,featurenum:]])
-
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=ppg_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # ppg_test_pred=temp_pred
-    # print("len(ppg_test_pred):",len(ppg_test_pred))
-    # print("len(test_label):",len(test_label))
     test_pred=np.array(test_pred)
-
-    test_pred=[i for i in test_pred]
-    print("test_pred:",test_pred)
 
     return test_pred,test_label
 
 
-def siamese_feature(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
-    # train_pairs, train_label = create_pairs_based(train_data, train_target,trainindex)
-    # test_pairs, test_label = create_pairs_based(test_data, test_target,testindex)
-
-    train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
-    test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
-
-    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
-    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
 
 
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-    input_shape = (len(train_data[0]),1)
 
-    print(input_shape)
-    model,based_model=create_siamese_network(input_shape)
-    # model=create_presudo_siamese_network(input_shape)
-
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-    history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=8159, epochs=40,
-           validation_split=0.2)  
-
-    #计算训练集中的判定分数的均值
-    test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
-
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # test_pred=temp_pred
-    # print("len(test_pred):",len(test_pred))
-    # print("len(test_label):",len(test_label))
-    
-    test_pred=np.array(test_pred)
-    return test_pred,test_label
 
 def siamese_feature_buildmodel(train_data, train_target,num_classes):
     # train_pairs, train_label = create_pairs_incre_1(train_data, train_target,num_classes)
@@ -108,16 +109,6 @@ def siamese_feature_buildmodel(train_data, train_target,num_classes):
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
            batch_size=8192,epochs=40,
            validation_split=0.2)  
-
-    # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
-    #       batch_size=128,
-    #       epochs=50,verbose=2,
-    #       validation_data=([val_pairs[:, 0], val_pairs[:, 1]], val_label))
-    
-    # batch_size=1024
-    # model.fit_generator(pairSequence(train_pairs, train_label, batch_size),
-    #   epochs=50,steps_per_epoch=(int(len(train_pairs)/batch_size)+1)
-    #   )
     model.save_weights('./parameter/model_weights.h5')
     based_model.save_weights('./parameter/based_model_weights.h5')
     based_model.save('./parameter/based_model.h5')
@@ -146,93 +137,11 @@ def siamese_feature_final(data,target,num_classes,anchornum=5):
     converter = tf.lite.TFLiteConverter.from_keras_model_file('./parameter/based_model.h5')
     tflite_model = converter.convert()
     open("./parameter/based_model.tflite", "wb").write(tflite_model)
-
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     # temp_label.append(test_label[i*5])
-    #     for j in range(anchornum):
-    #         temppred+=test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # test_pred=temp_pred
-
     print("len(test_pred):",len(test_pred))
     print("len(test_label):",len(test_label))
     test_label=np.array(test_label)
     test_pred=np.array(test_pred)
     return test_pred,test_label
-
-
-
-def siamese_mul_feature(train_data,test_data, train_target,test_target, trainindex,testindex,featurenum,anchornum):
-
-    train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
-    test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
-
-    train_label=np.array(train_label)
-    test_label=np.array(test_label)
-
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-   
-    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
-    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
-
-
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-
-
-    input_shape = (featurenum,1)
-
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-
-    ppg_model,ppg_based_model=create_siamese_network(input_shape)
-    history = ppg_model.fit([train_pairs[:, 0,:featurenum], train_pairs[:, 1,:featurenum]], train_label,  
-           batch_size=4096, epochs=40)  
-    ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=ppg_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # ppg_test_pred=temp_pred
-    # print("len(ppg_test_pred):",len(ppg_test_pred))
-    # print("len(test_label):",len(test_label))
-    ppg_test_pred=np.array(ppg_test_pred)
-   
-
-    motion_model,motion_based_model=create_siamese_network(input_shape)
-    history = motion_model.fit([train_pairs[:, 0,featurenum:], train_pairs[:, 1,featurenum:]], train_label,  
-           batch_size=4096, epochs=40)  
-    motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:], test_pairs[:, 1,featurenum:]])
-    #对样本对进行额外处理
-    # temp_pred=[]
-    # for i in range(int(len(test_label))):
-    #     temppred=0
-    #     for j in range(anchornum):
-    #         temppred+=motion_test_pred[i*anchornum+j]
-    #     temp_pred.append(temppred/anchornum)
-    # motion_test_pred=temp_pred
-    # print("len(motion_test_pred):",len(motion_test_pred))
-    # print("len(test_label):",len(test_label))
-    motion_test_pred=np.array(motion_test_pred)
-
-    ppg_test_pred=[i for i in ppg_test_pred]
-    motion_test_pred=[i for i in motion_test_pred]
-    print("ppg_test_pred:",ppg_test_pred)
-    print("motion_test_pred:",motion_test_pred)
-
-    test_pred=[]
-    for i in range(len(ppg_test_pred)):
-        test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
-    # test_pred=ppg_test_pred
-    return test_pred,test_label
-
-
 
 
 

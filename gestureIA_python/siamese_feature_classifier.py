@@ -51,15 +51,17 @@ def siamese_feature_based_classifier(dataset,target,targetnum):
 
 
 
-
-def siamese_feature_divide_class(feature,target,targetnum):
-
+#单孪生网络
+def siamese_feature_class(feature,target,targetnum):
 	tempfeature=IAtool.listtodic(feature,target)
 
 	meanacc=[]
 	meanfar=[]
 	meanfrr=[]
 
+	#特征数，选择的锚数
+	featurenum=30
+	anchornum=5
 	#循环次数
 	iternum=30
 	#组合内序号个数
@@ -82,13 +84,13 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		train_data=[]
 		test_data=[]
 
-		# 用于限制训练集数量
-		selectks=[]
-		for i in rangek:
-			if i not in selectk[t]:
-				selectks.append(i)
-		selectks = random.sample(selectks, trainsetnumber)
-		print("被选择的训练集序号：",selectks)
+		# # 用于限制训练集数量
+		# selectks=[]
+		# for i in rangek:
+		# 	if i not in selectk[t]:
+		# 		selectks.append(i)
+		# selectks = random.sample(selectks, trainsetnumber)
+		# print("被选择的训练集序号：",selectks)
 
 		print("被选择的测试集序号：",selectk[t])
 		for i in range(targetnum):
@@ -106,17 +108,12 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
 
-		#特征数，选择的锚数
-		featurenum=10
-		anchornum=5
-
 		# sort,scale_mean,scale_scale=IAtool.filterparameterread('./parameter/stdpropara.txt')
 		# train_data=IAtool.scoreselect(train_data,sort,featurenum)
 		# test_data=IAtool.scoreselect(test_data,sort,featurenum)
 		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
-		
 		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
-
+		
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
 		score,label= siamese_feature(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
@@ -124,10 +121,10 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		label=[i for i in label]
 		print('原结果：',label)
 		print('预测分数：',score)
-		siamese_far_frr(label,score)
-		accuracy,far,frr=cal_siamese_eer(label,score)
+		# siamese_far_frr(label,score)
 		# siamese_feature_build_class(train_data,train_target,trainindex,featurenum)
 		# accuracy,far,frr=siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)
+		accuracy,far,frr=cal_siamese_eer(label,score)
 		meanacc.append(accuracy)
 		meanfar.append(far)
 		meanfrr.append(frr)
@@ -137,7 +134,7 @@ def siamese_feature_divide_class(feature,target,targetnum):
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
 
 
-def siamese_feature_mul_divide_class(feature,target,targetnum):
+def siamese_feature_mul_class(feature,target,targetnum):
 
 	tempfeature=IAtool.listtodic(feature,target)
 
@@ -145,6 +142,8 @@ def siamese_feature_mul_divide_class(feature,target,targetnum):
 	meanfar=[]
 	meanfrr=[]
 
+	featurenum=30
+	anchornum=3
 	#循环次数
 	iternum=10
 	#组合内序号个数
@@ -187,15 +186,10 @@ def siamese_feature_mul_divide_class(feature,target,targetnum):
 		train_data,train_target,trainindex=IAtool.dictolist(train_data)
 		test_data,test_target,testindex=IAtool.dictolist(test_data)
 
-
 		print("训练集项目数：" ,trainindex)
 		print("测试集项目数：",testindex)
 
-		
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
-
-		featurenum=30
-		anchornum=3
 
 		ppg_train_data,ppg_test_data,ppg_sort=IAtool.minepro(train_data[:,0:76],test_data[:,0:76],train_target,featurenum)
 		motion_train_data,motion_test_data,motion_sort=IAtool.minepro(train_data[:,76:],test_data[:,76:],train_target,featurenum)
@@ -212,18 +206,18 @@ def siamese_feature_mul_divide_class(feature,target,targetnum):
 		test_data=IAtool.datacombine(ppg_test_data,motion_test_data)
 	
 
-		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		# train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
 		# IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./stdpropara.txt')
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-		# score,label= siamese_mul_feature(train_data,test_data, train_target, test_target,trainindex,testindex,featurenum,anchornum)
+		# score,label= siamese_weighted_feature(train_data,test_data, train_target, test_target,trainindex,testindex,featurenum,anchornum)
 		score,label= siamese_mul_model_feature(train_data,test_data, train_target, test_target,trainindex,testindex,featurenum,anchornum)
 		score=[i[0] for i in score]
 		label=[i for i in label]
 		print('原结果：',label)
 		print('预测分数：',score)
-		siamese_far_frr(label,score)
+		# siamese_far_frr(label,score)
 		accuracy,far,frr=cal_siamese_eer(label,score)
 		meanacc.append(accuracy)
 		meanfar.append(far)
@@ -276,9 +270,6 @@ def siamese_feature_final_class(test_data,test_target,targetnum,featurenum,ancho
 	print('预测分数：',score)
 	accuracy,far,frr=cal_siamese_eer(label,score)
 	return accuracy,far,frr
-
-
-
 
 
 def siamese_feature_mul_build_class(train_data,train_target,trainindex,featurenum):

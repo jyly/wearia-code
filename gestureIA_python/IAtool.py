@@ -9,6 +9,8 @@ from dtw import dtw
 from scipy.signal import argrelmax
 import math
 
+
+
 #根据项目需要，自定义的工具
 manhattan_distance = lambda x, y: np.abs(x - y)
 euclidean_distance = lambda x, y: np.sqrt(np.power((x - y), 2))
@@ -239,20 +241,18 @@ def sequence_to_300(data):
 def data_resize(data,resize):
 	datalens=len(data[0])
 	inters=float(datalens)/resize
-	temp=[]
-	for i in range(len(data)):
-		temp.append([])
-		for j in range(resize):
-			temp[i].append(data[i][int(j*inters)])
+	temp=[[] for i in range(len(data))]
+	for i in range(resize):
+		for j in range(len(data)):
+			temp[j].append(data[j][int(i*inters)])
 	return temp
 
 
 def datainner(data):
 	innersize=len(str(round(data[0])))
-	temp=[]
-	for i in range(len(data)):
-		# temp.append(float(data[i])/math.pow( 10, (innersize-1)))
-		temp.append(float(data[i])/100000)
+	data=np.array(data)
+	temp=data/100000
+	# temp=data/math.pow( 10, (innersize-1))
 	return temp
 
 
@@ -423,3 +423,41 @@ def datatranspose(data):
 	for i in range(len(data)):
 		tempdata.append(data[i].T)
 	return tempdata	
+
+#对样本对进行额外处理
+def repro_test_pred(test_pred,test_label,anchornum):
+	temp_pred=[]
+	for i in range(int(len(test_label))):
+		temppred=0
+		for j in range(anchornum):
+			temppred+=test_pred[i*anchornum+j]
+		temp_pred.append(temppred/anchornum)
+	test_pred=temp_pred
+	print("len(test_pred):",len(test_pred))
+	print("len(test_label):",len(test_label))
+	return test_pred
+
+
+
+def datatopic(data):
+	tempdata=[]
+	for i in range(len(data)):
+		temp=[]
+		for j in range(len(data[i])):
+			pic=recurrenceplot(data[i][j])
+			temp.append(pic)
+		tempdata.append(temp)
+	return tempdata
+
+def pairtopic(data):
+	tempdata=[]
+	for i in range(len(data)):
+		pair=[]
+		for j in range(len(data[i])):
+			temp=[]
+			for k in range(len(data[i][j])):
+				pic=recurrenceplot(data[i][j][j])
+				temp.append(pic)
+			pair.append(temp)
+		tempdata.append(pair)
+	return tempdata
