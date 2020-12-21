@@ -70,8 +70,9 @@ def create_siamese_network_mlp(input_shape):
 
 def create_siamese_network_conv(input_shape):
     
-    base_network = conv_network(input_shape)
-    # base_network = conv_network_pic(input_shape)
+    # base_network = conv_network(input_shape)
+    # base_network = ResNet50(input_shape)
+    base_network = conv_pic_network(input_shape)
     # base_network = creatresnet(input_shape)
 
     # base_network = conv_network_att(input_shape)

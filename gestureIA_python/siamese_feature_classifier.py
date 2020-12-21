@@ -206,13 +206,13 @@ def siamese_feature_mul_class(feature,target,targetnum):
 		test_data=IAtool.datacombine(ppg_test_data,motion_test_data)
 	
 
-		# train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
 		# IAtool.mulfilterparameterwrite(ppg_sort,motion_sort,scale_mean,scale_scale,'./stdpropara.txt')
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-		# score,label= siamese_weighted_feature(train_data,test_data, train_target, test_target,trainindex,testindex,featurenum,anchornum)
-		score,label= siamese_mul_model_feature(train_data,test_data, train_target, test_target,trainindex,testindex,featurenum,anchornum)
+		score,label= siamese_weighted_feature(train_data,test_data, train_target, test_target,trainindex,testindex,featurenum,anchornum)
+		# score,label= siamese_mul_model_feature(train_data,test_data, train_target, test_target,trainindex,testindex,featurenum,anchornum)
 		score=[i[0] for i in score]
 		label=[i for i in label]
 		print('原结果：',label)

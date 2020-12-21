@@ -50,20 +50,22 @@ def siamese_weighted_feature(train_data,test_data, train_target,test_target, tra
 
     ppg_model,ppg_based_model=create_siamese_network_mlp(input_shape)
     history = ppg_model.fit([train_pairs[:, 0,:featurenum], train_pairs[:, 1,:featurenum]], train_label,  
-           batch_size=512, epochs=10)  
+           batch_size=512, epochs=20)  
     ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
     ppg_test_pred=np.array(ppg_test_pred)
    
 
     motion_model,motion_based_model=create_siamese_network_mlp(input_shape)
     history = motion_model.fit([train_pairs[:, 0,featurenum:], train_pairs[:, 1,featurenum:]], train_label,  
-           batch_size=4096, epochs=10)  
+           batch_size=4096, epochs=20)  
     motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:], test_pairs[:, 1,featurenum:]])
     motion_test_pred=np.array(motion_test_pred)
 
+    r=0.5
     test_pred=[]
     for i in range(len(ppg_test_pred)):
-        test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+        # test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+        test_pred.append(r*ppg_test_pred[i]+(1-r)*motion_test_pred[i])
     # test_pred=ppg_test_pred
     return test_pred,test_label
 

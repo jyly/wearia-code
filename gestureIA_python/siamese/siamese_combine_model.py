@@ -46,8 +46,8 @@ def siamese_weighted_combine(train_data,test_data, train_target,test_target, tra
     print("数据测试集对数：",testdatas_pairs.shape)
     print("特征测试集对数：",testfeatures_pairs.shape)
       
-    # traindatas_pairs=traindatas_pairs.reshape(len(traindatas_pairs),2,len(traindatas_pairs[0][0]),len(traindatas_pairs[0][0][0]),1)
-    # testdatas_pairs=testdatas_pairs.reshape(len(testdatas_pairs),2,len(testdatas_pairs[0][0]),len(testdatas_pairs[0][0][0]),1)
+    traindatas_pairs=traindatas_pairs.reshape(len(traindatas_pairs),2,len(traindatas_pairs[0][0]),len(traindatas_pairs[0][0][0]),1)
+    testdatas_pairs=testdatas_pairs.reshape(len(testdatas_pairs),2,len(testdatas_pairs[0][0]),len(testdatas_pairs[0][0][0]),1)
 
     print("数据训练集对数：",traindatas_pairs.shape)
     print("数据测试集对数：",testdatas_pairs.shape)
@@ -59,39 +59,50 @@ def siamese_weighted_combine(train_data,test_data, train_target,test_target, tra
 
     # ppg_data_shape = (2,len(traindatas_pairs[0][0][0]),1)
     # motion_data_shape = (6,len(traindatas_pairs[0][0][0]),1)
-    ppg_data_shape = (len(train_data[0][0]),2)
-    motion_data_shape = (len(train_data[0][0]),6)
+    data_shape = (len(traindatas_pairs[0][0]),len(traindatas_pairs[0][0][0]),1)
+    # ppg_data_shape = (len(train_data[0][0]),2)
+    # motion_data_shape = (len(train_data[0][0]),6)
     ppg_feature_shape = (30,1)
     motion_feature_shape = (30,1)
-    print("ppg_data_shape:",ppg_data_shape)
-    print("motion_data_shape:",motion_data_shape)
+    # print("ppg_data_shape:",ppg_data_shape)
+    # print("motion_data_shape:",motion_data_shape)
+    print("data_shape:",data_shape)
     print("ppg_feature_shape:",ppg_feature_shape)
     print("motion_feature_shape:",motion_feature_shape)
 
-    ppg_data_model,ppg_data_based_model=create_siamese_network_lstm(ppg_data_shape)
-    motion_data_model,motion_data_based_model=create_siamese_network_lstm(motion_data_shape)
+    # ppg_data_model,ppg_data_based_model=create_siamese_network_lstm(ppg_data_shape)
+    # motion_data_model,motion_data_based_model=create_siamese_network_lstm(motion_data_shape)
+    # ppg_data_model,ppg_data_based_model=create_siamese_network_conv(ppg_data_shape)
+    # motion_data_model,motion_data_based_model=create_siamese_network_conv(motion_data_shape)
+    data_model,data_based_model=create_siamese_network_conv(data_shape)
+
 
     ppg_feature_model,ppg_feature_based_model=create_siamese_network_mlp(ppg_feature_shape)
     motion_feature_model,motion_feature_based_model=create_siamese_network_mlp(motion_feature_shape)
 
 
-    ppg_data_model.fit([traindatas_pairs[:, 0,:,:2], traindatas_pairs[:, 1,:,:2]], train_label,  
-       batch_size=512, epochs=10)  
-    ppg_data_test_pred = ppg_data_model.predict([testdatas_pairs[:, 0,:,:2], testdatas_pairs[:, 1,:,:2]])
+    # ppg_data_model.fit([traindatas_pairs[:, 0,:,:2], traindatas_pairs[:, 1,:,:2]], train_label,  
+    #    batch_size=512, epochs=10)  
+    # ppg_data_test_pred = ppg_data_model.predict([testdatas_pairs[:, 0,:,:2], testdatas_pairs[:, 1,:,:2]])
 
-    motion_data_model.fit([traindatas_pairs[:, 0,:,2:], traindatas_pairs[:, 1,:,2:]], train_label,  
-       batch_size=512, epochs=10)  
-    motion_data_test_pred = motion_data_model.predict([testdatas_pairs[:, 0,:,2:], testdatas_pairs[:, 1,:,2:]])
-
-
+    # motion_data_model.fit([traindatas_pairs[:, 0,:,2:], traindatas_pairs[:, 1,:,2:]], train_label,  
+    #    batch_size=512, epochs=10)  
+    # motion_data_test_pred = motion_data_model.predict([testdatas_pairs[:, 0,:,2:], testdatas_pairs[:, 1,:,2:]])
 
     # ppg_data_model.fit([traindatas_pairs[:, 0,:2], traindatas_pairs[:, 1,:2]], train_label,  
-    #    batch_size=512, epochs=10)  
+    #    batch_size=512, epochs=20)  
     # ppg_data_test_pred = ppg_data_model.predict([testdatas_pairs[:, 0,:2], testdatas_pairs[:, 1,:2]])
 
     # motion_data_model.fit([traindatas_pairs[:, 0,2:], traindatas_pairs[:, 1,2:]], train_label,  
-    #    batch_size=512, epochs=10)  
+    #    batch_size=512, epochs=20)  
     # motion_data_test_pred = motion_data_model.predict([testdatas_pairs[:, 0,2:], testdatas_pairs[:, 1,2:]])
+ 
+    data_model.fit([traindatas_pairs[:, 0], traindatas_pairs[:, 1]], train_label,  
+       batch_size=512, epochs=20)  
+    data_test_pred = data_model.predict([testdatas_pairs[:, 0], testdatas_pairs[:, 1]])
+
+
+
 
     ppg_feature_model.fit([trainfeatures_pairs[:, 0,:30], trainfeatures_pairs[:, 1,:30]], train_label,  
        batch_size=4096, epochs=40)  
@@ -101,10 +112,11 @@ def siamese_weighted_combine(train_data,test_data, train_target,test_target, tra
        batch_size=4096, epochs=40)  
     motion_feature_test_pred = motion_feature_model.predict([testfeatures_pairs[:, 0,30:], testfeatures_pairs[:, 1,30:]])
 
-
+    r=0.9
     test_pred=[]
-    for i in range(len(ppg_data_test_pred)):
-        test_pred.append((ppg_data_test_pred[i]+motion_data_test_pred[i]+ppg_feature_test_pred[i]+motion_feature_test_pred[i])/4)
+    for i in range(len(ppg_feature_test_pred)):
+        # test_pred.append(r*(0.4*ppg_data_test_pred[i]+0.6*motion_data_test_pred[i])+(1-r)*(0.5*ppg_feature_test_pred[i]+0.5*motion_feature_test_pred[i]))
+        test_pred.append(r*(data_test_pred[i])+(1-r)*(0.5*ppg_feature_test_pred[i]+0.5*motion_feature_test_pred[i]))
     # test_pred=ppg_test_pred
     return test_pred,test_label
 

@@ -107,8 +107,8 @@ def siamese_combine_class(datas,features,target,targetnum):
 			test_data[i].append(testdatas[i])
 			test_data[i].append(testfeatures[i])
 
-		# score,label= siamese_weighted_combine(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
-		score,label= siamese_mul_combine(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		score,label= siamese_weighted_combine(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		# score,label= siamese_mul_combine(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		score=[i[0] for i in score]
 		label=[i for i in label]
 		print('原结果：',label)

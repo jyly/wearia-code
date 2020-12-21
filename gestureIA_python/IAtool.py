@@ -454,10 +454,18 @@ def pairtopic(data):
 	for i in range(len(data)):
 		pair=[]
 		for j in range(len(data[i])):
-			temp=[]
-			for k in range(len(data[i][j])):
-				pic=recurrenceplot(data[i][j][j])
-				temp.append(pic)
-			pair.append(temp)
+			# pic=recurrenceplot(data[i][j])
+			pic=gramianplot(data[i][j])
+			pic=np.array(pic)
+			# print(pic.shape)
+			pic=pic.transpose(1,2,0)
+			pair.append(pic)
+		pair=np.array(pair)
+		# print(pair.shape)
+
 		tempdata.append(pair)
 	return tempdata
+
+
+
+
