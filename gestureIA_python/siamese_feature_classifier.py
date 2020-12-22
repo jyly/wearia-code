@@ -60,10 +60,10 @@ def siamese_feature_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#特征数，选择的锚数
-	featurenum=30
+	featurenum=70
 	anchornum=5
 	#循环次数
-	iternum=30
+	iternum=10
 	#组合内序号个数
 	testsetnumber=8
 	#训练集个数
@@ -142,7 +142,7 @@ def siamese_feature_mul_class(feature,target,targetnum):
 	meanfar=[]
 	meanfrr=[]
 
-	featurenum=30
+	featurenum=50
 	anchornum=3
 	#循环次数
 	iternum=10
@@ -191,8 +191,13 @@ def siamese_feature_mul_class(feature,target,targetnum):
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-		ppg_train_data,ppg_test_data,ppg_sort=IAtool.minepro(train_data[:,0:76],test_data[:,0:76],train_target,featurenum)
-		motion_train_data,motion_test_data,motion_sort=IAtool.minepro(train_data[:,76:],test_data[:,76:],train_target,featurenum)
+		ppg_train_data,ppg_test_data,ppg_sort=IAtool.minepro(train_data[:,0:122],test_data[:,0:122],train_target,featurenum)
+		motion_train_data,motion_test_data,motion_sort=IAtool.minepro(train_data[:,122:],test_data[:,122:],train_target,featurenum)
+
+		# ppg_train_data,ppg_test_data,ppg_sort=IAtool.mrmrpro(train_data[:,0:122],test_data[:,0:122],train_target,featurenum)
+		# motion_train_data,motion_test_data,motion_sort=IAtool.mrmrpro(train_data[:,122:],test_data[:,122:],train_target,featurenum)
+
+
 		
 		# ppg_sort,motion_sort,scale_mean,scale_scale=IAtool.mulfilterparameterread('./parameter/stdpropara.txt')
 		# scale_mean=np.array(scale_mean)

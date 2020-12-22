@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 import numpy as np
 from keras.models import Model
-from keras.layers import Input, Activation,ZeroPadding2D,BatchNormalization,AveragePooling2D,MaxPooling2D,GlobalMaxPooling2D,Flatten, Dense, Dropout, Lambda,Conv2D,MaxPooling2D,MaxPooling1D,Conv1D,Reshape,BatchNormalization,Activation,Add,Multiply,Dot,Average,Concatenate,LSTM,Reshape,Permute,Lambda,RepeatVector
+from keras.layers import Input, Activation,ZeroPadding2D,BatchNormalization,AveragePooling2D,MaxPooling2D,GlobalMaxPooling2D,Flatten, Dense, Dropout, Lambda,Conv2D,MaxPooling2D,MaxPooling1D,Conv1D,BatchNormalization,Activation,Add,Multiply,Dot,Average,Concatenate,LSTM,Reshape,Permute,Lambda,RepeatVector
 from keras import optimizers
 import keras.layers as KL
 import keras.backend as K
@@ -15,11 +15,11 @@ def mlp_network(input_shape):
     input = Input(shape=(input_shape), name='input')
     x = Flatten()(input)
     # x = BatchNormalization(epsilon=1e-06)(x)
-    x = Dense(256, activation='relu')(x)
+    x = Dense(128, activation='relu')(x)
     x = Dropout(0.1)(x)
-    x = Dense(256, activation='relu')(x)
+    x = Dense(128, activation='relu')(x)
     x = Dropout(0.1)(x)
-    x = Dense(256, activation='relu')(x)
+    x = Dense(128, activation='relu')(x)
     x = Dropout(0.2)(x)
     x = Dense(128, activation='relu', name='output')(x)
     # x = Dense(2, activation='relu', name='output')(x)
@@ -28,6 +28,40 @@ def mlp_network(input_shape):
 
     return Model(input, x)
 
+
+def attentation_module(inputs,inshape):
+
+    attention_probs = Dense(inshape, activation='softmax')(inputs)
+    attention_mul =Multiply()([inputs, attention_probs])
+
+    return attention_mul
+
+def mlp_network_att(input_shape):
+
+    input = Input(shape=(input_shape), name='input')
+    x = Flatten()(input)
+    # x=Reshape((1,50))(input)
+
+    x=attentation_module(x,308)
+    # x = BatchNormalization(epsilon=1e-06)(x)
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.1)(x)
+    x=attentation_module(x,256)
+
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.1)(x)
+    # x=attentation_module(x,128)
+
+    # x = Dense(128, activation='relu')(x)
+    # x = Dropout(0.2)(x)
+    # x=attentation_module(x,128)
+
+    x = Dense(128, activation='relu', name='output')(x)
+    # x = Dense(2, activation='relu', name='output')(x)
+    # x = Dense(2, activation='softmax', name='output')(x)
+    # x = Dense(128, name='output')(x)
+
+    return Model(input, x)
 
 def mlp_network_incre(input_shape):
 

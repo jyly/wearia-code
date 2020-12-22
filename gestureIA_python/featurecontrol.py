@@ -5,11 +5,16 @@ from scipy.stats import kurtosis,skew
 import math
 from normal_tool import *
 import IAtool
-#特征原集
-def ppg_feature(data):
+from entropy.entropy import spectral_entropy,sample_entropy,perm_entropy
+from EntroPy import multiscale_entropy
+
+
+def motion_feature(data):
 	tempdata=IAtool.to2power(data)
 	data=np.array(data)
+	datalen=len(data)
 	tempdata=np.array(tempdata)
+
 	feature=[]
 	# print("时域特征提取")
 	feature.append(np.mean(data))
@@ -23,11 +28,49 @@ def ppg_feature(data):
 
 
 	mean=np.mean(data)
-	rms=math.sqrt(sum([x ** 2 for x in data]) / len(data))
-	diversion=sum([abs(i) for i in data])/len(data)
+	rms=math.sqrt(sum([x ** 2 for x in data]) / datalen)
+	diversion=sum([abs(i) for i in data])/datalen
 
 	feature.append(rms)
 	feature.append(diversion)
+ 
+	max_per=np.percentile(data,95)
+	min_per=np.percentile(data,5)
+	strong_data=[]
+	for i in range(len(data)):
+		if data[i]<max_per and data[i]>min_per:
+			strong_data.append(data[i])
+	feature.append(np.std(strong_data))
+
+	#shannon entropy
+	dataround=minmaxscale(data)
+	dataround=[round(i,2) for i in dataround]
+	dataround=np.array(dataround)
+	dataroundreshape=dataround.reshape(-1,1)
+	datashannonent=calcShannonEnt(dataroundreshape)
+	feature.append(datashannonent)
+
+	#energy
+	energy=0
+	#contrast
+	con=0
+	# Inverse different moment
+	IDM=0
+	# Homogeneity
+	hom=0
+	for i in range(len(dataround)):
+		energy=energy+dataround[i]*dataround[i]/datalen
+		con=con+(1-i)*(1-i)*dataround[i]/datalen
+		IDM=IDM+dataround[i]/(1+(1-i)*(1-i))
+		hom=hom+dataround[i]/(1+abs(1-i))
+	feature.append(energy)
+	feature.append(con)	
+	feature.append(IDM)
+	feature.append(hom)
+
+	# feature.append(spectral_entropy(dataround,sf=200))
+	feature.append(sample_entropy(dataround,order=2))
+	feature.append(perm_entropy(dataround, order=3, normalize=True))
 
 	interval=[]
 	for i in range(len(data)-1):
@@ -45,12 +88,155 @@ def ppg_feature(data):
 	feature.append(rms)
 	feature.append(diversion)
 
+ 
+	#inter shannon entropy
+	interound=minmaxscale(interval)
+	interound=[round(i,2) for i in interound]
+	interound=np.array(interound)
+	intereshape=interound.reshape(-1,1)
+	intershannonent=calcShannonEnt(intereshape)
+	feature.append(intershannonent)
+
+	#inter
+	#energy
+	energy=0
+	#contrast
+	con=0
+	# Inverse different moment
+	IDM=0
+	# Homogeneity
+	hom=0
+	for i in range(len(interound)):
+		energy=energy+interound[i]*interound[i]/datalen
+		con=con+(1-i)*(1-i)*interound[i]/datalen
+		IDM=IDM+interound[i]/(1+(1-i)*(1-i))
+		hom=hom+interound[i]/(1+abs(1-i))
+	feature.append(energy)
+	feature.append(con)	
+	feature.append(IDM)
+	feature.append(hom)
+
+	feature.append(sample_entropy(interound,order=2))
+	feature.append(perm_entropy(interound, order=3, normalize=True))
+
+	return feature
+
+
+
+def ppg_feature(data):
+	tempdata=IAtool.to2power(data)
+	data=np.array(data)
+	datalen=len(data)
+	tempdata=np.array(tempdata)
+
+	feature=[]
+	# print("时域特征提取")
+	feature.append(np.mean(data))
+	feature.append(np.std(data))
+	feature.append((np.max(data)-np.min(data)))
+	feature.append(np.max(data))
+	feature.append(np.min(data))
+	feature.append(np.median(data))
+	feature.append(kurtosis(data))
+	feature.append(skew(data))
+
+
+	mean=np.mean(data)
+	rms=math.sqrt(sum([x ** 2 for x in data]) / datalen)
+	diversion=sum([abs(i) for i in data])/datalen
+
+	feature.append(rms)
+	feature.append(diversion)
+ 
+	max_per=np.percentile(data,95)
+	min_per=np.percentile(data,5)
+	strong_data=[]
+	for i in range(len(data)):
+		if data[i]<max_per and data[i]>min_per:
+			strong_data.append(data[i])
+	feature.append(np.std(strong_data))
+
+	#shannon entropy
+	dataround=minmaxscale(data)
+	dataround=[round(i,2) for i in dataround]
+	dataround=np.array(dataround)
+	dataroundreshape=dataround.reshape(-1,1)
+	datashannonent=calcShannonEnt(dataroundreshape)
+	feature.append(datashannonent)
+
+	#energy
+	energy=0
+	#contrast
+	con=0
+	# Inverse different moment
+	IDM=0
+	# Homogeneity
+	hom=0
+	for i in range(len(dataround)):
+		energy=energy+dataround[i]*dataround[i]/datalen
+		con=con+(1-i)*(1-i)*dataround[i]/datalen
+		IDM=IDM+dataround[i]/(1+(1-i)*(1-i))
+		hom=hom+dataround[i]/(1+abs(1-i))
+	feature.append(energy)
+	feature.append(con)	
+	feature.append(IDM)
+	feature.append(hom)
+
+	feature.append(sample_entropy(dataround,order=2))
+	feature.append(perm_entropy(dataround, order=3, normalize=True))
+
+	interval=[]
+	for i in range(len(data)-1):
+		interval.append(data[i+1]-data[i])
+
+	feature.append(np.max(interval))
+	feature.append(np.min(interval))
+	feature.append(kurtosis(interval))
+	feature.append(skew(interval))
+
+	mean=np.mean(interval)
+	rms=math.sqrt(sum([x ** 2 for x in interval]) / len(interval))
+	diversion=sum([abs(i) for i in interval])/len(interval)
+	
+	feature.append(rms)
+	feature.append(diversion)
+
+ 
+	#inter shannon entropy
+	interound=minmaxscale(interval)
+	interound=[round(i,2) for i in interound]
+	interound=np.array(interound)
+	intereshape=interound.reshape(-1,1)
+	intershannonent=calcShannonEnt(intereshape)
+	feature.append(intershannonent)
+
+	#inter
+	#energy
+	energy=0
+	#contrast
+	con=0
+	# Inverse different moment
+	IDM=0
+	# Homogeneity
+	hom=0
+	for i in range(len(interound)):
+		energy=energy+interound[i]*interound[i]/datalen
+		con=con+(1-i)*(1-i)*interound[i]/datalen
+		IDM=IDM+interound[i]/(1+(1-i)*(1-i))
+		hom=hom+interound[i]/(1+abs(1-i))
+	feature.append(energy)
+	feature.append(con)	
+	feature.append(IDM)
+	feature.append(hom)
+
+	feature.append(sample_entropy(interound,order=2))
+	feature.append(perm_entropy(interound, order=3, normalize=True))
+
 	# print("频域特征提取")
 
 	#Frequency Domain
 	fre=200
 	freqs, datafft=fft(tempdata,fre)
-
 	extrafft=[]
 	for i in range(len(freqs)):
 		if freqs[i]<5:
@@ -67,11 +253,38 @@ def ppg_feature(data):
 	feature.append(kurtosis(extrafft))
 	feature.append(skew(extrafft))
 
+	#倒频谱
+	freqs, caps=ceps(tempdata,fre)
+	extracapst=[]
+	for i in range(len(freqs)):
+		if freqs[i]<5:
+			extracapst.append(caps[i])
+		else:
+			break
+	feature.append(np.mean(extracapst))
+	feature.append(np.std(extracapst))
+	feature.append((np.max(extracapst)-np.min(extracapst)))
+	feature.append(np.max(extracapst))
+	feature.append(np.min(extracapst))
+	feature.append(np.median(extracapst))
+	feature.append(kurtosis(extracapst))
+	feature.append(skew(extracapst))
+
 	# print("时频域特征提取")
 
 	#Discrete Wavelet Transform
 	coeffs = IAtool.dwt(tempdata,'haar',3)
 	cA3, cD3, cD2 , cD1= coeffs
+
+	# feature.append(np.mean(cD2))	
+	# feature.append(np.std(cD2))
+	# feature.append((np.max(cD2)-np.min(cD2)))
+
+	# feature.append(np.mean(cD3))	
+	# feature.append(np.std(cD3))
+	# feature.append((np.max(cD3)-np.min(cD3)))
+
+
 	feature.append(np.mean(cA3))	
 	feature.append(np.std(cA3))
 	feature.append((np.max(cA3)-np.min(cA3)))
@@ -100,41 +313,3 @@ def ppg_feature(data):
 		acf=get_auto_corr(data,i)
 		feature.append(acf)
 	return feature
-
-def motion_feature(data):
-	feature=[]
-	# print("时域特征提取")
-	feature.append(np.mean(data))
-	feature.append(np.std(data))
-	feature.append((np.max(data)-np.min(data)))
-	feature.append(np.max(data))
-	feature.append(np.min(data))
-	feature.append(np.median(data))
-	feature.append(kurtosis(data))
-	feature.append(skew(data))
-
-
-	mean=np.mean(data)
-	rms=math.sqrt(sum([x ** 2 for x in data]) / len(data))
-	diversion=sum([abs(i) for i in data])/len(data)
-
-	feature.append(rms)
-	feature.append(diversion)
-
-	interval=[]
-	for i in range(len(data)-1):
-		interval.append(data[i+1]-data[i])
-
-	feature.append(np.max(interval))
-	feature.append(np.min(interval))
-	feature.append(kurtosis(interval))
-	feature.append(skew(interval))
-
-	mean=np.mean(interval)
-	rms=math.sqrt(sum([x ** 2 for x in interval]) / len(interval))
-	diversion=sum([abs(i) for i in interval])/len(interval)
-	
-	feature.append(rms)
-	feature.append(diversion)
-	return feature
-

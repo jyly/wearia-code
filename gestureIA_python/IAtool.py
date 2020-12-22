@@ -8,6 +8,8 @@ from sklearn.preprocessing import StandardScaler
 from dtw import dtw
 from scipy.signal import argrelmax
 import math
+import pandas as pd
+from pymrmre import mrmr
 
 
 
@@ -65,6 +67,22 @@ def minepro(train_data,test_data,train_target,i):#训练集数据，测试集数
 	train_data=scoreselect(train_data,sort,i)
 	test_data=scoreselect(test_data,sort,i)
 	return train_data,test_data,sort
+
+def mrmrpro(train_data,testdata,train_target,i):
+	columns=[str(i) for i in range(len(train_data[0]))]
+	df_train = pd.DataFrame(train_data,columns=columns)
+	df_test = pd.DataFrame(testdata,columns=columns)
+	df_target = pd.DataFrame(train_target,columns=['class'])
+	solutions = mrmr.mrmr_ensemble(features=df_train,targets=df_target,solution_length=i)
+	df_train=df_train[solutions[0][0]]
+	df_test=df_test[solutions[0][0]]
+	sort=[int(i) for i in solutions[0][0]]
+	print("mrmrsort:",sort)
+
+	df_train=df_train.values.tolist()
+	df_test=df_test.values.tolist()
+	return df_train,df_test,sort
+
 
 #根据弹性网权重，使用权重最高的i个特征列
 def elasticnetpro(train_data,test_data,train_target,i):#训练集数据，测试集数据，训练集结果，降维后的特征数
