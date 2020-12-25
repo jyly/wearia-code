@@ -25,7 +25,7 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
 
     model,based_model=create_siamese_network_mlp(input_shape)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=512, epochs=5)  
+           batch_size=512, epochs=10)  
     #计算训练集中的判定分数的均值
     test_pred = model.predict([test_pairs[:, 0], test_pairs[:, 1]])
 
@@ -50,14 +50,14 @@ def siamese_weighted_feature(train_data,test_data, train_target,test_target, tra
 
     ppg_model,ppg_based_model=create_siamese_network_mlp(input_shape)
     history = ppg_model.fit([train_pairs[:, 0,:featurenum], train_pairs[:, 1,:featurenum]], train_label,  
-           batch_size=512, epochs=20)  
+           batch_size=512, epochs=10)  
     ppg_test_pred = ppg_model.predict([test_pairs[:, 0,:featurenum], test_pairs[:, 1,:featurenum]])
     ppg_test_pred=np.array(ppg_test_pred)
    
 
     motion_model,motion_based_model=create_siamese_network_mlp(input_shape)
     history = motion_model.fit([train_pairs[:, 0,featurenum:], train_pairs[:, 1,featurenum:]], train_label,  
-           batch_size=512, epochs=30)  
+           batch_size=512, epochs=10)  
     motion_test_pred = motion_model.predict([test_pairs[:, 0,featurenum:], test_pairs[:, 1,featurenum:]])
     motion_test_pred=np.array(motion_test_pred)
 

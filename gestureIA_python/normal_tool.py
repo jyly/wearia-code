@@ -138,11 +138,20 @@ def normalscale(data):
 
 #均值滤波
 def meanfilt(datalist,interval,adddis=1):
+	tempdata=[]
+	for i in range(int(interval/2)):
+		tempdata.append(datalist[0])
+
+	for i in range(len(datalist)):
+		tempdata.append(datalist[i])
+	
+	for i in range(int(interval/2)):
+		tempdata.append(datalist[-1])
+
 	filtlist=[]
-	for i in range(0,len(datalist)-interval,adddis):
-		filtlist.append(np.mean(datalist[i:i+interval]))
-	# for i in range(0,interval):
-	# 	filtlist.append(np.mean(datalist[i-interval:]))
+	for i in range(0,len(datalist),adddis):
+		filtlist.append(np.mean(tempdata[i:i+interval]))
+
 	return filtlist
 
 #3种butterworth滤波方法
@@ -296,3 +305,23 @@ def gramianplot(data):
 
 
 	return X_gasf
+
+#庞加莱图
+def poincare_plot(data):
+	
+	x=[]
+	y=[]
+	for i in range(len(data)-1):
+		x.append(data[i])	
+		y.append(data[i+1])	
+	cal=(2**0.5)/2
+	xt=[]
+	yt=[]
+	for i in range(len(x)):
+		xt.append(cal*(x[i]+y[i]))
+		yt.append(cal*(-x[i]+y[i]))
+
+	sd1=np.max(xt)-np.min(xt)
+	sd2=np.max(yt)-np.min(yt)
+	ratio=sd1/sd2
+	return sd1,sd2,ratio

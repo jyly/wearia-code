@@ -42,11 +42,11 @@ def mlp_network_att(input_shape):
     x = Flatten()(input)
     # x=Reshape((1,50))(input)
 
-    x=attentation_module(x,308)
+    x=attentation_module(x,80)
     # x = BatchNormalization(epsilon=1e-06)(x)
     x = Dense(256, activation='relu')(x)
     x = Dropout(0.1)(x)
-    x=attentation_module(x,256)
+    # x=attentation_module(x,256)
 
     x = Dense(256, activation='relu')(x)
     x = Dropout(0.1)(x)

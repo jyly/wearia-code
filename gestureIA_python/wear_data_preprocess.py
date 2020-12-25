@@ -249,14 +249,26 @@ def renew_feature():
 			i=list(eval(i))
 			temp.append(i)
 			if len(temp)==8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
+				# if len(temp[0])>300:
+				# 	temp=np.array(temp)
+				# 	dataset.append(temp[:,:300])
 				dataset.append(temp)
 				temp=[]
 		inputfile.close()
 		feature=[]
 		for i in range(len(dataset)):
 			temp=[]
+			# dataset[i]=IAtool.data_resize(dataset[i],200)
+
 			temp=temp+featurecontrol.ppg_feature(dataset[i][0])
 			temp=temp+featurecontrol.ppg_feature(dataset[i][1])
+			# print(len(temp))
+			# butter=bandpass(2,5,200,dataset[i][0])
+			# temp=temp+featurecontrol.ppg_feature(butter)
+			# butter=bandpass(2,5,200,dataset[i][1])
+			# temp=temp+featurecontrol.ppg_feature(butter)
+
+
 			temp=temp+featurecontrol.motion_feature(dataset[i][2])
 			temp=temp+featurecontrol.motion_feature(dataset[i][3])
 			temp=temp+featurecontrol.motion_feature(dataset[i][4])

@@ -30,19 +30,19 @@ if __name__ == "__main__":
 	# wear_datadir='./oridata/'
 	# wear_data_preprocess.all_data(wear_datadir)#提取手势的具体数据段
 	# wear_data_preprocess.all_feature(wear_datadir)#提取手势具体数据段的特征
-	# wear_data_preprocess.renew_feature()#提取手势具体数据段的特征
+	wear_data_preprocess.renew_feature()#提取手势具体数据段的特征
 
 	# 将预处理后的数据从文件读到内存
 	# feature,target,targetnum=filecontrol.dataread()#将手势段直接作为特征输入
-	feature,target,targetnum=filecontrol.featureread()#人工利用统计量提取特征
+	# feature,target,targetnum=filecontrol.featureread()#人工利用统计量提取特征
 
 
-	feature,target,targetnum=IAtool.same_gesture_selected(feature,target,targetnum,3)
+	# feature,target,targetnum=IAtool.same_gesture_selected(feature,target,targetnum,3)
 
 
-	print("总样本数：",len(target))
-	print("总类别数：",targetnum)	
-	print("总特征数：",len(feature[0]))
+	# print("总样本数：",len(target))
+	# print("总类别数：",targetnum)	
+	# print("总特征数：",len(feature[0]))
 
 
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 	# siamese分类（基于特征)
 
 	# siamese_feature_classifier.siamese_feature_mul_class(feature,target,targetnum)
-	siamese_feature_classifier.siamese_feature_class(feature,target,targetnum)
+	# siamese_feature_classifier.siamese_feature_class(feature,target,targetnum)
 
 	
 
