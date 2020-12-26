@@ -6,7 +6,7 @@ import math
 from normal_tool import *
 import IAtool
 from entropy.entropy import spectral_entropy,sample_entropy,perm_entropy
-from EntroPy import multiscale_entropy
+# from EntroPy import multiscale_entropy
 
 
 def motion_feature(data):
@@ -46,7 +46,7 @@ def motion_feature(data):
 	dataround=np.array(dataround)
 	dataroundreshape=dataround.reshape(-1,1)
 	datashannonent=calcShannonEnt(dataroundreshape)
-	# feature.append(datashannonent)
+	feature.append(datashannonent)
 
 	#energy
 	energy=0
@@ -66,9 +66,9 @@ def motion_feature(data):
 	feature.append(IDM)
 	feature.append(hom)
 
-	# feature.append(spectral_entropy(dataround,sf=200))
 	feature.append(sample_entropy(dataround,order=2))
 	feature.append(perm_entropy(dataround, order=3, normalize=True))
+	# feature.append(spectral_entropy(dataround,sf=200))
 
 	interval=[]
 	for i in range(len(data)-1):
@@ -115,7 +115,7 @@ def motion_feature(data):
 
 	feature.append(sample_entropy(interound,order=2))
 	feature.append(perm_entropy(interound, order=3, normalize=True))
-
+	# feature.append(spectral_entropy(interound,sf=200))
 	return feature
 
 
@@ -172,25 +172,24 @@ def ppg_feature(data):
 	feature.append(rms)
 
 	#Wigner Ville Distribution
-	x,y,z=WignerVillecal(tempdata)
-	feature.append(np.mean(z))
-	feature.append(np.std(z))
-	feature.append(np.max(z)-np.min(z))
-	feature.append(np.max(z))
-	feature.append(np.min(z))
-	maxindex=z.index(np.max(z))
-	feature.append(x[maxindex])
-	feature.append(y[maxindex])
+	# x,y,z=WignerVillecal(tempdata)
+	# feature.append(np.mean(z))
+	# feature.append(np.std(z))
+	# feature.append(np.max(z)-np.min(z))
+	# feature.append(np.max(z))
+	# feature.append(np.min(z))
+	# maxindex=z.index(np.max(z))
+	# feature.append(x[maxindex])
+	# feature.append(y[maxindex])
 
 	#Autoregressive Coefficients
 	for i in range(1,10):
 		acf=get_auto_corr(data,i)
 		feature.append(acf)
-
 	#incre
 	diversion=sum([abs(i) for i in data])/datalen
 	feature.append(diversion)
- 	diversion=sum([abs(i) for i in cA3])/len(cA3)
+	diversion=sum([abs(i) for i in cA3])/len(cA3)
 	feature.append(diversion)
 
 	#庞加莱图
@@ -226,6 +225,7 @@ def ppg_feature(data):
 
 	feature.append(sample_entropy(dataround,order=2))
 	feature.append(perm_entropy(dataround, order=3, normalize=True))
+	# feature.append(spectral_entropy(dataround,sf=200))
 
 	interval=[]
 	for i in range(len(data)-1):
@@ -269,6 +269,7 @@ def ppg_feature(data):
 	feature.append(hom)
 	feature.append(sample_entropy(interound,order=2))
 	feature.append(perm_entropy(interound, order=3, normalize=True))
+	# feature.append(spectral_entropy(interound,sf=200))
 
 	#倒频谱
 	fre=200
@@ -294,7 +295,7 @@ def ppg_feature(data):
 	for i in range(len(extrafft)):
 		feature.append(extrafft[i])
 	for i in range(len(extracapst)):
-		feature.append(extrafft[i])
+		feature.append(extracapst[i])
 
 	return feature
 

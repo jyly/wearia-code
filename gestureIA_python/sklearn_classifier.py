@@ -4,10 +4,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import OneClassSVM,SVC
 from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier,IsolationForest
 from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier,LocalOutlierFactor
+# from sklearn.neighbors import KNeighborsClassifier,LocalOutlierFactor
 from sklearn.naive_bayes import GaussianNB
 from sklearn.covariance import EllipticEnvelope
-from sklearn.externals import joblib
+# from sklearn.externals import joblib
 import IAtool
 from classifier_tool import *
 from normal_tool import *
@@ -235,7 +235,7 @@ def sklearn_oneclass(featureset,target,classnum):#特征，目标，对第k个�
 		# clf = LocalOutlierFactor(n_neighbors=20, novelty=True, contamination=0.1).fit(oneclasstraindata)
 		# clf = IsolationForest(random_state=0,max_features=len(oneclasstraindata[0]),bootstrap=True).fit(oneclasstraindata)
 
-		joblib.dump(clf, 'model.pkl') 
+		# joblib.dump(clf, 'model.pkl') 
 
 		result = clf.predict(oneclasstestdata)
 		scores = clf.score_samples(oneclasstestdata)

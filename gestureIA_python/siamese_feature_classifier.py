@@ -60,7 +60,7 @@ def siamese_feature_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#特征数，选择的锚数
-	featurenum=80
+	featurenum=20
 	anchornum=5
 	#循环次数
 	iternum=10
@@ -111,8 +111,8 @@ def siamese_feature_class(feature,target,targetnum):
 		# sort,scale_mean,scale_scale=IAtool.filterparameterread('./parameter/stdpropara.txt')
 		# train_data=IAtool.scoreselect(train_data,sort,featurenum)
 		# test_data=IAtool.scoreselect(test_data,sort,featurenum)
-		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
 		train_data,test_data,scale_mean,scale_scale=IAtool.stdpro(train_data,test_data)
+		train_data,test_data,sort=IAtool.minepro(train_data,test_data,train_target,featurenum)
 		
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 

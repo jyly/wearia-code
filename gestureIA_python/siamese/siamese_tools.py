@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 import numpy as np
 import random
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 
 
@@ -254,3 +254,9 @@ def create_victima_test_pair(test_data, test_target,num_classes,anchornum):
     # print("len(test_labels):",len(labels))            
     return np.array(pairs), np.array(labels)
 
+def dataresize(train_pairs,test_pairs,train_label,test_label):
+    train_pairs = train_pairs.astype(np.float32)
+    test_pairs = test_pairs.astype(np.float32)
+    train_label = train_label.astype(np.float32)
+    test_label = test_label.astype(np.float32)
+    return train_pairs,test_pairs,train_label,test_label

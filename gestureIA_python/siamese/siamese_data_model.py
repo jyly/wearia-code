@@ -5,8 +5,6 @@ from siamese.siamese_tools import *
 import numpy as np
 import tensorflow as tf
 from sklearn.utils import shuffle
-from siamese.filecontrol import * 
-import IAtool
 
 def siamese_data(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
@@ -16,19 +14,21 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     print("测试集对数：",test_pairs.shape)
 
     #长-宽-高
-    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
-    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
+    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_pairs[0][0]),len(train_pairs[0][0][0]),1)
+    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_pairs[0][0]),len(test_pairs[0][0][0]),1)
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
+
+    
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
 
     # input_shape = (len(train_data[0]),len(train_data[0][0]))
-    input_shape = (len(train_data[0]),len(train_data[0][0]),1)
+    input_shape = (len(test_pairs[0][0]),len(test_pairs[0][0][0]),1)
     print(input_shape)
 
     model,based_model=create_siamese_network_conv(input_shape)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=1024, epochs=20)  
+           batch_size=2048, epochs=30)  
 
     test_pred = model.predict([test_pairs[:,0], test_pairs[:,1]])
     # test_pred=repro_test_pred(test_pred,test_label,anchornum)
@@ -37,60 +37,60 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
 
 
 
-#2*200*200+6*200*200
-def siamese_weighted_data(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
+# #2*200*200+6*200*200
+# def siamese_weighted_data(train_data,test_data, train_target,test_target, trainindex,testindex,anchornum):
 
 
-    train_pairs, train_label = create_pairs_incre(train_data[:,:2], train_target,trainindex)
-    test_pairs, test_label = create_pairs_incre(test_data[:,:2], test_target,testindex)
-    # train_pairs, train_label = create_pairs_based(train_data[:,:2], train_target,trainindex)
-    # test_pairs, test_label = create_pairs_based(test_data[:,:2], test_target,testindex)
+#     train_pairs, train_label = create_pairs_incre(train_data[:,:2], train_target,trainindex)
+#     test_pairs, test_label = create_pairs_incre(test_data[:,:2], test_target,testindex)
+#     # train_pairs, train_label = create_pairs_based(train_data[:,:2], train_target,trainindex)
+#     # test_pairs, test_label = create_pairs_based(test_data[:,:2], test_target,testindex)
 
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
+#     print("训练集对数：",train_pairs.shape)
+#     print("测试集对数：",test_pairs.shape)
    
 
 
-    # train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
-    # test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
-    # print("训练集对数：",train_pairs.shape)
-    # print("测试集对数：",test_pairs.shape)
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+#     # train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
+#     # test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
+#     # print("训练集对数：",train_pairs.shape)
+#     # print("测试集对数：",test_pairs.shape)
+#     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
 
-    train_pairs=IAtool.pairtopic(train_pairs)
-    test_pairs=IAtool.pairtopic(test_pairs)
+#     train_pairs=IAtool.pairtopic(train_pairs)
+#     test_pairs=IAtool.pairtopic(test_pairs)
 
-    train_pairs=np.array(train_pairs)
-    test_pairs=np.array(test_pairs)
+#     train_pairs=np.array(train_pairs)
+#     test_pairs=np.array(test_pairs)
     
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
+#     print("训练集对数：",train_pairs.shape)
+#     print("测试集对数：",test_pairs.shape)
 
-    ppg_input_shape = (len(train_pairs[0][0]),len(train_pairs[0][0][0]),2)
-    print("ppg_input_shape:",ppg_input_shape)
+#     ppg_input_shape = (len(train_pairs[0][0]),len(train_pairs[0][0][0]),2)
+#     print("ppg_input_shape:",ppg_input_shape)
 
-    # ppg_model,ppg_based_model=create_siamese_network_lstm(ppg_input_shape)
-    ppg_model,ppg_based_model=create_siamese_network_conv(ppg_input_shape)
-    #2*200
-    history = ppg_model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=512, epochs=40)  
-    ppg_test_pred = ppg_model.predict([test_pairs[:, 0], test_pairs[:, 1]])
+#     # ppg_model,ppg_based_model=create_siamese_network_lstm(ppg_input_shape)
+#     ppg_model,ppg_based_model=create_siamese_network_conv(ppg_input_shape)
+#     #2*200
+#     history = ppg_model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
+#            batch_size=512, epochs=40)  
+#     ppg_test_pred = ppg_model.predict([test_pairs[:, 0], test_pairs[:, 1]])
 
-    # motion_input_shape = (6,len(train_data[0][0]),len(test_data[0][0][0]))
-    # print("motion_input_shape:",motion_input_shape)
+#     # motion_input_shape = (6,len(train_data[0][0]),len(test_data[0][0][0]))
+#     # print("motion_input_shape:",motion_input_shape)
 
-    # # motion_model,motion_based_model=create_siamese_network_lstm(motion_input_shape)
-    # motion_model,motion_based_model=create_siamese_network_conv(motion_input_shape)
-    # history = motion_model.fit([train_pairs[:, 0,2:], train_pairs[:, 1,2:]], train_label,  
-    #        batch_size=512, epochs=10)  
-    # motion_test_pred = motion_model.predict([test_pairs[:, 0,2:], test_pairs[:, 1,2:]])
+#     # # motion_model,motion_based_model=create_siamese_network_lstm(motion_input_shape)
+#     # motion_model,motion_based_model=create_siamese_network_conv(motion_input_shape)
+#     # history = motion_model.fit([train_pairs[:, 0,2:], train_pairs[:, 1,2:]], train_label,  
+#     #        batch_size=512, epochs=10)  
+#     # motion_test_pred = motion_model.predict([test_pairs[:, 0,2:], test_pairs[:, 1,2:]])
 
 
-    # test_pred=[]
-    # for i in range(len(ppg_test_pred)):
-    #     test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
-    test_pred=ppg_test_pred
-    return test_pred,test_label
+#     # test_pred=[]
+#     # for i in range(len(ppg_test_pred)):
+#     #     test_pred.append((ppg_test_pred[i]+motion_test_pred[i])/2)
+#     test_pred=ppg_test_pred
+#     return test_pred,test_label
 
 
 

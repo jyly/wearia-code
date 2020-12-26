@@ -1,12 +1,9 @@
 # -*- coding=utf-8 -*-
 import numpy as np
-from keras.models import Model
-from keras.layers import Input, Flatten, Dense, Dropout, Lambda,Conv2D,MaxPooling2D,MaxPooling1D,Conv1D,Reshape,BatchNormalization,Activation,Add,Multiply,Dot,Average,Concatenate,LSTM,Reshape,Permute,Lambda,RepeatVector
-from keras import optimizers
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import *
+from tensorflow.keras import optimizers
 from siamese.siamese_tools import *
-import keras.layers as KL
-import keras.backend as K
-from keras.layers.core import Layer
 from siamese.network import *
 
 
@@ -70,7 +67,9 @@ def create_siamese_network_mlp(input_shape):
 
 def create_siamese_network_conv(input_shape):
     
-    base_network = conv_network(input_shape)
+    # base_network = conv_network(input_shape)
+    base_network = conv_lstm_network_2(input_shape)
+
     # base_network = ResNet50(input_shape)
     # base_network = conv_pic_network(input_shape)
     # base_network = creatresnet(input_shape)

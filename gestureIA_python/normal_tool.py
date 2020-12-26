@@ -8,7 +8,7 @@ from sklearn.linear_model import ElasticNet
 from sklearn import preprocessing
 import pywt
 from math import log,sqrt
-from pyts.image import RecurrencePlot,MarkovTransitionField,GramianAngularField
+# from pyts.image import RecurrencePlot,MarkovTransitionField,GramianAngularField
 
 #多个项目通用的工具
 
@@ -262,49 +262,49 @@ def calcShannonEnt(dataSet):
 		shannonEnt -= prob * log(prob, 2)           #利用公式计算
 	return shannonEnt 
 
-def recurrenceplot(data):
-	result=[]
-	result.append(data)
-	result=np.array(result)
-	rp = RecurrencePlot(threshold='point', percentage=20)
-	X_rp = rp.fit_transform(result)
-	# plt.imshow(X_rp[0], cmap='binary', origin='lower')
-	# plt.title('Recurrence Plot', fontsize=16)
-	# plt.tight_layout()
-	# plt.show()
-	# print(X_rp[0].shape)
-	# print(X_rp[0])
+# def recurrenceplot(data):
+# 	result=[]
+# 	result.append(data)
+# 	result=np.array(result)
+# 	rp = RecurrencePlot(threshold='point', percentage=20)
+# 	X_rp = rp.fit_transform(result)
+# 	# plt.imshow(X_rp[0], cmap='binary', origin='lower')
+# 	# plt.title('Recurrence Plot', fontsize=16)
+# 	# plt.tight_layout()
+# 	# plt.show()
+# 	# print(X_rp[0].shape)
+# 	# print(X_rp[0])
 
-	return X_rp[0]
-
-
-
-def recurrenceplot(data):
-	# result=[]
-	# result.append(data)
-	# result=np.array(result)
-	result=np.array(data)
-	rp = RecurrencePlot(threshold='point', percentage=20)
-	X_rp = rp.fit_transform(result)
-	# plt.imshow(X_rp[0], cmap='binary', origin='lower')
-	# plt.title('Recurrence Plot', fontsize=16)
-	# plt.tight_layout()
-	# plt.show()
-	# print(X_rp[0].shape)
-	# print(X_rp[0])
-
-	return X_rp
+# 	return X_rp[0]
 
 
 
-def gramianplot(data):
+# def recurrenceplot(data):
+# 	# result=[]
+# 	# result.append(data)
+# 	# result=np.array(result)
+# 	result=np.array(data)
+# 	rp = RecurrencePlot(threshold='point', percentage=20)
+# 	X_rp = rp.fit_transform(result)
+# 	# plt.imshow(X_rp[0], cmap='binary', origin='lower')
+# 	# plt.title('Recurrence Plot', fontsize=16)
+# 	# plt.tight_layout()
+# 	# plt.show()
+# 	# print(X_rp[0].shape)
+# 	# print(X_rp[0])
 
-	result=np.array(data)
-	gasf = GramianAngularField(image_size=32, method='summation')
-	X_gasf = gasf.fit_transform(result)
+# 	return X_rp
 
 
-	return X_gasf
+
+# def gramianplot(data):
+
+# 	result=np.array(data)
+# 	gasf = GramianAngularField(image_size=32, method='summation')
+# 	X_gasf = gasf.fit_transform(result)
+
+
+# 	return X_gasf
 
 #庞加莱图
 def poincare_plot(data):

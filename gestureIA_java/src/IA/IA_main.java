@@ -18,14 +18,14 @@ public class IA_main {
 		// 求手势的特征
 //		featurepro.all_feature(dirpath);
 		//求手势的原始数据段
-//		datapro.all_madata(dirpath);
+		datapro.all_madata(dirpath);
 		// 求相对静止状态下的特征
 //		featurepro.static_feature(dirpath);
 		//求相对静止状态下的原始数据段
 //		datapro.static_data(dirpath);
 		
 //		求手势的综合数据
-		combine.all_madata(dirpath);
+//		combine.all_madata(dirpath);
 	}
 
 	

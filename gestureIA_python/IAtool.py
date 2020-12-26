@@ -159,15 +159,8 @@ def to2power(data):
 	tempdata=[]
 	for i in data:
 		tempdata.append(i)
-	flag=0
-	if length<256:
-		flag=256
-	else:
-		if length<512:
-			flag=512
-		else:
-			flag=1024
-	for i in range(flag-length):
+	
+	for i in range(512-length):
 		tempdata.append(0)
 	return tempdata
 
@@ -388,30 +381,6 @@ def dictolist(data):
 
 
 
-def same_gesture_selected(feature,target,targetnum,selectnumber=1):# 数据，标记，选择的手势
-
-	dicdata=listtodic(feature,target)
-	#选择对应的手势
-	selectfeature=[]
-	selectedtarget=[]
-	#选择的手势
-	index=1
-	while selectnumber<targetnum:
-		for i in dicdata[selectnumber]:
-			selectfeature.append(i)
-			selectedtarget.append(index)
-		selectnumber=selectnumber+9
-		index=index+1
-	
-	# print(selectfeature[0])
-	# print(selectedtarget)
-	# print(len(selectedtarget))
-	feature=selectfeature
-	feature=np.array(feature)
-	target=selectedtarget
-	targetnum=index-1
-	return feature,target,targetnum
-
 
 def datashape(train_data,test_data,train_target,test_target):
 	train_data=np.array(train_data)
@@ -457,32 +426,32 @@ def repro_test_pred(test_pred,test_label,anchornum):
 
 
 
-def datatopic(data):
-	tempdata=[]
-	for i in range(len(data)):
-		temp=[]
-		for j in range(len(data[i])):
-			pic=recurrenceplot(data[i][j])
-			temp.append(pic)
-		tempdata.append(temp)
-	return tempdata
+# def datatopic(data):
+# 	tempdata=[]
+# 	for i in range(len(data)):
+# 		temp=[]
+# 		for j in range(len(data[i])):
+# 			pic=recurrenceplot(data[i][j])
+# 			temp.append(pic)
+# 		tempdata.append(temp)
+# 	return tempdata
 
-def pairtopic(data):
-	tempdata=[]
-	for i in range(len(data)):
-		pair=[]
-		for j in range(len(data[i])):
-			# pic=recurrenceplot(data[i][j])
-			pic=gramianplot(data[i][j])
-			pic=np.array(pic)
-			# print(pic.shape)
-			pic=pic.transpose(1,2,0)
-			pair.append(pic)
-		pair=np.array(pair)
-		# print(pair.shape)
+# def pairtopic(data):
+# 	tempdata=[]
+# 	for i in range(len(data)):
+# 		pair=[]
+# 		for j in range(len(data[i])):
+# 			# pic=recurrenceplot(data[i][j])
+# 			pic=gramianplot(data[i][j])
+# 			pic=np.array(pic)
+# 			# print(pic.shape)
+# 			pic=pic.transpose(1,2,0)
+# 			pair.append(pic)
+# 		pair=np.array(pair)
+# 		# print(pair.shape)
 
-		tempdata.append(pair)
-	return tempdata
+# 		tempdata.append(pair)
+# 	return tempdata
 
 
 

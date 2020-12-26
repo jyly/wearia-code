@@ -8,9 +8,7 @@ import MAfind
 
 
 
-
-
-
+# python提取单个行为中手势段的数据
 def single_data(filepath):
 	ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime=filecontrol.orisegmentread(filepath)
 	
@@ -132,7 +130,7 @@ def all_data(datadir):
 
 
 
-
+# python提取单个行为中手势段的特征
 def single_feature(filepath):
 
 	ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime=filecontrol.orisegmentread(filepath)
@@ -234,10 +232,9 @@ def all_feature(datadir):
 
 	print("每个类别的样本数：",featurenumset)
 
-
+#从已提取到的手势段数据中统计特征
 def renew_feature():
 	datadirpath='./selected/madata/'
-	featuredirpath='./selected/feature/'
 	filespace=os.listdir(datadirpath)
 	for file in filespace:	
 		dataset=[]
@@ -249,25 +246,20 @@ def renew_feature():
 			i=list(eval(i))
 			temp.append(i)
 			if len(temp)==8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-				# if len(temp[0])>300:
-				# 	temp=np.array(temp)
+				if len(temp[0])<500:
+					temp=np.array(temp)
+					dataset.append(temp)
+
 				# 	dataset.append(temp[:,:300])
-				dataset.append(temp)
+				# dataset.append(temp)
 				temp=[]
 		inputfile.close()
 		feature=[]
 		for i in range(len(dataset)):
 			temp=[]
-			# dataset[i]=IAtool.data_resize(dataset[i],200)
-
+			# print(len(dataset[i][0]),len(dataset[i][0]))
 			temp=temp+featurecontrol.ppg_feature(dataset[i][0])
 			temp=temp+featurecontrol.ppg_feature(dataset[i][1])
-			# print(len(temp))
-			# butter=bandpass(2,5,200,dataset[i][0])
-			# temp=temp+featurecontrol.ppg_feature(butter)
-			# butter=bandpass(2,5,200,dataset[i][1])
-			# temp=temp+featurecontrol.ppg_feature(butter)
-
 
 			temp=temp+featurecontrol.motion_feature(dataset[i][2])
 			temp=temp+featurecontrol.motion_feature(dataset[i][3])
@@ -277,13 +269,7 @@ def renew_feature():
 			temp=temp+featurecontrol.motion_feature(dataset[i][7])
 			# print(len(temp))
 			feature.append(temp)
+			filenames=str(file).replace("csv","")
+		filecontrol.featurewrite(feature,filenames)
 
-		featurefilepath=featuredirpath+str(file)
-		print(featurefilepath)
-		outputfile=open(featurefilepath,'w+')
-		for i in range(len(feature)):
-			for j in range(len(feature[i])):
-				outputfile.write(str(feature[i][j]))
-				outputfile.write(',')
-			outputfile.write('\n')
-		outputfile.close()
+

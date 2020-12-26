@@ -1,6 +1,5 @@
 # -*- coding=utf-8 -*-
 import numpy as np
-from sklearn.model_selection import train_test_split
 from siamese.siamese_data_model import *
 from classifier_tool import *
 from normal_tool import *
@@ -69,13 +68,13 @@ def siamese_data_class(feature,target,targetnum):
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-		# score,label= siamese_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
-		score,label= siamese_weighted_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		score,label= siamese_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		# score,label= siamese_weighted_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		# score,label= siamese_mul_model_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		score=[i[0] for i in score]
 		label=[i for i in label]
-		print('原结果：',label)
-		print('预测分数：',score)
+		# print('原结果：',label)
+		# print('预测分数：',score)
 		accuracy,far,frr=cal_siamese_eer(label,score)
 		meanacc.append(accuracy)
 		meanfar.append(far)

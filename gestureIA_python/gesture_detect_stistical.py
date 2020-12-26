@@ -1,12 +1,8 @@
 # -*- coding=utf-8 -*-
 import os
-import filecontrol 
 from normal_tool import *
 import MAfind
-import math
 import numpy as np 
-import pylab as pl
-from scipy import fftpack  
 import scipy.signal as signal
 from scipy import interpolate
 

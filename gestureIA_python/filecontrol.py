@@ -2,7 +2,7 @@
 import os
 import numpy as np
 import IAtool
-import normal_tool
+
 #读取原始数据，从文件中将所有数据按传感器进行分类
 def oridataread(path):
 	ppgx=[]
@@ -51,7 +51,7 @@ def oridataread(path):
 	return ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime
 
 
-#将孪生网络的特征和对应的类别写入文件中
+#将孪生网络的特征和对应的类别写入文件中,第一列是类别，后面跟对应的特征
 def siamesefeaturewrite(feature,target):
 	featurefilepath='tempfeature.csv'
 	outputfile=open(featurefilepath,'w+')
@@ -68,6 +68,7 @@ def siamesefeaturewrite(feature,target):
 def featurewrite(feature,filename):
 	dirpath='./selected/feature/'
 	featurefilepath=dirpath+filename+'.csv'
+	print(featurefilepath)
 	outputfile=open(featurefilepath,'w+')
 	for i in range(len(feature)):
 		for j in range(len(feature[i])):
@@ -127,15 +128,13 @@ def dataread():
 			i=list(eval(i))
 			temp.append(i)
 			if len(temp)==8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-				temp=IAtool.data_resize(temp,200)
-				temp[0]=IAtool.datainner(temp[0])
-				temp[1]=IAtool.datainner(temp[1])
-				# normal_tool.recurrenceplot(temp[0])
+				if len(temp[0])<500:
+					temp=IAtool.data_resize(temp,200)
+					temp[0]=IAtool.datainner(temp[0])
+					temp[1]=IAtool.datainner(temp[1])
 
-				# for i in range(len(temp)):
-				# 	freqs,temp[i]=normal_tool.fft(temp[i],200)
-				dataset.append(temp)
-				target.append(index)
+					dataset.append(temp)
+					target.append(index)
 				temp=[]
 		inputfile.close()	
 		index=index+1
@@ -144,24 +143,50 @@ def dataread():
 	target=np.array(target)
 	return dataset,target,targetnum
 
-# 原型系统测试
-def singlefeatureread():
-	filepath='./testfeature/train.csv'
-	trainfeature=[]
-	inputfile=open(filepath,'r+')
-	for i in inputfile:
-		i=list(eval(i))
-		trainfeature.append(i)
-	inputfile.close()	
+
+def same_gesture_selected(feature,target,targetnum,selectnumber=1):# 数据，标记，选择的手势
+
+	dicdata=listtodic(feature,target)
+	#选择对应的手势
+	selectfeature=[]
+	selectedtarget=[]
+	#选择的手势
+	index=1
+	while selectnumber<targetnum:
+		for i in dicdata[selectnumber]:
+			selectfeature.append(i)
+			selectedtarget.append(index)
+		selectnumber=selectnumber+9
+		index=index+1
 	
-	filepath='./testfeature/test.csv'
-	testfeature=[]
-	inputfile=open(filepath,'r+')
-	for i in inputfile:
-		i=list(eval(i))
-		testfeature.append(i)
-	inputfile.close()	
-	return trainfeature,testfeature
+	# print(selectfeature[0])
+	# print(selectedtarget)
+	# print(len(selectedtarget))
+	feature=selectfeature
+	feature=np.array(feature)
+	target=selectedtarget
+	targetnum=index-1
+	return feature,target,targetnum	
+
+
+# # 原型系统测试
+# def singlefeatureread():
+# 	filepath='./testfeature/train.csv'
+# 	trainfeature=[]
+# 	inputfile=open(filepath,'r+')
+# 	for i in inputfile:
+# 		i=list(eval(i))
+# 		trainfeature.append(i)
+# 	inputfile.close()	
+	
+# 	filepath='./testfeature/test.csv'
+# 	testfeature=[]
+# 	inputfile=open(filepath,'r+')
+# 	for i in inputfile:
+# 		i=list(eval(i))
+# 		testfeature.append(i)
+# 	inputfile.close()	
+# 	return trainfeature,testfeature
 
 
 
