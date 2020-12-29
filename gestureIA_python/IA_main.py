@@ -7,11 +7,13 @@ import siamese_data_classifier
 import siamese_feature_classifier
 import siamese_combine_classifier
 
- 
+import tensorflow as tf
 
 if __name__ == "__main__":
 
-
+	config = tf.compat.v1.ConfigProto()
+	config.gpu_options.per_process_gpu_memory_fraction = 0.8
+	session = tf.compat.v1.Session(config=config)
 	#粗过滤手势检测率计算
 	# onlygesture='./gesture_detect/onlygesture/'#存在手势的数据
 	# nogesturedir='./gesture_detect/nogesture/'#前500个人眼过滤过的无手势数据
@@ -26,9 +28,9 @@ if __name__ == "__main__":
 	# wear_data_preprocess.renew_feature()#提取手势具体数据段的特征
 
 
-	print("总样本数：",len(target))
-	print("总类别数：",targetnum)	
-	print("总特征数：",len(feature[0]))
+	# print("总样本数：",len(target))
+	# print("总类别数：",targetnum)	
+	# print("总特征数：",len(feature[0]))
 
 	# 将预处理后的数据从文件读到内存
 	# siamese分类（基于原数据）
@@ -36,7 +38,7 @@ if __name__ == "__main__":
 	# feature,target,targetnum=filecontrol.same_gesture_selected(feature,target,targetnum,3)
 
 	# siamese_data_classifier.siamese_data_class(feature,target,targetnum)
-	siamese_data_classifier.siamese_data_class(feature[:,2:],target,targetnum)
+	siamese_data_classifier.siamese_data_class(feature[:,:2],target,targetnum)
 
 
 

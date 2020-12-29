@@ -5,7 +5,6 @@ from siamese.siamese_tools import *
 import numpy as np
 import tensorflow as tf
 from sklearn.utils import shuffle
-from siamese.filecontrol import * 
 
 
 

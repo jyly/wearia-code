@@ -9,6 +9,7 @@ from itertools import combinations
 
 
 def siamese_data_class(feature,target,targetnum):
+
 	tempfeature=IAtool.listtodic(feature,target)
 	meanacc=[]
 	meanfar=[]
