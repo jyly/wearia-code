@@ -250,11 +250,12 @@ def sequence_to_300(data):
 
 #把数据重采样为指定长度
 def data_resize(data,resize):
-	datalens=len(data[0])
+	datalens=len(data[0])-40
 	inters=float(datalens)/resize
 	temp=[[] for i in range(len(data))]
 	for i in range(resize):
 		for j in range(len(data)):
+			# print(len(data[j]),print(int(i*inters)))
 			temp[j].append(data[j][int(i*inters)])
 	return temp
 

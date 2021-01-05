@@ -128,13 +128,17 @@ def dataread():
 			i=list(eval(i))
 			temp.append(i)
 			if len(temp)==8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-				if len(temp[0])<500:
-					temp=IAtool.data_resize(temp,200)
-					temp[0]=IAtool.datainner(temp[0])
-					temp[1]=IAtool.datainner(temp[1])
+				# if len(temp[0])<500:
+				# for j in range(2,8):
+				# 	temp[j]=IAtool.sequence_incre(temp[j])
 
-					dataset.append(temp)
-					target.append(index)
+
+				temp=IAtool.data_resize(temp,200)
+				temp[0]=IAtool.datainner(temp[0])
+				temp[1]=IAtool.datainner(temp[1])
+
+				dataset.append(temp)
+				target.append(index)
 				temp=[]
 		inputfile.close()	
 		index=index+1

@@ -11,9 +11,10 @@ import tensorflow as tf
 
 if __name__ == "__main__":
 
-	config = tf.compat.v1.ConfigProto()
-	config.gpu_options.per_process_gpu_memory_fraction = 0.8
-	session = tf.compat.v1.Session(config=config)
+	# config = tf.compat.v1.ConfigProto()
+	# config.gpu_options.per_process_gpu_memory_fraction = 0.8
+	# session = tf.compat.v1.Session(config=config)
+
 	#粗过滤手势检测率计算
 	# onlygesture='./gesture_detect/onlygesture/'#存在手势的数据
 	# nogesturedir='./gesture_detect/nogesture/'#前500个人眼过滤过的无手势数据
@@ -35,10 +36,10 @@ if __name__ == "__main__":
 	# 将预处理后的数据从文件读到内存
 	# siamese分类（基于原数据）
 	feature,target,targetnum=filecontrol.dataread()#将手势段直接作为特征输入
-	# feature,target,targetnum=filecontrol.same_gesture_selected(feature,target,targetnum,3)
+	# feature,target,targetnum=filecontrol.same_gesture_selected(feature,target,targetnum,3)#选择同一手势的数据
 
-	# siamese_data_classifier.siamese_data_class(feature,target,targetnum)
-	siamese_data_classifier.siamese_data_class(feature[:,:2],target,targetnum)
+	# siamese_data_classifier.siamese_data_authentication(feature,target,targetnum)
+	siamese_data_classifier.siamese_data_authentication(feature[:,:2],target,targetnum)
 
 
 
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 	# 	for j in range(30):
 	# 		temp.append(feature[i][j])
 	# 	for j in range(30):
-	# 		temp.append(feature[i][j+101])
+	# 		temp.append(feature[i][j+101])W
 	# 	tempfeature3.append(temp)
 	# tempfeature3=np.array(tempfeature3)
 	# print(tempfeature3.shape)

@@ -5,6 +5,7 @@ from siamese.siamese_tools import *
 import numpy as np
 import tensorflow as tf
 from sklearn.utils import shuffle
+from tensorflow.keras.utils import to_categorical
 
 def siamese_data(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
@@ -13,25 +14,22 @@ def siamese_data(train_data,test_data, train_target,test_target,trainindex,testi
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
 
-    #长-宽-高
-    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_pairs[0][0]),len(train_pairs[0][0][0]),1)
-    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_pairs[0][0]),len(test_pairs[0][0][0]),1)
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-
-    
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
 
     train_pairs,test_pairs,train_label,test_label=dataresize(train_pairs,test_pairs,train_label,test_label)
 
     # input_shape = (len(train_data[0]),len(train_data[0][0]))
-    input_shape = (len(test_pairs[0][0]),len(test_pairs[0][0][0]),1)
+    input_shape = (len(test_pairs[0][0]),len(test_pairs[0][0][0]))
     print(input_shape)
 
-    # model,based_model=create_siamese_network_conv(input_shape)
-    model,based_model=create_siamese_network_lstm(input_shape)
+
+    # train_label = to_categorical(train_label, num_classes=None)
+    # print(len(train_label[0]))
+
+    model,based_model=create_siamese_network_conv(input_shape)
+    # model,based_model=create_siamese_network_lstm(input_shape)
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=2048, epochs=20)  
+           batch_size=512, epochs=20)  
 
     test_pred = model.predict([test_pairs[:,0], test_pairs[:,1]])
     # test_pred=repro_test_pred(test_pred,test_label,anchornum)

@@ -6,7 +6,10 @@ from tensorflow.keras import optimizers
 from siamese.siamese_tools import *
 from siamese.network import *
 
+from tensorflow.keras.utils import  plot_model
 
+import os
+os.environ["PATH"] += ";E:/system/python/graphviz/bin/"
 
 def create_siamese_network(input_shape):
     
@@ -31,7 +34,6 @@ def create_siamese_network(input_shape):
 
 def create_siamese_network_lstm(input_shape):
     
-    base_network = pyramid_3(input_shape)
     # base_network = lstm_network_1(input_shape)
     # base_network = lstm_network_att(input_shape)
 
@@ -70,6 +72,11 @@ def create_siamese_network_conv(input_shape):
     
     base_network = conv_network(input_shape)
     # base_network = conv_lstm_network_2(input_shape)
+    # base_network = convlstm2D(input_shape)
+    # base_network = SBNN(input_shape)
+    # base_network = DCNN(input_shape)
+    # base_network = pyramid_ppg(input_shape)
+
 
     # base_network = ResNet50(input_shape)
     # base_network = conv_pic_network(input_shape)
@@ -77,16 +84,25 @@ def create_siamese_network_conv(input_shape):
 
     # base_network = conv_network_att(input_shape)
     base_network.summary()
+    plot_model(base_network, './base_network.png', show_shapes=True)
+
     input_a = Input(shape=input_shape)
     input_b = Input(shape=input_shape)
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
+
+    # processed =Concatenate()([processed_a, processed_b])
+    # distance = Dense(2, activation='relu',name='distance')(processed)
+
     distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
     model = Model([input_a, input_b], distance)
     model.summary()
 
     rms = optimizers.RMSprop()
     model.compile(loss=contrastive_loss_1, optimizer=rms, metrics=[accuracy])
+    # model.compile(loss='categorical_crossentropy', optimizer=rms, metrics=[accuracy])
+    # model.compile(loss='binary_crossentropy', optimizer=rms, metrics=[accuracy])
+    # model.compile(loss='mean_squared_error', optimizer=rms, metrics=[accuracy])
     return model,base_network
 
 def create_mul_feature_siamese_network(input_shape_1,input_shape_2):
