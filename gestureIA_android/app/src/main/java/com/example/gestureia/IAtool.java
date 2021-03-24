@@ -1,8 +1,6 @@
 package com.example.gestureia;
 
 
-import android.util.Log;
-
 import org.fastica.FastICA;
 import org.fastica.FastICAException;
 import java.util.ArrayList;
@@ -12,7 +10,7 @@ import org.apache.commons.math3.complex.Complex;
 public class IAtool {
 
     // 将ppg的array转化成矩阵，混合信号矩阵
-    public double[][] constructmixsignal(Ppg ppgs) {
+    public double[][] constructmixsignal(PPG ppgs) {
         int arraylength = ppgs.x.length;
         double[][] mixedSignal = new double[2][arraylength];
         mixedSignal[0] = ppgs.x;
@@ -21,15 +19,15 @@ public class IAtool {
     }
 
     // 将分离后的信号矩阵恢复为ppg
-    public Ppg constructnewppg(double[] x, double[] y) {
-        Ppg ppgs = new Ppg();
+    public PPG constructnewppg(double[] x, double[] y) {
+        PPG ppgs = new PPG();
         ppgs.x=x;
         ppgs.y=y;
         return ppgs;
     }
 
     // 快速独立成分分析
-    public Ppg fastica(Ppg ppgs) {
+    public PPG fastica(PPG ppgs) {
         int arraylength = ppgs.x.length;
         double[][] mixedSignal = constructmixsignal(ppgs);
         double[][] cleanSignal = new double[2][arraylength];
@@ -39,21 +37,21 @@ public class IAtool {
         } catch (FastICAException e) {
             e.printStackTrace();
         }
-        Ppg temp = constructnewppg(cleanSignal[0], cleanSignal[1]);
+        PPG temp = constructnewppg(cleanSignal[0], cleanSignal[1]);
         mixedSignal=null;
         cleanSignal=null;
         return temp;
     }
 
     // 根据峰值判断那条手势信号和脉冲信号
-    public Ppg machoice(Ppg ppgs) {
+    public PPG machoice(PPG ppgs) {
         double[][] tempSignal = constructmixsignal(ppgs);
         Kurtosis kurtosis = new Kurtosis();
         double xkur = kurtosis.evaluate(tempSignal[0]);
         double ykur = kurtosis.evaluate(tempSignal[1]);
         kurtosis=null;
         System.out.println("xkur:" + xkur + " ykur:" + ykur);
-        Ppg temp = new Ppg();
+        PPG temp = new PPG();
         if (Math.abs(xkur) > (Math.abs(ykur))) {
             temp = constructnewppg(tempSignal[0], tempSignal[1]);
         } else {
@@ -97,7 +95,7 @@ public class IAtool {
     }
 
     // 计算傅里叶变换的振幅和对应的频率
-    public Fftvalue fftcal(Complex[] x, double fre) {
+    public FFTvalue fftcal(Complex[] x, double fre) {
         int xlen = (int) (x.length / 2);
 
         double [] fftscore=new double[xlen];
@@ -107,7 +105,7 @@ public class IAtool {
                             / (double) (x.length));
             fluency[i]=(i / (double) (x.length) * fre);
         }
-        Fftvalue tempvalue = new Fftvalue(fluency,fftscore);
+        FFTvalue tempvalue = new FFTvalue(fluency,fftscore);
         fluency=null;
         fftscore=null;
 //		for (int i = 0; i < xlen; i++) {

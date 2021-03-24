@@ -210,7 +210,7 @@ def single_feature(filepath):
 	# 		tempfeature.append(i)
 	return tag,tempfeature
 
-# #提取手势具体数据段的特征
+#提取手势具体数据段的特征
 def all_feature(datadir):
 	oridataspace=os.listdir(datadir)
 	objnum=0

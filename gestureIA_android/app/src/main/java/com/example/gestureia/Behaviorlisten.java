@@ -4,24 +4,11 @@ package com.example.gestureia;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
-import android.content.res.AssetFileDescriptor;
 import android.os.IBinder;
 import android.util.Log;
 
-import org.tensorflow.lite.Interpreter;
-
 import androidx.annotation.Nullable;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -66,12 +53,12 @@ public class Behaviorlisten extends Service {
                 Log.e(">>>", "ppg.newindex:" + sensors.getppgsize());
 
                 if (1==sensors.maxflag && sleepcount == 0) {
-                    Ppg ppgs = sensors.getnewppgseg(1800);
+                    PPG ppgs = sensors.getnewppgseg(1800);
                     Motion motions = sensors.getnewmotionseg(900);
 
                     Normal_tool nortools = new Normal_tool();
                     MAfind ma = new MAfind();
-                    Ppg orippg=new Ppg();
+                    PPG orippg=new PPG();
                     orippg.x = nortools.meanfilt(ppgs.x, 20);
                     orippg.y = nortools.meanfilt(ppgs.y, 20);
 
@@ -80,12 +67,12 @@ public class Behaviorlisten extends Service {
                     Log.e(">>>", "coarsetag:" + coarsetag);
                     if (1 == coarsetag) {
                         //对原始的ppg型号做butterworth提取
-                        Ppg butterppg = new Ppg();
+                        PPG butterppg = new PPG();
                         butterppg.x = nortools.butterworth_highpass(orippg.x, 200, 2);
                         butterppg.y = nortools.butterworth_highpass(orippg.y, 200, 2);
                         // 做快速主成分分析
                         IAtool iatools = new IAtool();
-                        Ppg icappg = iatools.fastica(butterppg);
+                        PPG icappg = iatools.fastica(butterppg);
                         // 根据峰值判断那条手势信号和脉冲信号
                         icappg = iatools.machoice(icappg);
                         iatools = null;
@@ -129,7 +116,7 @@ public class Behaviorlisten extends Service {
     }
 
 
-    public void scorerun(final Ppg ppg,final Motion motion ){
+    public void scorerun(final PPG ppg, final Motion motion ){
         new Thread(new Runnable() {
             @Override
             public void run() {

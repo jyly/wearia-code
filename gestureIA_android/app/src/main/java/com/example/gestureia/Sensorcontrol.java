@@ -163,9 +163,9 @@ public class Sensorcontrol {
     };
 
 
-    public Ppg getnewppgseg(int lens) {
+    public PPG getnewppgseg(int lens) {
         int length = pi;
-        Ppg ppgs = new Ppg(lens);
+        PPG ppgs = new PPG(lens);
         for (int i = 0; i < lens; i++) {
 //            int iters = (6000 + i + length - lens - 10) % 6000;
             int iters = i + length - lens - 10;
@@ -179,7 +179,7 @@ public class Sensorcontrol {
         return ppgs;
     }
 
-    public Ppg getnewppgseg() {
+    public PPG getnewppgseg() {
         return getnewppgseg(pi);
     }
 

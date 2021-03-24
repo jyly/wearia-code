@@ -82,8 +82,8 @@ public class filecontrol {
 		}
 	}
 
-	public Ppg orippgread(File filepath) {
-		Ppg ppgs = null;
+	public PPG orippgread(File filepath) {
+		PPG ppgs = null;
 		ArrayList<Double> ppgx = new ArrayList<Double>();
 		ArrayList<Double> ppgy = new ArrayList<Double>();
 		ArrayList<Long> ppgtimestamps = new ArrayList<>();
@@ -134,7 +134,7 @@ public class filecontrol {
 			}
 			in.close();
 			Normal_tool normal = new Normal_tool();
-			ppgs = new Ppg(normal.arraytomatrix(ppgx), normal.arraytomatrix(ppgy),
+			ppgs = new PPG(normal.arraytomatrix(ppgx), normal.arraytomatrix(ppgy),
 					normal.arraytomatrix_l(ppgtimestamps));
 			normal = null;
 		} catch (IOException e) {

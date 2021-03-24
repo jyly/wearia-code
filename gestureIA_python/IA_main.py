@@ -6,8 +6,9 @@ import gesture_detect_stistical
 import siamese_data_classifier
 import siamese_feature_classifier
 import siamese_combine_classifier
-
+import numpy as np
 import tensorflow as tf
+import keras_mulclassifier
 
 if __name__ == "__main__":
 
@@ -21,8 +22,8 @@ if __name__ == "__main__":
 	# gesture_detect_stistical.detect_cal_true(onlygesture)
 	# gesture_detect_stistical.detect_cal_false(nogesturedir)
 
-
-	#python版数据预处理，java提取特征更快
+	
+	#python版数据预处理，最终提取的结果与java版存在差异
 	# wear_datadir='./oridata/'
 	# wear_data_preprocess.all_data(wear_datadir)#提取手势的具体数据段
 	# wear_data_preprocess.all_feature(wear_datadir)#提取手势具体数据段的特征
@@ -34,13 +35,19 @@ if __name__ == "__main__":
 	# print("总特征数：",len(feature[0]))
 
 	# 将预处理后的数据从文件读到内存
+
+
+
 	# siamese分类（基于原数据）
 	feature,target,targetnum=filecontrol.dataread()#将手势段直接作为特征输入
+	# print(feature[0][0])
 	# feature,target,targetnum=filecontrol.same_gesture_selected(feature,target,targetnum,3)#选择同一手势的数据
 
 	# siamese_data_classifier.siamese_data_authentication(feature,target,targetnum)
 	siamese_data_classifier.siamese_data_authentication(feature[:,:2],target,targetnum)
-
+	# siamese_data_classifier.siamese_data_identification(feature[:,2:],target,targetnum)
+	# siamese_data_classifier.siamese_data_multask(feature[:,:2],target,targetnum)
+	# keras_mulclassifier.keras_mulclass(feature[:,:2],target,targetnum)
 
 
 
@@ -51,32 +58,31 @@ if __name__ == "__main__":
 	# feature,target,targetnum=filecontrol.featureread()#人工利用统计量提取特征
 	# feature,target,targetnum=filecontrol.same_gesture_selected(feature,target,targetnum,3)
 
-	# feature=np.array(feature)
-	# tempfeature3=[]
+	# tempfeature=[]
 	# for i in range(len(feature)):
 	# 	temp=[]
 	# 	for j in range(30):
 	# 		temp.append(feature[i][j])
 	# 	for j in range(30):
-	# 		temp.append(feature[i][j+101])W
-	# 	tempfeature3.append(temp)
-	# tempfeature3=np.array(tempfeature3)
-	# print(tempfeature3.shape)
+	# 		temp.append(feature[i][j+101])
+	# 	tempfeature.append(temp)
+	# tempfeature=np.array(tempfeature)
+	# print(tempfeature.shape)
 
-	# tempfeature3=[]
+	# tempfeature=[]
 	# for i in range(len(feature)):
 	# 	temp=[]
 	# 	for j in range(70):
 	# 		temp.append(feature[i][j+31])
 	# 	for j in range(70):
 	# 		temp.append(feature[i][j+131])
-	# 	tempfeature3.append(temp)
-	# tempfeature3=np.array(tempfeature3)
-	# print(tempfeature3.shape)
+	# 	tempfeature.append(temp)
+	# tempfeature=np.array(tempfeature)
+	# print(tempfeature.shape)
 
 	# siamese_feature_classifier.siamese_feature_mul_class(feature,target,targetnum)
-	# siamese_feature_classifier.siamese_feature_class(feature[:,:202],target,targetnum)
-	# siamese_feature_classifier.siamese_feature_class(tempfeature3,target,targetnum)
+	# siamese_feature_classifier.siamese_feature_authentication(feature[:,:202],target,targetnum)
+	# siamese_feature_classifier.siamese_feature_authentication(tempfeature,target,targetnum)
 
 	
 

@@ -5,7 +5,6 @@ from classifier_tool import *
 from normal_tool import *
 import IAtool
 import random
-from itertools import combinations
 
 
 def siamese_data_authentication(feature,target,targetnum):
@@ -25,22 +24,18 @@ def siamese_data_authentication(feature,target,targetnum):
 	# traincomnum=28
 
 	rangek=list(range(0,targetnum-1))
-
-	#得出用户数在comnum之间的组合
-	# com=list(combinations(rangek,testsetnumber))
-	# selectk = random.sample(com, iternum)	#在组合间，随机选其中的iternum个
-	
-	# selectk=[]
-	# for t in range(iternum):
-		# selectk.append(random.sample(rangek, testsetnumber))
-	
 	selectk=[]
-	for i in range(iternum):
-		temp=[]
-		startpoint=(i*7)%40
-		for j in range(testsetnumber):
-			temp.append((startpoint+j*2)%40)
-		selectk.append(temp)	
+	for t in range(iternum):
+		selectk.append(random.sample(rangek, testsetnumber))
+	
+	# 写死选择的数据集
+	# selectk=[]
+	# for i in range(iternum):
+	# 	temp=[]
+	# 	startpoint=(i*7)%40
+	# 	for j in range(testsetnumber):
+	# 		temp.append((startpoint+j*2)%40)
+	# 	selectk.append(temp)	
 
 	for t in range(iternum):
 		print("周期：",t)
@@ -71,13 +66,7 @@ def siamese_data_authentication(feature,target,targetnum):
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-		#将n*m变为m*n
-		# train_data=IAtool.datatranspose(train_data)
-		# test_data=IAtool.datatranspose(test_data)
-
-		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
-
-		score,label= siamese_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		score,label= siamese_authentication(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		# score,label= siamese_weighted_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		# score,label= siamese_mul_model_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		score=[i[0] for i in score]
@@ -90,7 +79,7 @@ def siamese_data_authentication(feature,target,targetnum):
 		meanfrr.append(frr)
 	print("meanacc:",np.mean(meanacc),"(",np.std(meanacc),")","meanfar:",np.mean(meanfar),"(",np.std(meanfar),")","meanfrr:",np.mean(meanfrr),"(",np.std(meanfar),")",)
 	for i in range(len(meanacc)):
-		print("被选择的测试集序号：",selectk[i])
+		print("被选择的测试集序号：",selectk[i]) 
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
 
 
@@ -112,21 +101,16 @@ def siamese_data_identification(feature,target,targetnum):
 
 	rangek=list(range(0,targetnum-1))
 
-	#得出用户数在comnum之间的组合
-	# com=list(combinations(rangek,testsetnumber))
-	# selectk = random.sample(com, iternum)	#在组合间，随机选其中的iternum个
-	
 	# selectk=[]
 	# for t in range(iternum):
 		# selectk.append(random.sample(rangek, testsetnumber))
 	
 	selectk=[]
-	
 	for i in range(iternum):
 		temp=[]
-		startpoint=(i*9)%40
-		for j in range(18):
-			temp.append((startpoint+j*2)%40)
+		startpoint=i*9
+		for j in range(9):
+			temp.append(startpoint+j)
 		selectk.append(temp)	
 
 	for t in range(iternum):
@@ -158,13 +142,7 @@ def siamese_data_identification(feature,target,targetnum):
 
 		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
 
-		#将n*m变为m*n
-		# train_data=IAtool.datatranspose(train_data)
-		# test_data=IAtool.datatranspose(test_data)
-
-		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
-
-		score,label= siamese_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		score,label= siamese_identification(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		# score,label= siamese_weighted_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		# score,label= siamese_mul_model_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		score=[i[0] for i in score]
@@ -181,24 +159,118 @@ def siamese_data_identification(feature,target,targetnum):
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
 
 
+def siamese_data_multask(feature,target,targetnum):
+
+	tempfeature=IAtool.listtodic(feature,target)
+	gesturemeanacc=[]
+	gesturemeanfar=[]
+	gesturemeanfrr=[]
+	usermeanacc=[]
+	usermeanfar=[]
+	usermeanfrr=[]
+	#选择的锚数
+	anchornum=3
+	#循环次数
+	iternum=10
+	#组合内序号个数
+	testsetnumber=8
+	#训练集个数
+	# traincomnum=28
+
+	rangek=list(range(0,targetnum-1))
+
+	# selectk=[]
+	# for t in range(iternum):
+		# selectk.append(random.sample(rangek, testsetnumber))
+	
+	# selectk=[]
+	# for i in range(iternum):
+	# 	temp=[]
+	# 	startpoint=i*36
+	# 	for j in range(72):
+	# 		temp.append((startpoint+j)%360)
+	# 	selectk.append(temp)	
+
+	selectk=[]
+	for i in range(iternum):
+		temp=[]
+		startpoint=i*9
+		for j in range(18):
+			temp.append((startpoint+j)%40)
+		selectk.append(temp)	
+
+
+	for t in range(iternum):
+		print("周期：",t)
+		train_data=[]
+		test_data=[]
+
+		#用于限制训练集数量
+		# selectks=[]
+		# for i in rangek:
+		# 	if i not in selectk[t]:
+		# 		selectks.append(i)
+		# selectks = random.sample(selectks, traincomnum)
+		# print("被选择的训练集序号：",selectks)
+
+		print("被选择的测试集序号：",selectk[t])
+		for i in range(targetnum):
+			if i in selectk[t]:
+				test_data.append(tempfeature[i])
+			# if i in selectks:
+			else:
+				train_data.append(tempfeature[i])	
+
+		train_data,train_target,trainindex=IAtool.dictolist(train_data)
+		test_data,test_target,testindex=IAtool.dictolist(test_data)
+		
+		print("训练集项目数：" ,trainindex)
+		print("测试集项目数：",testindex)
+
+		train_data,test_data,train_target,test_target=IAtool.datashape(train_data,test_data,train_target,test_target)
+
+		score,label= siamese_mul_task(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		# score,label= siamese_weighted_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		# score,label= siamese_mul_model_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
+		
+		score=[[i[0] for i in score[0]],[i[0] for i in score[1]]]
+		# label=[i for i in label]
+		# print('原结果：',label)
+		print('预测分数：',score[0][:90])
+		useraccuracy,userfar,userfrr=cal_siamese_eer(label[0],score[0])
+		usermeanacc.append(useraccuracy)
+		usermeanfar.append(userfar)
+		usermeanfrr.append(userfrr)
+
+		gestureaccuracy,gesturefar,gesturefrr=cal_siamese_eer(label[1],score[1])
+		gesturemeanacc.append(gestureaccuracy)
+		gesturemeanfar.append(gesturefar)
+		gesturemeanfrr.append(gesturefrr)
+	print("usermeanacc:",np.mean(usermeanacc),"(",np.std(usermeanacc),")","usermeanfar:",np.mean(usermeanfar),"(",np.std(usermeanfar),")","userfrr:",np.mean(userfrr),"(",np.std(userfrr),")",)
+	print("gesturemeanacc:",np.mean(gesturemeanacc),"(",np.std(gesturemeanacc),")","gesturemeanfar:",np.mean(gesturemeanfar),"(",np.std(gesturemeanfar),")","gesturemeanfrr:",np.mean(gesturemeanfrr),"(",np.std(gesturemeanfrr),")",)
+	for i in range(len(usermeanacc)):
+		print("被选择的测试集序号：",selectk[i])
+		print("usermeanacc:",usermeanacc[i],"usermeanfar:",usermeanfar[i],"usermeanfrr:",usermeanfrr[i])
+		print("gesturemeanacc:",gesturemeanacc[i],"far:",gesturemeanfar[i],"gesturemeanfrr:",gesturemeanfrr[i])
 
 
 
 
 
-def siamese_data_build_class(train_data,train_target,trainindex):
-	train_data=IAtool.datatranspose(train_data)
-	siamese_data_buildmodel(train_data,train_target,trainindex)
 
-def siamese_data_final_class(test_data,test_target,targetnum,anchornum):
-	test_data=IAtool.datatranspose(test_data)
-	score,label= siamese_data_final(test_data,test_target,targetnum,anchornum)
-	score=[i[0] for i in score]
-	label=[i for i in label]
-	print('原结果：',label)
-	print('预测分数：',score)
-	accuracy,far,frr=cal_siamese_eer(label,score)
-	return accuracy,far,frr
+# def siamese_data_build_class(train_data,train_target,trainindex):
+# 	train_data=IAtool.datatranspose(train_data)
+# 	siamese_data_buildmodel(train_data,train_target,trainindex)
+
+# def siamese_data_final_class(test_data,test_target,targetnum,anchornum):
+# 	test_data=IAtool.datatranspose(test_data)
+# 	score,label= siamese_data_final(test_data,test_target,targetnum,anchornum)
+# 	score=[i[0] for i in score]
+# 	label=[i for i in label]
+# 	print('原结果：',label)
+# 	print('预测分数：',score)
+# 	accuracy,far,frr=cal_siamese_eer(label,score)
+# 	return accuracy,far,frr
 
 
 

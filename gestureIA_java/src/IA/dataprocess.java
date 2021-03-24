@@ -79,19 +79,19 @@ public class dataprocess {
 	public double[][] single_data(File filepath) {
 		double[][] sampledata = null;
 		System.out.println(filepath);
-		Ppg ppgs = files.orippgread(filepath);
+		PPG ppgs = files.orippgread(filepath);
 
 		if (ppgs.x.length < 800 || ppgs.y.length < 800) {
 			return sampledata;
 		}
 
-		Ppg orippg = new Ppg();
+		PPG orippg = new PPG();
 //		orippg.x = nortools.meanfilt(ppgs.x, 20);
 //		orippg.y = nortools.meanfilt(ppgs.y, 20);
 		orippg.x = nortools.minmaxscale(ppgs.x);
 		orippg.y = nortools.minmaxscale(ppgs.y);
 
-		Ppg butterppg = new Ppg();
+		PPG butterppg = new PPG();
 //		//对原始的ppg型号做butterworth提取
 //		butterppg.x = nortools.butterworth_bandpass(ppgs.x, 200, 2,10);
 //		butterppg.y = nortools.butterworth_bandpass(ppgs.y, 200, 2,10);
@@ -102,7 +102,7 @@ public class dataprocess {
 		butterppg.y = nortools.minmaxscale(butterppg.y);
 
 		// 做快速主成分分析
-		Ppg icappg = iatools.fastica(butterppg);
+		PPG icappg = iatools.fastica(butterppg);
 
 		// 根据峰值判断那条手势信号和脉冲信号
 		icappg = iatools.machoice(icappg);

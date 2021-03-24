@@ -49,18 +49,18 @@ public class combine {
 			single.samplefeature = null;
 			
 			System.out.println(filepath);
-			Ppg ppgs = files.orippgread(filepath);
+			PPG ppgs = files.orippgread(filepath);
 			
 			if(ppgs.x.length<800||ppgs.y.length<800) {
 				return single;
 			}
 				
-			Ppg orippg = new Ppg();
+			PPG orippg = new PPG();
 			orippg.x=nortools.minmaxscale(ppgs.x);
 			orippg.y=nortools.minmaxscale(ppgs.y);
 			
 			
-			Ppg butterppg = new Ppg();
+			PPG butterppg = new PPG();
 //			//对原始的ppg型号做butterworth提取
 			butterppg.x = nortools.butterworth_bandpass(orippg.x, 200, 2,5);
 			butterppg.y = nortools.butterworth_bandpass(orippg.y, 200, 2,5);
@@ -69,7 +69,7 @@ public class combine {
 			butterppg.y=nortools.minmaxscale(butterppg.y);
 			
 			// 做快速主成分分析
-			Ppg icappg = iatools.fastica(butterppg);
+			PPG icappg = iatools.fastica(butterppg);
 
 			// 根据峰值判断那条手势信号和脉冲信号
 			icappg = iatools.machoice(icappg);

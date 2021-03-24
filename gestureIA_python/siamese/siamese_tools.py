@@ -155,6 +155,133 @@ def create_pairs_incre(data, target,num_classes):
                 labels += [1, 0, 0]
     return np.array(pairs), np.array(labels)
 
+def create_identification_pair(data, target,num_classes):
+    digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
+    pairs = []
+    labels = []
+    for k in range(int(num_classes/9)):
+        for t in range(9):
+            d=k*9+t
+            n=len(digit_indices[d])-1
+            for i in range(n):
+                for j in range(i+1,n+1):
+                    z1, z2 = digit_indices[d][i], digit_indices[d][j]
+                    pairs += [[data[z1], data[z2]]]
+
+                    inc_1 = random.randrange(1, 9)
+                    dn = (t + inc_1) % 9
+                    dn = k*9 +dn
+                    inc_2 =random.randrange(0, len(digit_indices[dn]))
+                    z1, z2 = digit_indices[d][i], digit_indices[dn][inc_2]
+                    pairs += [[data[z1], data[z2]]]
+                    z1, z2 = digit_indices[d][j], digit_indices[dn][inc_2]
+                    pairs += [[data[z1], data[z2]]]
+                    labels += [1, 0, 0]
+    return np.array(pairs), np.array(labels)
+
+# def create_multask_pair(data, target,num_classes):
+#     digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
+#     usernum=int(num_classes/9)
+#     pairs = []
+#     user_labels = []
+#     gesture_labels = []
+#     for k in range(usernum):
+#         for t in range(9):
+#             d=k*9+t
+#             n=len(digit_indices[d])-1
+#             for i in range(n):
+#                 for j in range(i+1,n+1):
+#                     z1, z2 = digit_indices[d][i], digit_indices[d][j]
+#                     pairs += [[data[z1], data[z2]]]
+
+#                     #不同用户同一手势的配对
+#                     inc_1 = random.randrange(1, usernum)
+#                     sn = (k+inc_1)%usernum
+#                     gn = sn*9+t
+#                     inc_2 =random.randrange(0, len(digit_indices[gn]))
+#                     z1, z2 = digit_indices[d][i], digit_indices[gn][inc_2]
+#                     pairs += [[data[z1], data[z2]]]
+#                     z1, z2 = digit_indices[d][j], digit_indices[gn][inc_2]
+#                     pairs += [[data[z1], data[z2]]]
+
+
+#                     #同一用户不同手势的配对
+#                     inc_1 = random.randrange(1, 9)
+#                     dn = (t + inc_1) % 9
+#                     gn = k*9 +dn
+#                     inc_2 =random.randrange(0, len(digit_indices[gn]))
+#                     z1, z2 = digit_indices[d][i], digit_indices[gn][inc_2]
+#                     pairs += [[data[z1], data[z2]]]
+#                     z1, z2 = digit_indices[d][j], digit_indices[gn][inc_2]
+#                     pairs += [[data[z1], data[z2]]]
+
+
+#                     #不同用户不同手势的配对
+#                     gn = sn*9+dn
+#                     inc_2 =random.randrange(0, len(digit_indices[gn]))
+#                     z1, z2 = digit_indices[d][i], digit_indices[gn][inc_2]
+#                     pairs += [[data[z1], data[z2]]]
+
+#                     user_labels += [1, 1, 1,0, 0, 0]
+#                     gesture_labels += [1, 0, 0, 1, 1, 0]
+                    # labels=[user_labels,gesture_labels]
+
+#     return np.array(pairs), np.array(labels)
+
+
+def create_multask_pair(data, target,num_classes):
+    digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
+    usernum=int(num_classes/9)
+    user_pairs = []
+    gesture_pairs = []
+    user_labels = []
+    gesture_labels = []
+    for k in range(usernum):
+        for t in range(9):
+            d=k*9+t
+            n=len(digit_indices[d])-1
+            for i in range(n):
+                for j in range(i+1,n+1):
+                    z1, z2 = digit_indices[d][i], digit_indices[d][j]
+                    user_pairs += [[data[z1], data[z2]]]
+                    gesture_pairs += [[data[z1], data[z2]]]
+
+                    #不同用户同一手势的配对
+                    inc_1 = random.randrange(1, usernum)
+                    sn = (k+inc_1)%usernum
+                    gn = sn*9+t
+                    inc_2 =random.randrange(0, len(digit_indices[gn]))
+                    z1, z2 = digit_indices[d][i], digit_indices[gn][inc_2]
+                    user_pairs += [[data[z1], data[z2]]]
+                    z1, z2 = digit_indices[d][j], digit_indices[gn][inc_2]
+                    user_pairs += [[data[z1], data[z2]]]
+
+                    #同一用户不同手势的配对
+                    inc_1 = random.randrange(1, 9)
+                    dn = (t + inc_1) % 9
+                    gn = k*9 +dn
+                    inc_2 =random.randrange(0, len(digit_indices[gn]))
+                    z1, z2 = digit_indices[d][i], digit_indices[gn][inc_2]
+                    gesture_pairs += [[data[z1], data[z2]]]
+                    z1, z2 = digit_indices[d][j], digit_indices[gn][inc_2]
+                    gesture_pairs += [[data[z1], data[z2]]]
+
+
+                    #不同用户不同手势的配对
+                    gn = sn*9+dn
+                    inc_2 =random.randrange(0, len(digit_indices[gn]))
+                    z1, z2 = digit_indices[d][i], digit_indices[gn][inc_2]
+                    user_pairs += [[data[z1], data[z2]]]
+                    gesture_pairs += [[data[z1], data[z2]]]
+
+                    user_labels += [1, 0, 0, 0]
+                    gesture_labels += [1, 0, 0, 0]
+
+
+                    pairs=[user_pairs,gesture_pairs]
+                    labels=[user_labels,gesture_labels]
+
+    return np.array(pairs),  np.array(labels)
 
 
 #pairs 是label的ancornum倍

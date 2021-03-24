@@ -352,6 +352,8 @@ def caldtw(a,b):
 
 
 #将队列数据化为目标分类的队列
+    # digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
+
 def listtodic(data,target):
 	index=0
 	dicdata=[[]]
@@ -405,12 +407,12 @@ def datacombine(ppg_data,motion_data):
 	return data
 
 #数据转置，将n*m转为m*n
-def datatranspose(data):
-	data=np.array(data)
-	tempdata=[]
-	for i in range(len(data)):
-		tempdata.append(data[i].T)
-	return tempdata	
+# def datatranspose(data):
+# 	data=np.array(data)
+# 	tempdata=[]
+# 	for i in range(len(data)):
+# 		tempdata.append(data[i].T)
+# 	return tempdata	
 
 #对样本对进行额外处理
 def repro_test_pred(test_pred,test_label,anchornum):

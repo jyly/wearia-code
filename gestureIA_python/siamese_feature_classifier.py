@@ -6,7 +6,6 @@ from classifier_tool import *
 from normal_tool import *
 import IAtool
 import random
-from itertools import combinations
 
 
 #对自己提取的特征分类
@@ -52,7 +51,7 @@ def siamese_feature_based_classifier(dataset,target,targetnum):
 
 
 #单孪生网络
-def siamese_feature_class(feature,target,targetnum):
+def siamese_feature_authentication(feature,target,targetnum):
 	tempfeature=IAtool.listtodic(feature,target)
 
 	meanacc=[]
@@ -60,7 +59,7 @@ def siamese_feature_class(feature,target,targetnum):
 	meanfrr=[]
 
 	#特征数，选择的锚数
-	featurenum=20
+	featurenum=30
 	anchornum=5
 	#循环次数
 	iternum=10
@@ -71,13 +70,18 @@ def siamese_feature_class(feature,target,targetnum):
 
 	rangek=list(range(0,targetnum-1))
 	
-	#得出用户数在comnum之间的组合
-	# com=list(combinations(rangek,testsetnumber))
-	# selectk = random.sample(com, iternum)	#在组合间，随机选其中的iternum个
-	
+	# selectk=[]
+	# for t in range(iternum):
+	# 	selectk.append(random.sample(rangek, testsetnumber))
+
+	#写死选择的数据集
 	selectk=[]
-	for t in range(iternum):
-		selectk.append(random.sample(rangek, testsetnumber))
+	for i in range(iternum):
+		temp=[]
+		startpoint=(i*7)%40
+		for j in range(testsetnumber):
+			temp.append((startpoint+j*2)%40)
+		selectk.append(temp)	
 
 	for t in range(iternum):
 		print("周期：",t)
@@ -119,8 +123,8 @@ def siamese_feature_class(feature,target,targetnum):
 		score,label= siamese_feature(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		score=[i[0] for i in score]
 		label=[i for i in label]
-		print('原结果：',label)
-		print('预测分数：',score)
+		# print('原结果：',label)
+		print('预测分数：',score[:90])
 		# siamese_far_frr(label,score)
 		# siamese_feature_build_class(train_data,train_target,trainindex,featurenum)
 		# accuracy,far,frr=siamese_feature_final_class(test_data,test_target,testindex,featurenum,anchornum)

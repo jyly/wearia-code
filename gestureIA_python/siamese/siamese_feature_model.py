@@ -13,13 +13,10 @@ def siamese_feature(train_data,test_data, train_target,test_target, trainindex,t
     print("训练集对数：",train_pairs.shape)
     print("测试集对数：",test_pairs.shape)
 
-    train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),1)
-    test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),1)
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
+    train_pairs,test_pairs,train_label,test_label=dataresize(train_pairs,test_pairs,train_label,test_label)
 
-    input_shape = (len(train_data[0]),1)
+    input_shape = (len(train_data[0]))
     print(input_shape)
 
     model,based_model=create_siamese_network_mlp(input_shape)

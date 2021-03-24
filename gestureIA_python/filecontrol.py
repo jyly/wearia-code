@@ -116,6 +116,7 @@ def datawrite(data,filesname):
 def dataread():
 	dirpath='./selected/madata/'
 	filespace=os.listdir(dirpath)
+	filespace.sort()
 	dataset=[]
 	target=[]
 	index=1
@@ -150,7 +151,7 @@ def dataread():
 
 def same_gesture_selected(feature,target,targetnum,selectnumber=1):# 数据，标记，选择的手势
 
-	dicdata=listtodic(feature,target)
+	dicdata=IAtool.listtodic(feature,target)
 	#选择对应的手势
 	selectfeature=[]
 	selectedtarget=[]

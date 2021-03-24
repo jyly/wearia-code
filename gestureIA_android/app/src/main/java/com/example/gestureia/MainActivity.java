@@ -2,7 +2,6 @@ package com.example.gestureia;
 
 import android.Manifest;
 import android.app.AppOpsManager;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -61,6 +60,7 @@ public class MainActivity extends WearableActivity {
     private int uploadtag = 1;
     private Timer timer = null;
 
+    //传感器控制、电源控制、认证模型导入
     private Sensorcontrol sensors = null;
     private Energycontrol energycontrolr = null;
     private Baedmodel basedmodel = null;
@@ -82,21 +82,21 @@ public class MainActivity extends WearableActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setAmbientEnabled();
+//        引导开始传感器访问权限
         permissionrequest();
-//        readmodelpara();
-//        readbasedfeature();
-//        testtf();
-        //加载下拉列表
+
+//        加载下拉列表
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinnervalue, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
+//        注册按钮
         gesture_spinner = (Spinner) findViewById(R.id.gestureSpinner);
         gesture_spinner.setAdapter(adapter);
         button_register = (Button) findViewById(R.id.register);
         button_listen_start = (Button) findViewById(R.id.listen_start);
         button_listen_stop = (Button) findViewById(R.id.listen_stop);
 
-//        后台service监听
+//        后台service监听，判断是否存在手势
         button_listen_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -105,7 +105,7 @@ public class MainActivity extends WearableActivity {
                 if (0 == service_flag) {
                     basedmodel = new Baedmodel();
                     basedmodel.readmulfeature(getApplicationContext());
-//                basedmodel.readfeature(getApplicationContext());
+//                    basedmodel.readfeature(getApplicationContext());
                     if (basedmodel.single_final_feature == null && basedmodel.mul_final_feature == null) {
                         Toast.makeText(getApplicationContext(), "请选择先注册手势！", Toast.LENGTH_LONG).show();
                         Log.e(">>.", "请选择先注册手势！");
@@ -116,12 +116,12 @@ public class MainActivity extends WearableActivity {
                         startService(new Intent(getBaseContext(), Behaviorlisten.class));
                         service_flag = 1;
 
-                        //获取当前设备已安装的包名
+//                      获取当前设备已安装的包名
 //                    List<PackageInfo> packages = getPackageManager().getInstalledPackages(0);
 //                    for(int i=0;i<packages.size();i++){
 //                        Log.e(">>>","packet name:"+packages.get(i).packageName);
 //                    }
-                        //启动支付宝
+                        //启动智能手表的支付宝
 //                    PackageManager pm = getApplication().getPackageManager();
 //                    try {
 //                        pm.getPackageInfo("com.eg.android.AlipayGphone", PackageManager.GET_ACTIVITIES);
@@ -221,7 +221,7 @@ public class MainActivity extends WearableActivity {
                             if (uploadtag == 1) {
 //                                fossil的是100hz，tic的是200hz
                                 uploadtag = 3;
-                                Ppg ppgs = sensors.getnewppgseg(1600);
+                                PPG ppgs = sensors.getnewppgseg(1600);
                                 Motion motions = sensors.getnewmotionseg(800);
                                 //计算当前片段通过网络后的向量
 
@@ -262,7 +262,7 @@ public class MainActivity extends WearableActivity {
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            Log.e(">>>", "ppg.newindex:" + sensors.getppgsize()+" acc.newindex:" + sensors.getaccsize()+" gyr.newindex:" + sensors.getgyrsize());
+                            Log.e(">>>", "ppg.newindex:" + sensors.getppgsize() + " acc.newindex:" + sensors.getaccsize() + " gyr.newindex:" + sensors.getgyrsize());
                             System.out.println("TimerTask");
                             currenttime = System.currentTimeMillis();
 //                            Log.e(">>>>",""+(currenttime - starttime)+","+(currenttime - ensuretime));
@@ -340,7 +340,7 @@ public class MainActivity extends WearableActivity {
 
     private void permissionrequest() {
         if (!hasPermission()) {
-            //若用户未开启权限，则引导用户开启“Apps with usage access”权限
+            //若用户未开启权限，则引导用户开启权限
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BODY_SENSORS}, 0);
         }
     }
@@ -391,7 +391,7 @@ public class MainActivity extends WearableActivity {
 //            ArrayList<double[]> featureset = new ArrayList<double[]>();
 //
 //            InputStream featurefile = getAssets().open("oridataset/1.csv");
-//            Ppg ppg1 = filecontrols.ppgreadin(featurefile);
+//            PPG ppg1 = filecontrols.ppgreadin(featurefile);
 //            Featurecontrol sampleFeaturecontrol = single_feature(ppg1);
 //            featureset.add(sampleFeaturecontrol);
 //
@@ -614,7 +614,7 @@ public class MainActivity extends WearableActivity {
 //    }
 
     //将实验数据上传至服务器
-    public void segmentupload(final String RequestURL, final Motion motions, final Ppg ppgs, final int TIME_OUT, final String tag, final String item) {
+    public void segmentupload(final String RequestURL, final Motion motions, final PPG ppgs, final int TIME_OUT, final String tag, final String item) {
         new Thread(new Runnable() {
             @Override
             public void run() {

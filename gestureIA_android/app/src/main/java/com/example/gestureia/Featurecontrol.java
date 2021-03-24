@@ -74,7 +74,7 @@ public class Featurecontrol {
         features.add(diversion / (datalen - 1));
 
         Complex[] datacomplex = ffts.transform(tempdata, TransformType.FORWARD);
-        Fftvalue tempvalue = iatools.fftcal(datacomplex, 200);
+        FFTvalue tempvalue = iatools.fftcal(datacomplex, 200);
 
         ArrayList<Double> extrafft = new ArrayList<Double>();
         for (int i = 0; i < tempvalue.fftscore.length; i++) {
@@ -149,7 +149,7 @@ public class Featurecontrol {
         return finalfeature;
     }
 
-    public double[] return_feature(Ppg ppgs, Motion motion, Ppg butterppg, Ppg icappg) {
+    public double[] return_feature(PPG ppgs, Motion motion, PPG butterppg, PPG icappg) {
 		Normal_tool nortools = new Normal_tool();
 		ArrayList<Double> samplefeature = new ArrayList<Double>();
 		double[] finalfeature = nortools.arraytomatrix(samplefeature);
@@ -158,7 +158,7 @@ public class Featurecontrol {
 
 	}
 
-    public double[] return_feature(Ppg ppgs, Motion motion) {
+    public double[] return_feature(PPG ppgs, Motion motion) {
         ArrayList<Double> samplefeature = new ArrayList<Double>();
         double[] temp = based_feature(ppgs.x);
         for (int i = 0; i < temp.length; i++) {
@@ -201,23 +201,23 @@ public class Featurecontrol {
     }
 
 
-    public double[] build_feature(Ppg ppgs, Motion motions) {
+    public double[] build_feature(PPG ppgs, Motion motions) {
         MAfind ma = new MAfind();
         Normal_tool nortools = new Normal_tool();
         IAtool iatools = new IAtool();
 
         double[] samplefeature = null;
 
-        Ppg orippg = new Ppg();
+        PPG orippg = new PPG();
         orippg.x = nortools.meanfilt(ppgs.x, 20);
         orippg.y = nortools.meanfilt(ppgs.y, 20);
 
-        Ppg butterppg = new Ppg();
+        PPG butterppg = new PPG();
 //		//对原始的ppg型号做butterworth提取
         butterppg.x = nortools.butterworth_highpass(orippg.x, 200, 2);
         butterppg.y = nortools.butterworth_highpass(orippg.y, 200, 2);
         // 做快速主成分分析
-        Ppg icappg = iatools.fastica(butterppg);
+        PPG icappg = iatools.fastica(butterppg);
         // 根据峰值判断那条手势信号和脉冲信号
         icappg = iatools.machoice(icappg);
         //细粒度手势分析，判断手势区间
@@ -253,23 +253,23 @@ public class Featurecontrol {
     }
 
 
-    public double[][] build_madata(Ppg ppgs, Motion motions) {
+    public double[][] build_madata(PPG ppgs, Motion motions) {
         MAfind ma = new MAfind();
         Normal_tool nortools = new Normal_tool();
         IAtool iatools = new IAtool();
 
         double[][] sampledata = null;
 
-        Ppg orippg = new Ppg();
+        PPG orippg = new PPG();
         orippg.x = nortools.meanfilt(ppgs.x, 20);
         orippg.y = nortools.meanfilt(ppgs.y, 20);
 
-        Ppg butterppg = new Ppg();
+        PPG butterppg = new PPG();
 //		//对原始的ppg型号做butterworth提取
         butterppg.x = nortools.butterworth_highpass(orippg.x, 200, 2);
         butterppg.y = nortools.butterworth_highpass(orippg.y, 200, 2);
         // 做快速主成分分析
-        Ppg icappg = iatools.fastica(butterppg);
+        PPG icappg = iatools.fastica(butterppg);
         // 根据峰值判断那条手势信号和脉冲信号
         icappg = iatools.machoice(icappg);
         //细粒度手势分析，判断手势区间
