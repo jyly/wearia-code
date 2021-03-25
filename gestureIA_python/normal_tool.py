@@ -53,11 +53,6 @@ def fft(data, sampling_rate, fft_size=None):
     #实数求解
     datafft = abs(np.fft.rfft(data)/fft_size*2)  
     freqs = np.linspace(0, int(1.0*sampling_rate/2), int(1.0*fft_size/2+1))    #linspace(0,100,501)
-   	#实部和虚部的求解
-    # datafft = abs(np.fft.fft(data)/fft_size*2)
-	# freqs = np.linspace(0, int(1.0*1000/2), int(1.0*len(data)))    #linspace(0,100,501)
-
-    # picshow(freqs,datafft)
     return freqs, datafft    #频域，对应振幅
 
 
@@ -68,7 +63,6 @@ def ceps(data, sampling_rate, fft_size=None):
     datafft = abs(np.fft.fft(data))  
     freqs = np.linspace(0, int(1.0*sampling_rate/2), int(1.0*fft_size))    #linspace(0,100,501)
     ceps=np.fft.ifft(np.log(np.abs(datafft))).real
-    # picshow(freqs,datafft)
     return freqs[1:], np.abs(ceps[1:])    #频域，对应振幅
 
 
@@ -139,16 +133,15 @@ def normalscale(data):
 #均值滤波
 def meanfilt(datalist,interval,adddis=1):
 	tempdata=[]
+	#序列按间隔进行扩展
 	for i in range(int(interval/2)):
 		tempdata.append(datalist[0])
-
 	for i in range(len(datalist)):
 		tempdata.append(datalist[i])
-	
 	for i in range(int(interval/2)):
 		tempdata.append(datalist[-1])
-
 	filtlist=[]
+	#对扩展后的数据进行滤波
 	for i in range(0,len(datalist),adddis):
 		filtlist.append(np.mean(tempdata[i:i+interval]))
 
@@ -174,16 +167,66 @@ def bandpass(start,end,fre,data,order=3):#只保留start到end之间的频率的
 	data = signal.filtfilt(b, a, data)
 	return data
 
-#计算多个特征的信息熵
+
+#计算香农熵
+def calcShannonEnt(dataSet):
+	dataSet=np.array(dataSet)
+	total = len(dataSet)
+	labelCounts = set(dataSet)
+	eps = 1.4e-45
+	shannonEnt = 0
+	for key in labelCounts:
+		prob = 1.0*len(np.where(dataSet==key)[0])
+		shannonEnt = shannonEnt - (prob/total)*math.log(prob/total+eps,2)
+	return shannonEnt 
+
+#计算信息增益率
+def NMI(A,B):
+	# I(X,Y)=H(x)+H(Y)-H(XY)
+	A=np.array(A)
+	B=np.array(B)
+	# len(A) should be equal to len(B)
+	total = len(A)
+	A_ids = set(A)
+	B_ids = set(B)
+	#Mutual information
+	MI = 0
+	eps = 1.4e-45
+	for idA in A_ids:
+		for idB in B_ids:
+			idAOccur = np.where(A==idA)
+			idBOccur = np.where(B==idB)
+			idABOccur = np.intersect1d(idAOccur,idBOccur)
+			px = 1.0*len(idAOccur[0])/total
+			py = 1.0*len(idBOccur[0])/total
+			pxy = 1.0*len(idABOccur)/total
+			MI = MI + pxy*math.log(pxy/(px*py)+eps,2)
+	# Normalized Mutual information
+	Hx = 0
+	for idA in A_ids:
+		idAOccurCount = 1.0*len(np.where(A==idA)[0])
+		Hx = Hx - (idAOccurCount/total)*math.log(idAOccurCount/total+eps,2)
+	Hy = 0
+	for idB in B_ids:
+		idBOccurCount = 1.0*len(np.where(B==idB)[0])
+		Hy = Hy - (idBOccurCount/total)*math.log(idBOccurCount/total+eps,2)
+	MIhat = (Hx+Hy-MI)
+	MIhat = MIhat/Hy
+	return MIhat
+
+
+#计算多个特征的信息增益率
 def minecal(data,target):
 	informscore=[]
 	for i in range(len(data[0])):
 		tempdata=[]
 		for j in range(len(data)):
 			tempdata.append(data[j][i])
-		mine = MINE()
-		mine.compute_score(tempdata, target)
-		informscore.append(mine.mic())
+		# mine = MINE()
+		# mine.compute_score(tempdata, target)
+		# informscore.append(mine.mic())
+		mine = NMI(tempdata, target)
+		informscore.append(mine)
 	informscore=np.array(informscore)
 	informsort = np.argsort(-informscore)#由大到小排序，得到对应的序号
 	temp=[i for i in informsort]
@@ -221,11 +264,6 @@ def WignerVillecal(data):
 #连续小波变换
 def cwt(data,scales,wavelet='mexh'):
 	coef, freqs=pywt.cwt(data,np.arange(1,scales),wavelet)
-	# print(len(coef))
-	# print(len(coef[0]))
-	# plt.matshow(coef) # doctest: +SKIP
-	# plt.show() # doctest: +SKIP
-
 	return coef, freqs
 
 #离散小波变换
@@ -248,41 +286,9 @@ def get_auto_corr(timeSeries,k):
 		auto_corr = auto_corr + temp 
 	return auto_corr
 
-def calcShannonEnt(dataSet):
-	numEntires = len(dataSet)                       #返回数据集的行数
-	labelCounts = {}                                #保存每个标签(Label)出现次数的字典
-	for featVec in dataSet:                         #对每组特征向量进行统计
-		currentLabel = featVec[-1]                  #提取标签(Label)信息
-		if currentLabel not in labelCounts.keys():  #如果标签(Label)没有放入统计次数的字典,添加进去
-			labelCounts[currentLabel] = 0
-		labelCounts[currentLabel] += 1              #Label计数
-	shannonEnt = 0.0                                #经验熵(香农熵)
-	for key in labelCounts:                         #计算香农熵
-		prob = float(labelCounts[key]) / numEntires #选择该标签(Label)的概率
-		shannonEnt -= prob * log(prob, 2)           #利用公式计算
-	return shannonEnt 
 
+# #序列改为递归图
 # def recurrenceplot(data):
-# 	result=[]
-# 	result.append(data)
-# 	result=np.array(result)
-# 	rp = RecurrencePlot(threshold='point', percentage=20)
-# 	X_rp = rp.fit_transform(result)
-# 	# plt.imshow(X_rp[0], cmap='binary', origin='lower')
-# 	# plt.title('Recurrence Plot', fontsize=16)
-# 	# plt.tight_layout()
-# 	# plt.show()
-# 	# print(X_rp[0].shape)
-# 	# print(X_rp[0])
-
-# 	return X_rp[0]
-
-
-
-# def recurrenceplot(data):
-# 	# result=[]
-# 	# result.append(data)
-# 	# result=np.array(result)
 # 	result=np.array(data)
 # 	rp = RecurrencePlot(threshold='point', percentage=20)
 # 	X_rp = rp.fit_transform(result)
@@ -292,23 +298,18 @@ def calcShannonEnt(dataSet):
 # 	# plt.show()
 # 	# print(X_rp[0].shape)
 # 	# print(X_rp[0])
-
 # 	return X_rp
 
 
-
+# #序列改为格拉姆角场图
 # def gramianplot(data):
-
 # 	result=np.array(data)
 # 	gasf = GramianAngularField(image_size=32, method='summation')
 # 	X_gasf = gasf.fit_transform(result)
-
-
 # 	return X_gasf
 
 #庞加莱图
 def poincare_plot(data):
-	
 	x=[]
 	y=[]
 	for i in range(len(data)-1):
@@ -320,7 +321,6 @@ def poincare_plot(data):
 	for i in range(len(x)):
 		xt.append(cal*(x[i]+y[i]))
 		yt.append(cal*(-x[i]+y[i]))
-
 	sd1=np.max(xt)-np.min(xt)
 	sd2=np.max(yt)-np.min(yt)
 	ratio=sd1/sd2

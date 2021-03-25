@@ -12,13 +12,14 @@ import keras_mulclassifier
 
 if __name__ == "__main__":
 
+	# 实验室服务器GPU使用设限
 	# config = tf.compat.v1.ConfigProto()
 	# config.gpu_options.per_process_gpu_memory_fraction = 0.8
 	# session = tf.compat.v1.Session(config=config)
 
 	#粗过滤手势检测率计算
 	# onlygesture='./gesture_detect/onlygesture/'#存在手势的数据
-	# nogesturedir='./gesture_detect/nogesture/'#前500个人眼过滤过的无手势数据
+	# nogesturedir='./gesture_detect/nogesture/'#前500个人中过滤出来的无手势数据
 	# gesture_detect_stistical.detect_cal_true(onlygesture)
 	# gesture_detect_stistical.detect_cal_false(nogesturedir)
 
@@ -28,26 +29,21 @@ if __name__ == "__main__":
 	# wear_data_preprocess.all_data(wear_datadir)#提取手势的具体数据段
 	# wear_data_preprocess.all_feature(wear_datadir)#提取手势具体数据段的特征
 	# wear_data_preprocess.renew_feature()#提取手势具体数据段的特征
-
-
 	# print("总样本数：",len(target))
 	# print("总类别数：",targetnum)	
 	# print("总特征数：",len(feature[0]))
 
-	# 将预处理后的数据从文件读到内存
 
 
 
 	# siamese分类（基于原数据）
-	feature,target,targetnum=filecontrol.dataread()#将手势段直接作为特征输入
-	# print(feature[0][0])
-	# feature,target,targetnum=filecontrol.same_gesture_selected(feature,target,targetnum,3)#选择同一手势的数据
+	sequence,target,targetnum=filecontrol.dataread()#将手势段直接作为特征输入
+	# sequence,target,targetnum=filecontrol.same_gesture_selected(sequence,target,targetnum,3)#选择同一手势的数据
 
-	# siamese_data_classifier.siamese_data_authentication(feature,target,targetnum)
-	siamese_data_classifier.siamese_data_authentication(feature[:,:2],target,targetnum)
-	# siamese_data_classifier.siamese_data_identification(feature[:,2:],target,targetnum)
-	# siamese_data_classifier.siamese_data_multask(feature[:,:2],target,targetnum)
-	# keras_mulclassifier.keras_mulclass(feature[:,:2],target,targetnum)
+	siamese_data_classifier.siamese_data_authentication(sequence[:,:2],target,targetnum)
+	# siamese_data_classifier.siamese_data_identification(sequence[:,2:],target,targetnum)
+	# siamese_data_classifier.siamese_data_multask(sequence[:,:2],target,targetnum)
+	# keras_mulclassifier.keras_mulclass(sequence[:,:2],target,targetnum)
 
 
 

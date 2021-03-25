@@ -31,6 +31,7 @@ def oridataread(path):
 			gyry.append(i[2])
 			gyrz.append(i[3])
 			gyrtime.append(i[4])
+		#筛除异常数据
 		if i[0]==2:
 			if(i[1]==0 or i[2]==0):
 				continue
@@ -51,7 +52,7 @@ def oridataread(path):
 	return ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime
 
 
-#将孪生网络的特征和对应的类别写入文件中,第一列是类别，后面跟对应的特征
+#将孪生网络提取的特征和对应的类别写入文件中,第一列是类别，后面跟对应的特征
 def siamesefeaturewrite(feature,target):
 	featurefilepath='tempfeature.csv'
 	outputfile=open(featurefilepath,'w+')
@@ -129,11 +130,8 @@ def dataread():
 			i=list(eval(i))
 			temp.append(i)
 			if len(temp)==8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
-				# if len(temp[0])<500:
-				# for j in range(2,8):
-				# 	temp[j]=IAtool.sequence_incre(temp[j])
 
-
+				temp=IAtool.sequence_incre(temp)
 				temp=IAtool.data_resize(temp,200)
 				temp[0]=IAtool.datainner(temp[0])
 				temp[1]=IAtool.datainner(temp[1])
@@ -148,7 +146,7 @@ def dataread():
 	target=np.array(target)
 	return dataset,target,targetnum
 
-
+#从360组的手势中，选择同一手势
 def same_gesture_selected(feature,target,targetnum,selectnumber=1):# 数据，标记，选择的手势
 
 	dicdata=IAtool.listtodic(feature,target)

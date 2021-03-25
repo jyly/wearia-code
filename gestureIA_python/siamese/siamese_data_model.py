@@ -7,10 +7,6 @@ import tensorflow as tf
 from sklearn.utils import shuffle
 from tensorflow.keras.utils import to_categorical
 
-    # train_label = to_categorical(train_label, num_classes=None)
-    # print(len(train_label[0]))
-
-
 def siamese_authentication(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
     test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
@@ -19,16 +15,13 @@ def siamese_authentication(train_data,test_data, train_target,test_target,traini
     print("测试集对数：",test_pairs.shape)
 
     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-
     train_pairs,test_pairs,train_label,test_label=dataresize(train_pairs,test_pairs,train_label,test_label)
 
     input_shape = (len(test_pairs[0][0]),len(test_pairs[0][0][0]))
     print(input_shape)
 
-    # model,based_model=create_siamese_network(input_shape,'resnet1d')
-    model,based_model=create_siamese_network(input_shape,'pyramid')
-    # model,based_model=create_siamese_network(input_shape,'lstm')
-    # model,based_model=create_siamese_network(input_shape,'conv')
+    
+    model,based_model=create_siamese_network(input_shape,'pyramid_lstm')
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
            batch_size=4086, epochs=20)  
 
@@ -37,112 +30,51 @@ def siamese_authentication(train_data,test_data, train_target,test_target,traini
     test_pred=np.array(test_pred)
     return test_pred,test_label
 
-def siamese_identification(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
-    train_pairs, train_label = create_identification_pair(train_data, train_target,trainindex)
-    # train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
-    test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
 
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-
-    train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-
-    train_pairs,test_pairs,train_label,test_label=dataresize(train_pairs,test_pairs,train_label,test_label)
-
-    input_shape = (len(test_pairs[0][0]),len(test_pairs[0][0][0]))
-    print(input_shape)
-
-    model,based_model=create_siamese_network(input_shape,'pyramid')
-    history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
-           batch_size=512, epochs=20)  
-
-    test_pred = model.predict([test_pairs[:,0], test_pairs[:,1]])
-    # test_pred=repro_test_pred(test_pred,test_label,anchornum)
-    test_pred=np.array(test_pred)
-    return test_pred,test_label
-
-def siamese_mul_task(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
-    train_pairs, train_label = create_multask_pair(train_data, train_target,trainindex)
-    test_pairs, test_label = create_multask_pair(test_data, test_target,testindex)
-
-
-    print("训练集对数：",train_pairs.shape)
-    print("测试集对数：",test_pairs.shape)
-
-    train_user_pairs, train_user_label = shuffle(train_pairs[0], train_label[0], random_state=10)
-    train_gesture_pairs, train_gesture_label = shuffle(train_pairs[1], train_label[1], random_state=10)
-
-    train_pairs=[train_user_pairs,train_gesture_pairs]
-    train_label=[train_user_label,train_gesture_label]
-    train_pairs=np.array(train_pairs)
-    train_label=np.array(train_label)
-
-    train_pairs,test_pairs,train_label,test_label=dataresize(train_pairs,test_pairs,train_label,test_label)
-
-    input_shape = (len(train_user_pairs[0][0]),len(train_user_pairs[0][0][0]))
-    print(input_shape)
-
-    model,based_model=create_mul_task_siamese_network(input_shape)
-    history = model.fit([train_pairs[0][:, 0], train_pairs[0][:, 1],train_pairs[1][:, 0], train_pairs[1][:, 1]], 
-        [train_label[0],train_label[1]],  
-           batch_size=512, epochs=1)  
-
-    test_user_pred,test_gesture_pred = model.predict([test_pairs[0][:,0], test_pairs[0][:,1],test_pairs[1][:,0], test_pairs[1][:,1]])
-    test_pred=[test_user_pred,test_gesture_pred]
-    # test_pred=repro_test_pred(test_pred,test_label,anchornum)
-    test_pred=np.array(test_pred)
-    return test_pred,test_label
-
-
+#多任务网络构建
 # def siamese_mul_task(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
 #     train_pairs, train_label = create_multask_pair(train_data, train_target,trainindex)
 #     test_pairs, test_label = create_multask_pair(test_data, test_target,testindex)
-
-
 #     print("训练集对数：",train_pairs.shape)
 #     print("测试集对数：",test_pairs.shape)
-
-#     train_label=train_label.transpose((1,0))
-#     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-
+#     train_user_pairs, train_user_label = shuffle(train_pairs[0], train_label[0], random_state=10)
+#     train_gesture_pairs, train_gesture_label = shuffle(train_pairs[1], train_label[1], random_state=10)
+#     train_pairs=[train_user_pairs,train_gesture_pairs]
+#     train_label=[train_user_label,train_gesture_label]
+#     train_pairs=np.array(train_pairs)
+#     train_label=np.array(train_label)
 #     train_pairs,test_pairs,train_label,test_label=dataresize(train_pairs,test_pairs,train_label,test_label)
-
-#     input_shape = (len(test_pairs[0][0]),len(test_pairs[0][0][0]))
+#     input_shape = (len(train_user_pairs[0][0]),len(train_user_pairs[0][0][0]))
 #     print(input_shape)
-
 #     model,based_model=create_mul_task_siamese_network(input_shape)
-#     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], [train_label[:,0],train_label[:,1]],  
+#     history = model.fit([train_pairs[0][:, 0], train_pairs[0][:, 1],train_pairs[1][:, 0], train_pairs[1][:, 1]], 
+#         [train_label[0],train_label[1]],  
 #            batch_size=512, epochs=1)  
-
-#     test_user_pred,test_gesture_pred = model.predict([test_pairs[:,0], test_pairs[:,1]])
+#     test_user_pred,test_gesture_pred = model.predict([test_pairs[0][:,0], test_pairs[0][:,1],test_pairs[1][:,0], test_pairs[1][:,1]])
 #     test_pred=[test_user_pred,test_gesture_pred]
 #     # test_pred=repro_test_pred(test_pred,test_label,anchornum)
 #     test_pred=np.array(test_pred)
 #     return test_pred,test_label
 
+
+#
 # def siamese_mul_model_data(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
 #     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
 #     test_pairs, test_label = create_pairs_incre(test_data, test_target,testindex)
-
 #     print("训练集对数：",train_pairs.shape)
 #     print("测试集对数：",test_pairs.shape)
-
 #     #长-宽-高
 #     train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
 #     test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
 #     print("训练集对数：",train_pairs.shape)
 #     print("测试集对数：",test_pairs.shape)
 #     train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-
 #     ppg_input_shape = (2,len(train_data[0][0]),1)
 #     motion_input_shape = (6,len(train_data[0][0]),1)
-
 #     model,base_network_1,base_network_2=create_mul_data_siamese_network(ppg_input_shape,motion_input_shape)
 #     history = model.fit([train_pairs[:, 0,:2], train_pairs[:, 1,:2],train_pairs[:, 0,2:], train_pairs[:, 1,2:]]
 #         ,train_label,batch_size=256, epochs=10,validation_split=0.2)  
-
 #     test_pred = model.predict([test_pairs[:, 0,:2], test_pairs[:, 1,:2],test_pairs[:, 0,2:], test_pairs[:, 1,2:]])
-
 #     test_pred=np.array(test_pred)
 #     return test_pred,test_label
 
@@ -410,41 +342,3 @@ def siamese_mul_task(train_data,test_data, train_target,test_target,trainindex,t
 #     return pred,label
 
 
-#从子网构架模型
-# base_network = mlp_network(input_shape)
-    # base_network.load_weights('ppg_based_model.h5')
-
-    # base_network.summary()
-    # x=base_network.predict(data[:,:featurenum])
-    # featurewrite2(x,target)
-
-    # 自架构基础模型
-    # input_a = Input(shape=input_shape)
-    # input_b = Input(shape=input_shape)
-    # processed_a = base_network(input_a)
-    # processed_b = base_network(input_b)
-    # distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-    # ppg_model = Model([input_a, input_b], distance)
-
-    # x=base_network.predict(test_pairs[:, 0,:featurenum])
-    # y=base_network.predict(test_pairs[:, 1,:featurenum])
-    # print(len(x[0]))
-    # score=[]
-    # for i in range(len(x)):
-    #     temp=0
-    #     for j in range(len(x[0])):
-    #         temp=temp+(x[i][j]-y[i][j])*(x[i][j]-y[i][j])
-    #     score.append(temp**0.5)
-    # print(score)
-    # ppg_test_pred=score
-
-
-
-        # history=model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,
-    #       batch_size=128,epochs=50,
-    #       validation_data=([val_pairs[:, 0], val_pairs[:, 1]], val_label))
-    # 隔片段训练
-    # batch_size=1024
-    # model.fit_generator(pairSequence(train_pairs, train_label, batch_size),
-    #   epochs=50,steps_per_epoch=(int(len(train_pairs)/batch_size)+1)
-    #   )

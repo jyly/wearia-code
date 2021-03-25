@@ -3,12 +3,12 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
+from tensorflow.keras.layers import *
 from tensorflow.compat.v1.keras.layers import CuDNNLSTM,CuDNNGRU
 
 import random
 
 from tensorflow.keras.models import *
-from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras import backend as K
 from tensorflow.keras import regularizers

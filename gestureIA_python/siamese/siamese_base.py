@@ -11,10 +11,10 @@ import os
 os.environ["PATH"] += ";E:/system/python/graphviz/bin/"
 
 
-
-
 def create_siamese_network(input_shape,net_type):
     
+    if net_type=='bilstm':
+        base_network=bilstm_network(input_shape)
     if net_type=='mlp':
         base_network=mlp_network(input_shape)
     if net_type=='lstm':
@@ -24,11 +24,10 @@ def create_siamese_network(input_shape,net_type):
     if net_type=='conv_lstm':
         base_network=conv_lstm_network(input_shape)
     if net_type=='pyramid':
-        base_network=pyramid_network(input_shape)
-    if net_type=='bilstm':
-        base_network=bilstm_network(input_shape)
-    if net_type=='resnet1d':
         base_network=resnet1d_network(input_shape)
+    if net_type=='pyramid_lstm':
+        base_network=pyramid_lstm_network(input_shape)
+
 
 
     base_network.summary()
@@ -37,7 +36,7 @@ def create_siamese_network(input_shape,net_type):
     input_b = Input(shape=input_shape)
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
-    distance = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+    distance = Lambda(euclidean_distance)([processed_a, processed_b])
     model = Model([input_a, input_b], distance)
     model.summary()
 
@@ -49,7 +48,7 @@ def create_siamese_network(input_shape,net_type):
     # model.compile(loss='mean_squared_error', optimizer=rms, metrics=[accuracy])
     return model,base_network
 
-
+#多任务模型的孪生网络
 def create_mul_task_siamese_network(input_shape):
     base_network=pyramid_network_based(input_shape)
     plot_model(base_network,"base_network.png",show_shapes=True)

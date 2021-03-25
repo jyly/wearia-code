@@ -10,7 +10,7 @@ from scipy.signal import argrelmax
 import math
 import pandas as pd
 from pymrmre import mrmr
-
+import random
 
 
 #根据项目需要，自定义的工具
@@ -159,7 +159,6 @@ def to2power(data):
 	tempdata=[]
 	for i in data:
 		tempdata.append(i)
-	
 	for i in range(512-length):
 		tempdata.append(0)
 	return tempdata
@@ -230,10 +229,12 @@ def energy(ppg):
 #将行为传感器的数据扩充为原来的2倍
 def sequence_incre(data):
 	temp=[]
-	for i in range(len(data)-1):
-		temp.append(data[i])
-		temp.append((data[i]+data[i+1])/2)
-	temp.append(data[-1])	
+	for i in range(len(data)):
+		temp.append([])
+		for j in range(len(data[i])-1):
+			temp[i].append(data[i][j])
+			temp[i].append((data[i][j]+data[i][j+1])/2)
+		temp[i].append(data[i][-1])	
 	return temp	
 
 def sequence_to_300(data):
@@ -259,7 +260,7 @@ def data_resize(data,resize):
 			temp[j].append(data[j][int(i*inters)])
 	return temp
 
-
+#序列数据集体缩小
 def datainner(data):
 	innersize=len(str(round(data[0])))
 	data=np.array(data)
@@ -268,8 +269,8 @@ def datainner(data):
 	return temp
 
 
+#转换矩阵参数写入文件
 def filterparameterwrite(sort,lda_bar,lda_scaling,filename):
-	
 	outputfile=open(filename,'w+')
 	outputfile.write(str(sort))
 	outputfile.write('\n')
@@ -277,24 +278,7 @@ def filterparameterwrite(sort,lda_bar,lda_scaling,filename):
 	outputfile.write('\n')
 	outputfile.write(str(lda_scaling))
 	outputfile.close()
-
-
-def filterparameterread(filename):
-	
-	inputfile=open(filename,'r+')
-	parameter=[]
-	for i in inputfile:
-		i=list(eval(i))
-		parameter.append(i)
-	inputfile.close()	
-	sort=parameter[0]
-	lda_bar=parameter[1]
-	lda_scaling=parameter[2]
-	return sort,lda_bar,lda_scaling
-
-
 def mulfilterparameterwrite(sort1,sort2,lda_bar,lda_scaling,filename):
-	
 	outputfile=open(filename,'w+')
 	outputfile.write(str(sort1))
 	outputfile.write('\n')
@@ -305,9 +289,19 @@ def mulfilterparameterwrite(sort1,sort2,lda_bar,lda_scaling,filename):
 	outputfile.write(str(lda_scaling))
 	outputfile.close()
 
-
+#从文件中读出转换矩阵参数
+def filterparameterread(filename):
+	inputfile=open(filename,'r+')
+	parameter=[]
+	for i in inputfile:
+		i=list(eval(i))
+		parameter.append(i)
+	inputfile.close()	
+	sort=parameter[0]
+	lda_bar=parameter[1]
+	lda_scaling=parameter[2]
+	return sort,lda_bar,lda_scaling
 def mulfilterparameterread(filename):
-	
 	inputfile=open(filename,'r+')
 	parameter=[]
 	for i in inputfile:
@@ -349,11 +343,7 @@ def caldtw(a,b):
 	d, cost_matrix, acc_cost_matrix, path = dtw(a, b, dist=manhattan_distance)
 	return d
 
-
-
-#将队列数据化为目标分类的队列
-    # digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]
-
+#将数据和类别转变为由类别指引的数据序列
 def listtodic(data,target):
 	index=0
 	dicdata=[[]]
@@ -365,7 +355,8 @@ def listtodic(data,target):
 			dicdata.append([])
 	return dicdata
 
-#将目标分类的队列化为队列数据
+
+#将目标分类的队列从新化为队列数据
 def dictolist(data):
 	feature=[]
 	target=[]
@@ -384,7 +375,7 @@ def dictolist(data):
 
 
 
-
+#训练时对数据进行shape
 def datashape(train_data,test_data,train_target,test_target):
 	train_data=np.array(train_data)
 	train_target=np.array(train_target)
@@ -414,21 +405,49 @@ def datacombine(ppg_data,motion_data):
 # 		tempdata.append(data[i].T)
 # 	return tempdata	
 
-#对样本对进行额外处理
-def repro_test_pred(test_pred,test_label,anchornum):
-	temp_pred=[]
-	for i in range(int(len(test_label))):
-		temppred=0
-		for j in range(anchornum):
-			temppred+=test_pred[i*anchornum+j]
-		temp_pred.append(temppred/anchornum)
-	test_pred=temp_pred
-	print("len(test_pred):",len(test_pred))
-	print("len(test_label):",len(test_label))
-	return test_pred
 
 
 
+
+
+
+def create_rank_testnum(targetnum,iternum,testsetnumber):
+	rangek=list(range(0,targetnum-1))
+	selectk=[]
+	for t in range(iternum):
+		selectk.append(random.sample(rangek, testsetnumber))
+	return selectk
+
+
+def allot_data(selectk,targetnum,tempfeature):
+	train_data=[]
+	test_data=[]
+
+	#用于限制训练集数量
+	# selectks=[]
+	# for i in rangek:
+	# 	if i not in selectk[t]:
+	# 		selectks.append(i)
+	# selectks = random.sample(selectks, traincomnum)
+	# print("被选择的训练集序号：",selectks)
+
+	print("被选择的测试集序号：",selectk)
+	for i in range(targetnum):
+		if i in selectk:
+			test_data.append(tempfeature[i])
+		# if i in selectks:
+		else:
+			train_data.append(tempfeature[i])	
+
+	train_data,train_target,trainindex=dictolist(train_data)
+	test_data,test_target,testindex=dictolist(test_data)
+	
+	print("训练集项目数：" ,trainindex)
+	print("测试集项目数：",testindex)
+	train_data,test_data,train_target,test_target=datashape(train_data,test_data,train_target,test_target)
+	return train_data,test_data,train_target,test_target,trainindex,testindex
+
+#数据中的每条序列转为图片
 # def datatopic(data):
 # 	tempdata=[]
 # 	for i in range(len(data)):
@@ -438,7 +457,7 @@ def repro_test_pred(test_pred,test_label,anchornum):
 # 			temp.append(pic)
 # 		tempdata.append(temp)
 # 	return tempdata
-
+# 配对中的序列转为图片
 # def pairtopic(data):
 # 	tempdata=[]
 # 	for i in range(len(data)):
