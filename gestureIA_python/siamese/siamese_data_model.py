@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.utils import shuffle
 from tensorflow.keras.utils import to_categorical
+import os
 
 def siamese_authentication(train_data,test_data, train_target,test_target,trainindex,testindex,anchornum):
     train_pairs, train_label = create_pairs_incre(train_data, train_target,trainindex)
@@ -19,7 +20,6 @@ def siamese_authentication(train_data,test_data, train_target,test_target,traini
 
     input_shape = (len(test_pairs[0][0]),len(test_pairs[0][0][0]))
     print(input_shape)
-
     
     model,based_model=create_siamese_network(input_shape,'pyramid_lstm')
     history = model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_label,  
@@ -29,6 +29,55 @@ def siamese_authentication(train_data,test_data, train_target,test_target,traini
     # test_pred=repro_test_pred(test_pred,test_label,anchornum)
     test_pred=np.array(test_pred)
     return test_pred,test_label
+
+def siamese_data_build(train_data, train_target,num_classes):
+    train_pairs, train_label = create_pairs_incre(train_data,train_target,num_classes)
+    print("训练集对数：",train_pairs.shape)
+    train_pairs,train_label = shuffle(train_pairs, train_label, random_state=10)
+    train_pairs,train_label=dataresize(train_pairs,train_label)
+    input_shape = [len(train_pairs[0][0]),len(train_pairs[0][0][0])]
+    print(input_shape)
+
+    model,based_model=create_siamese_network(input_shape,'pyramid')
+    history = model.fit([train_pairs[:,0], train_pairs[:,1]], train_label,  
+           batch_size=4096, epochs=200)  
+
+    model.save_weights(os.path.abspath('.').replace("\\",'/')+'/parameter/model_weights.h5')#原型因有lamdba层，不能直接保存模型
+    based_model.save_weights(os.path.abspath('.').replace("\\",'/')+'/parameter/based_model_weights.h5')
+    based_model.save(os.path.abspath('.').replace("\\",'/')+'/parameter/based_model.h5')
+  
+
+def siamese_data_test(test_data,test_target,num_classes,anchornum=5):
+    test_pairs, test_label = create_pairs_incre(test_data, test_target,num_classes)
+    print("测试集对数：",test_pairs.shape)
+    test_pairs,test_label=dataresize(test_pairs,test_label)
+    input_shape = [len(test_pairs[0][0]),len(test_pairs[0][0][0])]
+    print(input_shape)
+    #方案1求出文件中模型的预测结果
+    model,based_model=create_siamese_network(input_shape,'pyramid')
+    model.load_weights(os.path.abspath('.').replace("\\",'/')+'/parameter/model_weights.h5')
+    test_pred = model.predict([test_pairs[:,0], test_pairs[:,1]])
+
+    # 保存为tflite文件,给移动端使用
+    # # based_model =load_model('./parameter/based_model.h5')
+    # # based_model.load_weights('./parameter/based_model_weights.h5')
+    # converter = tf.lite.TFLiteConverter.from_keras_model_file('./parameter/based_model.h5')
+    # # converter = tf.lite.TFLiteConverter.from_keras_model(based_model)
+    # tflite_model = converter.convert()
+    # open("./parameter/based_model.tflite", "wb").write(tflite_model)
+    # interpreter = tf.lite.Interpreter(model_path="./parameter/based_model.tflite")
+    # interpreter.allocate_tensors()
+    # input_details = interpreter.get_input_details()
+    # output_details = interpreter.get_output_details()
+    # print(input_details)
+    # print(output_details)
+
+    test_label=np.array(test_label)
+    test_pred=np.array(test_pred)
+    return test_pred,test_label
+
+
+
 
 
 #多任务网络构建
@@ -83,89 +132,6 @@ def siamese_authentication(train_data,test_data, train_target,test_target,traini
 
 
 
-# def siamese_data_buildmodel(train_data, train_target,num_classes):
-#     # train_pairs, train_label = create_pairs_based(train_data,train_target,num_classes)
-#     # train_pairs, train_label = create_pairs_based_2(train_data,train_target,num_classes)
-#     train_pairs, train_label = create_pairs_incre_1(train_data,train_target,num_classes)
-#     # train_pairs, train_label = create_pairs_incre_2(train_data, train_target,num_classes)
-#     print("train_pairs.shape:",train_pairs.shape)
-#     # train_pairs, train_label = shuffle(train_pairs, train_label, random_state=10)
-     
-#     # train_pairs=train_pairs.reshape(len(train_pairs),2,600)
-#     # train_pairs=train_pairs.reshape(len(train_pairs),2,2,300,1)
-#     # train_pairs=train_pairs.reshape(len(train_pairs),2,300,2,1)
-#     train_pairs=train_pairs.reshape(len(train_pairs),2,len(train_data[0]),len(train_data[0][0]),1)
-#     # input_shape = [(len(train_data[0]),len(train_data[0][0]),1)]
-#     # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
-#     # input_shape = [len(train_data[0]),len(train_data[0][0]),1]
-#     input_shape = [len(train_data[0]),len(train_data[0][0]),1]
-#     # train_pairs=train_pairs.reshape(len(train_pairs),2,300,2,1)
-#     # input_shape = (len(train_data[0]),len(train_data[0][0]),1)
-
-#     print(input_shape)
-
-#     model,based_model=create_siamese_network(input_shape)
-#     history = model.fit([train_pairs[:,0], train_pairs[:,1]], train_label,  
-#            batch_size=4096, epochs=80,
-#            validation_split=0.2)  
-#     model.save_weights('./parameter/model_weights.h5')#原型因有lamdba层，不能直接保存模型
-#     based_model.save_weights('./parameter/based_model_weights.h5')
-#     based_model.save('./parameter/based_model.h5')
-  
-
-# def siamese_data_final(test_data,test_target,num_classes,anchornum=5):
-#     test_pairs, test_label = create_pairs_incre_1(test_data, test_target,num_classes)
-#     # test_pairs, test_label = create_test_pair(test_data, test_target,num_classes,anchornum)
-#     # test_pairs, test_label = create_victima_test_pair(data, target,num_classes,anchornum)
-   
-#     # test_pairs=test_pairs.reshape(len(test_pairs),2,600)
-#     # test_pairs=test_pairs.reshape(len(test_pairs),2,2,300,1)
-#     # test_pairs=test_pairs.reshape(len(test_pairs),2,300,2,1)
-#     test_pairs=test_pairs.reshape(len(test_pairs),2,len(test_data[0]),len(test_data[0][0]),1)
-#     # input_shape = (len(test_data[0]),len(test_data[0][0]),1)
-#     # input_shape = [(len(train_data[0]),len(train_data[0][0]),1)]
-#     # input_shape = (len(test_data[0]),len(test_data[0][0]),)
-#     # input_shape = [len(test_data[0]),len(test_data[0][0]),1]
-#     input_shape = [len(test_data[0]),len(test_data[0][0]),1]
-#     # input_shape = [(600)]
-#     print(input_shape)
-#     print("test_pairs.shape:",test_pairs.shape)
-
-#     model,based_model=create_siamese_network(input_shape)
-#     model.load_weights('./parameter/model_weights.h5')
-#     test_pred = model.predict([test_pairs[:,0], test_pairs[:,1]])
-
-#     # based_model =load_model('./parameter/based_model.h5')
-#     # based_model.summary()
-#     # score=based_model.predict(test_pairs[:,0])
-#     # print(score)
-#     # based_model.load_weights('./parameter/based_model_weights.h5')
-#     converter = tf.lite.TFLiteConverter.from_keras_model_file('./parameter/based_model.h5')
-#     # converter = tf.lite.TFLiteConverter.from_keras_model(based_model)
-#     tflite_model = converter.convert()
-#     open("./parameter/based_model.tflite", "wb").write(tflite_model)
-
-#     interpreter = tf.lite.Interpreter(model_path="./parameter/based_model.tflite")
-#     interpreter.allocate_tensors()
-#     input_details = interpreter.get_input_details()
-#     output_details = interpreter.get_output_details()
-#     print(input_details)
-#     print(output_details)
-
-
-
-#     # #对样本对进行额外处理
-#     # temp_pred=[]
-#     # for i in range(int(len(test_label))):
-#     #     temppred=0
-#     #     for j in range(anchornum):
-#     #         temppred+=test_pred[i*anchornum+j]
-#     #     temp_pred.append(temppred/anchornum)
-#     # test_pred=temp_pred
-
-#     test_label=np.array(test_label)
-#     test_pred=np.array(test_pred)
-#     return test_pred,test_label
 
 
 

@@ -2,14 +2,14 @@
 import os
 from normal_tool import *
 import MAfind
-import numpy as np 
+import numpy as np
 import scipy.signal as signal
 from scipy import interpolate
 
 
 
 
-        
+
 #寻找当前时间序列的极值点
 def findpeaks(x):
     return signal.argrelextrema(x,np.greater)[0]

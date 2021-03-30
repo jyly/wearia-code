@@ -33,7 +33,7 @@ public class Featurecontrol {
 		FastFourierTransformer ffts = new FastFourierTransformer(DftNormalization.STANDARD);
 
 		ArrayList<Double> features = new ArrayList<Double>();
-		 IAtool iatools = new IAtool();
+		IAtool iatools = new IAtool();
 
 		double[] tempdata = iatools.to2power(data);
 		int datalen = data.length;
@@ -254,7 +254,7 @@ public class Featurecontrol {
             orippg.y = nortools.innerscale(orippg.y);
             orippg = ma.setsegment(orippg);
             Motion motion = ma.setsegment(motions);
-            
+
             samplefeature = return_feature(orippg, motion);
             motion = null;
 

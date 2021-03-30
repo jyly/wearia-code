@@ -2,7 +2,7 @@
 import os
 import numpy as np
 import IAtool
-
+from normal_tool import *
 #读取原始数据，从文件中将所有数据按传感器进行分类
 def oridataread(path):
 	ppgx=[]
@@ -42,13 +42,13 @@ def oridataread(path):
 				oldy=i[2]
 			x=abs(i[1]/oldx)
 			y=abs(i[2]/oldy)
-			if(x<10 and x>0.1 and y<10 and y>0.1):			
+			if(x<10 and x>0.1 and y<10 and y>0.1):
 				ppgx.append(i[1])
 				ppgy.append(i[2])
 				ppgtime.append(i[3])
 				oldx=i[1]
 				oldy=i[2]
-	inputfile.close()	
+	inputfile.close()
 	return ppgx,ppgy,accx,accy,accz,gyrx,gyry,gyrz,ppgtime,acctime,gyrtime
 
 
@@ -115,8 +115,10 @@ def datawrite(data,filesname):
 
 # 将取数手势段的原始数据读出来
 def dataread():
-	dirpath='./selected/madata/'
-	filespace=os.listdir(dirpath)
+	dirpath=os.path.abspath('.').replace("\\",'/')+'/selected/madata/'
+
+	
+	filespace=os.listdir(dirpath)	
 	filespace.sort()
 	dataset=[]
 	target=[]
@@ -129,17 +131,22 @@ def dataread():
 		for i in inputfile:
 			i=list(eval(i))
 			temp.append(i)
-			if len(temp)==8:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
+			if len(temp)==2:#2代表仅录入ppg信号，8代表录入ppg信号和2个行为传感器信号
 
 				temp=IAtool.sequence_incre(temp)
+				# temp[0]=meanfilt(temp[0],20)
+				# temp[1]=meanfilt(temp[1],20)
 				temp=IAtool.data_resize(temp,200)
-				temp[0]=IAtool.datainner(temp[0])
-				temp[1]=IAtool.datainner(temp[1])
+				# temp[0]=IAtool.datainner(temp[0])
+				# temp[1]=IAtool.datainner(temp[1])
+				temp[0]=IAtool.stdpro(temp[0])
+				temp[1]=IAtool.stdpro(temp[1])
+
 
 				dataset.append(temp)
 				target.append(index)
 				temp=[]
-		inputfile.close()	
+		inputfile.close()
 		index=index+1
 	targetnum=index-1
 	dataset=np.array(dataset)

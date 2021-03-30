@@ -40,7 +40,7 @@ def simplemoel_mlp(input_shape,divnum):
     '''Base network to be shared (eq. to feature extraction).
     '''
     inputs = Input(shape=(input_shape), name='input')
-    
+
     x = Flatten()(inputs)
     x = Dense(128, activation='relu')(x)
     x = Dropout(0.1)(x)
@@ -49,7 +49,7 @@ def simplemoel_mlp(input_shape,divnum):
     x = Dense(128, activation='relu')(x)
     x = Dropout(0.2)(x)
     x = Dense(128, activation='relu')(x)
-    
+
     x = Dense(41,activation='sigmoid', name='output')(x)
 
     outputs=x
@@ -63,10 +63,10 @@ def conv_lstm(input_shape,divnum):
     # x = Reshape((2,200,1))(inputs)
     # x = Conv2D(4, (1, 3), activation='relu',padding='same')(x)
     # x = Dropout(0.1)(x)
-    # x = MaxPooling2D(pool_size=(1, 2))(x) 
+    # x = MaxPooling2D(pool_size=(1, 2))(x)
     # x = Conv2D(1, (1, 3), activation='relu',padding='same')(x)
     # x = Dropout(0.1)(x)
-    # x = MaxPooling2D(pool_size=(1, 2))(x) 
+    # x = MaxPooling2D(pool_size=(1, 2))(x)
 
     # x = Reshape((200,1))(inputs)
     # x = Reshape((200,1))(inputs)
@@ -87,7 +87,7 @@ def conv_lstm(input_shape,divnum):
 #     '''Base network to be shared (eq. to feature extraction).
 #     '''
 #     inputs = Input(shape=(input_shape), name='input')
-    
+
 #     x = Flatten()(inputs)
 #     x = Dense(128)(x)
 #     x = LeakyReLU(alpha=0.2)(x)
@@ -95,7 +95,7 @@ def conv_lstm(input_shape,divnum):
 #     x = LeakyReLU(alpha=0.2)(x)
 #     x = Dense(128)(x)
 #     x = LeakyReLU(alpha=0.2)(x)
-    
+
 #     outputs=x
 #     x = Dense(41,activation='sigmoid')(x)
 

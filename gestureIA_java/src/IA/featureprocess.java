@@ -10,29 +10,29 @@ public class featureprocess {
 	MAfind ma = new MAfind();
 	Featurecontrol featurecontrol = new Featurecontrol();
 
-	// ÇóÏà¶Ô¾²Ö¹×´Ì¬ÏÂµÄÌØÕ÷£¬ÓÃ40×é
+	// æ±‚ç›¸å¯¹é™æ­¢çŠ¶æ€ä¸‹çš„ç‰¹å¾ï¼Œç”¨40ç»„
 	public void static_feature(String dirpath) {
 		File dirFile = new File(dirpath);
 		File[] objdirName = dirFile.listFiles();
 		ArrayList<Integer> filenum = new ArrayList<Integer>();
 		int objnum = 1;
-		// ÎÄ¼ş¼ĞÖĞÌáÈ¡µÄÀà±ğ
+		// æ–‡ä»¶å¤¹ä¸­æå–çš„ç±»åˆ«
 		for (File objdir : objdirName) {
 			File[] fileset = objdir.listFiles();
 			ArrayList<double[]> featureset = new ArrayList<double[]>();
-			// ÎÄ¼ş¼ĞÖĞÌáÈ¡µÄÀà±ğ,ÀúÊ·ÒÅÁôÀà
+			// æ–‡ä»¶å¤¹ä¸­æå–çš„ç±»åˆ«,å†å²é—ç•™ç±»
 			for (File samplefileset : fileset) {
 				File[] samples = samplefileset.listFiles();
 				for (File sample : samples) {
-//					double[] sampleFeature = single_feature(sample);
-					double[] sampleFeature = null;
+					double[] sampleFeature = single_feature(sample);
+					// double[] sampleFeature = null;
 					if (sampleFeature != null) {
 						featureset.add(sampleFeature);
 					}
 				}
 			}
 			if (featureset.size() > 0) {
-				System.out.println("µ±Ç°µÚ" + objnum + "¸öÀà±ğ¾²Ö¹Æ¬¶ÎÊı£º" + featureset.size());
+				System.out.println("å½“å‰ç¬¬" + objnum + "ä¸ªç±»åˆ«é™æ­¢ç‰‡æ®µæ•°ï¼š" + featureset.size());
 				filenum.add(featureset.size());
 				String featurefile = "./selected_feature/" + objdir.getName() + ".csv";
 				objnum++;
@@ -44,16 +44,16 @@ public class featureprocess {
 			System.out.print(filenum.get(i) + ",");
 		}
 	}
-	
-	// ÇóÊÖÊÆµÄÌØÕ÷£¬360×é
+
+	// æ±‚æ‰‹åŠ¿çš„ç‰¹å¾ï¼Œ360ç»„
 	public void all_feature(String dirpath) {
 		File dirFile = new File(dirpath);
 		File[] objdirName = dirFile.listFiles();
-		// ÎÄ¼ş¼ĞÖĞÌáÈ¡µÄÎÄ¼şÊı
+		// æ–‡ä»¶å¤¹ä¸­æå–çš„æ–‡ä»¶æ•°
 		ArrayList<Integer> filenum = new ArrayList<Integer>();
 		int objnum = 1;
 		for (File objdir : objdirName) {
-			// ±éÀúÄ¿±êÎÄ¼ş¼ĞÏÂËùÓĞÎÄ¼ş
+			// éå†ç›®æ ‡æ–‡ä»¶å¤¹ä¸‹æ‰€æœ‰æ–‡ä»¶
 			File[] samplefileset = objdir.listFiles();
 			ArrayList<double[]> featureset = new ArrayList<double[]>();
 			for (File sample : samplefileset) {
@@ -63,7 +63,7 @@ public class featureprocess {
 				}
 			}
 			if (featureset.size() > 0) {
-				System.out.println("µ±Ç°µÚ" + objnum + "¸öÀà±ğÊÖÊÆÆ¬¶ÎÊı£º" + featureset.size());
+				System.out.println("å½“å‰ç¬¬" + objnum + "ä¸ªç±»åˆ«æ‰‹åŠ¿ç‰‡æ®µæ•°ï¼š" + featureset.size());
 				filenum.add(featureset.size());
 				String featurefile = "./selected_feature/" + objdir.getName() + ".csv";
 				objnum++;
@@ -80,7 +80,7 @@ public class featureprocess {
 		double[] samplefeature = null;
 		System.out.println(filepath);
 		PPG ppgs = files.orippgread(filepath);
-		
+
 		if (ppgs.x.length < 800 || ppgs.y.length < 800) {
 			return samplefeature;
 		}
@@ -89,13 +89,13 @@ public class featureprocess {
 
 		orippg.x = nortools.minmaxscale(ppgs.x);
 		orippg.y = nortools.minmaxscale(ppgs.y);
-//		orippg.x = nortools.meanfilt(ppgs.x, 20);
-//		orippg.y = nortools.meanfilt(ppgs.y, 20);
+		// orippg.x = nortools.meanfilt(ppgs.x, 20);
+		// orippg.y = nortools.meanfilt(ppgs.y, 20);
 
 		PPG butterppg = new PPG();
-//		//¶ÔÔ­Ê¼µÄppgĞÍºÅ×öbutterworthÌáÈ¡
-//		butterppg.x = nortools.butterworth_highpass(orippg.x, 200, 2);
-//		butterppg.y = nortools.butterworth_highpass(orippg.y, 200, 2);
+		// //å¯¹åŸå§‹çš„ppgå‹å·åšbutterworthæå–
+		// butterppg.x = nortools.butterworth_highpass(orippg.x, 200, 2);
+		// butterppg.y = nortools.butterworth_highpass(orippg.y, 200, 2);
 
 		butterppg.x = nortools.butterworth_bandpass(orippg.x, 200, 2, 5);
 		butterppg.y = nortools.butterworth_bandpass(orippg.y, 200, 2, 5);
@@ -103,36 +103,37 @@ public class featureprocess {
 		butterppg.x = nortools.minmaxscale(butterppg.x);
 		butterppg.y = nortools.minmaxscale(butterppg.y);
 
-		// ×ö¿ìËÙÖ÷³É·Ö·ÖÎö
+		// åšå¿«é€Ÿä¸»æˆåˆ†åˆ†æ
 		PPG icappg = iatools.fastica(butterppg);
-//		 ¸ù¾İ·åÖµÅĞ¶ÏÄÇÌõÊÖÊÆĞÅºÅºÍÂö³åĞÅºÅ
+		// æ ¹æ®å³°å€¼åˆ¤æ–­é‚£æ¡æ‰‹åŠ¿ä¿¡å·å’Œè„‰å†²ä¿¡å·
 		icappg = iatools.machoice(icappg);
 
-//		String featurefile = "./butter/" + filepath.getName();
-//		files.datawrite(icappg.x, icappg.y, featurefile);
+		// String featurefile = "./butter/" + filepath.getName();
+		// files.datawrite(icappg.x, icappg.y, featurefile);
 
 		MAfind ma = new MAfind();
-		Normal_tool normal = new Normal_tool();
 		Featurecontrol featurecontrol = new Featurecontrol();
-		// Ï¸Á£¶ÈÊÖÊÆ·ÖÎö£¬ÅĞ¶ÏÊÖÊÆÇø¼ä
-		int finetag = ma.fine_grained_segment(icappg.x, 200, 0.7);//¾ÉÊÖÊÆÌáÈ¡·½·¨
-//		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5, 0.7);//ĞÂÊÖÊÆÌáÈ¡·½·¨
-//		int finetag = ma.fine_grained_segment_3(icappg.x, 200, 0.6);//´ÖÁ£¶ÈÎŞÊÖÊÆ¶ÎÌáÈ¡·½·¨
+		// ç»†ç²’åº¦æ‰‹åŠ¿åˆ†æï¼Œåˆ¤æ–­æ‰‹åŠ¿åŒºé—´
+		int finetag = ma.fine_grained_segment(icappg.x, 200, 0.7);// æ—§æ‰‹åŠ¿æå–æ–¹æ³•
+		// int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5,
+		// 0.7);//æ–°æ‰‹åŠ¿æå–æ–¹æ³•
+		// int finetag = ma.fine_grained_segment_3(icappg.x, 200,
+		// 0.6);//ç²—ç²’åº¦æ— æ‰‹åŠ¿æ®µæå–æ–¹æ³•
 		if (0 == finetag) {
-//				Log.e(">>>", "µ±Ç°Æ¬¶Î²»´æÔÚÊÖÊÆ");
-			System.out.println("µ±Ç°Æ¬¶Î²»´æÔÚÊÖÊÆ");
+			// Log.e(">>>", "å½“å‰ç‰‡æ®µä¸å­˜åœ¨æ‰‹åŠ¿");
+			System.out.println("å½“å‰ç‰‡æ®µä¸å­˜åœ¨æ‰‹åŠ¿");
 		} else {
-//				Log.e(">>>","ÊÖÊÆµã£º" + ma.pointstartindex + " " + ma.pointendindex);
-			System.out.println("ÊÖÊÆµã£º" + ma.pointstartindex + " " + ma.pointendindex);
+			// Log.e(">>>","æ‰‹åŠ¿ç‚¹ï¼š" + ma.pointstartindex + " " + ma.pointendindex);
+			System.out.println("æ‰‹åŠ¿ç‚¹ï¼š" + ma.pointstartindex + " " + ma.pointendindex);
 
 			ppgs.x = nortools.meanfilt(ppgs.x, 20);
 			ppgs.y = nortools.meanfilt(ppgs.y, 20);
 			ppgs = ma.setsegment(ppgs);
-			
-//			ppgs.x = nortools.changehz(ppgs.x, 10);
-//			ppgs.y = nortools.changehz(ppgs.y, 10);
-			
-//			System.out.printf("newlens"+ppgs.x.length);
+
+			// ppgs.x = nortools.changehz(ppgs.x, 10);
+			// ppgs.y = nortools.changehz(ppgs.y, 10);
+
+			// System.out.printf("newlens"+ppgs.x.length);
 
 			Motion motion = files.orimotionread(filepath);
 			motion.accx = nortools.meanfilt(motion.accx, 20);
@@ -142,10 +143,10 @@ public class featureprocess {
 			motion.gyry = nortools.meanfilt(motion.gyry, 20);
 			motion.gyrz = nortools.meanfilt(motion.gyrz, 20);
 			motion = ma.setsegment(motion);
-			
+
 			samplefeature = featurecontrol.return_feature(ppgs, motion);
-//			samplefeature = featurecontrol.return_feature(ppgs);
-//			System.out.println("ÌØÕ÷Êı£º" + samplefeature.length);
+			// samplefeature = featurecontrol.return_feature(ppgs);
+			// System.out.println("ç‰¹å¾æ•°ï¼š" + samplefeature.length);
 		}
 		return samplefeature;
 	}

@@ -90,10 +90,10 @@ public class IAtool {
 			tempmatrix.add((double) 0);
 		}
 		double[] matrix = nortools.arraytomatrix(tempmatrix);
-//		System.out.println(matrix.length);
-//		for (int i = 0; i < matrix.length; i++) {
-//			System.out.println(matrix[i]);
-//		}
+		// System.out.println(matrix.length);
+		// for (int i = 0; i < matrix.length; i++) {
+		// System.out.println(matrix[i]);
+		// }
 		return matrix;
 	}
 
@@ -110,9 +110,10 @@ public class IAtool {
 		}
 		FFTvalue tempvalue = new FFTvalue(fluency, fftscore);
 
-//		for (int i = 0; i < xlen; i++) {
-//			System.out.println("fft" + i + "=" + fftscore.get(i) + "   fluency" + i + "=" + fluency.get(i));
-//		}
+		// for (int i = 0; i < xlen; i++) {
+		// System.out.println("fft" + i + "=" + fftscore.get(i) + " fluency" + i + "=" +
+		// fluency.get(i));
+		// }
 		return tempvalue;
 	}
 
@@ -157,10 +158,10 @@ public class IAtool {
 				}
 			}
 		}
-//	        Log.e(">>>","tag.length"+tag.length);
-//	        for (int i=0;i<tag.length;i++){
-//	           Log.e("PQtag","第"+i+"个pg:"+Ptag[i]+","+Qtag[i]);
-//	        }
+		// Log.e(">>>","tag.length"+tag.length);
+		// for (int i=0;i<tag.length;i++){
+		// Log.e("PQtag","第"+i+"个pg:"+Ptag[i]+","+Qtag[i]);
+		// }
 
 		for (int i = 0; i < tag.length; i++) {
 			if (0 == Ptag[i]) {
@@ -170,9 +171,9 @@ public class IAtool {
 			if (0 == Qtag[i]) {
 				Qtag[i] = 0.00000001;
 			}
-//	            Log.e("PQtag","第"+i+"个pg:"+Ptag[i]+","+Qtag[i]);
+			// Log.e("PQtag","第"+i+"个pg:"+Ptag[i]+","+Qtag[i]);
 		}
-//	        return tools.KL_divergence(Ptag,Qtag);
+		// return tools.KL_divergence(Ptag,Qtag);
 		return nortools.JS_divergence(Ptag, Qtag);
 	}
 
@@ -183,6 +184,4 @@ public class IAtool {
 		}
 		return finalfeature;
 	}
-	
-
 }

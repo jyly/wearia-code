@@ -1,7 +1,7 @@
 # -*- coding=utf-8 -*-
 import os
 import filecontrol 
-import featurecontrol
+# import featurecontrol
 from normal_tool import *
 import IAtool 
 import MAfind
@@ -177,13 +177,13 @@ def single_feature(filepath):
 	# gyrz=standardscale(gyrz)
 
 	tempfeature=[]
-	if tag==1:
-		temp=featurecontrol.ppg_feature(orippgx[pointstartindex:pointendindex])
-		for i in temp:
-			tempfeature.append(i)
-		temp=featurecontrol.ppg_feature(orippgy[pointstartindex:pointendindex])
-		for i in temp:
-			tempfeature.append(i)
+	# if tag==1:
+	# 	temp=featurecontrol.ppg_feature(orippgx[pointstartindex:pointendindex])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
+	# 	temp=featurecontrol.ppg_feature(orippgy[pointstartindex:pointendindex])
+	# 	for i in temp:
+	# 		tempfeature.append(i)
 
 	# 	temp=featurecontrol.motion_feature(accx[int((pointstartindex)/2):int((pointendindex)/2)])
 	# 	for i in temp:
@@ -258,15 +258,15 @@ def renew_feature():
 		for i in range(len(dataset)):
 			temp=[]
 			# print(len(dataset[i][0]),len(dataset[i][0]))
-			temp=temp+featurecontrol.ppg_feature(dataset[i][0])
-			temp=temp+featurecontrol.ppg_feature(dataset[i][1])
+			# temp=temp+featurecontrol.ppg_feature(dataset[i][0])
+			# temp=temp+featurecontrol.ppg_feature(dataset[i][1])
 
-			temp=temp+featurecontrol.motion_feature(dataset[i][2])
-			temp=temp+featurecontrol.motion_feature(dataset[i][3])
-			temp=temp+featurecontrol.motion_feature(dataset[i][4])
-			temp=temp+featurecontrol.motion_feature(dataset[i][5])
-			temp=temp+featurecontrol.motion_feature(dataset[i][6])
-			temp=temp+featurecontrol.motion_feature(dataset[i][7])
+			# temp=temp+featurecontrol.motion_feature(dataset[i][2])
+			# temp=temp+featurecontrol.motion_feature(dataset[i][3])
+			# temp=temp+featurecontrol.motion_feature(dataset[i][4])
+			# temp=temp+featurecontrol.motion_feature(dataset[i][5])
+			# temp=temp+featurecontrol.motion_feature(dataset[i][6])
+			# temp=temp+featurecontrol.motion_feature(dataset[i][7])
 			# print(len(temp))
 			feature.append(temp)
 			filenames=str(file).replace("csv","")

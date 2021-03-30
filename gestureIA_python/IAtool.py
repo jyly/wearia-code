@@ -4,9 +4,9 @@ from sklearn.decomposition import FastICA,PCA
 from scipy.stats import kurtosis
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from normal_tool import *
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler,MinMaxScaler
 from dtw import dtw
-from scipy.signal import argrelmax
+from scipy.signal import argrelmax,argrelmin
 import math
 import pandas as pd
 from pymrmre import mrmr
@@ -133,13 +133,35 @@ def stdpro(train_data,test_data):
 	# print(np.dot(test_data[0]-lda.xbar_,lda.scalings_))
 	#降维等于 np.dot(test_data-lda_bar,lda_scaling)
 	if len(test_data)>0:
-		test_data=scaler.transform(test_data) 	
+		test_data=scaler.transform(test_data)
 	# print(test_data[0])
 	scaler_mean=[i for i in scaler.mean_]
 	print("scaler_mean:",scaler_mean)
 	scaler_scale=[i for i in scaler.scale_]
 	print("scaler_scale:",scaler_scale)
 	return train_data,test_data,scaler_mean,scaler_scale
+
+
+def stdpro(train_data):
+	scaler = StandardScaler()
+	train_data=np.array(train_data)
+	train_data=train_data.reshape(-1, 1)
+	scaler = scaler.fit(train_data)
+	train_data=scaler.transform(train_data)
+	train_data=train_data.reshape(1, -1)
+	train_data=train_data[0]
+	return train_data
+
+
+def minmaxpro(train_data):
+	scaler = MinMaxScaler()
+	train_data=np.array(train_data)
+	train_data=train_data.reshape(-1, 1)
+	scaler = scaler.fit(train_data)
+	train_data=scaler.transform(train_data)
+	train_data=train_data.reshape(1, -1)
+	train_data=train_data[0]
+	return train_data
 
 
 # 将array数据转成dic格式，给libsvm用,特征从1开始编码

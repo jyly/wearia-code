@@ -24,7 +24,7 @@ def create_siamese_network(input_shape,net_type):
     if net_type=='conv_lstm':
         base_network=conv_lstm_network(input_shape)
     if net_type=='pyramid':
-        base_network=resnet1d_network(input_shape)
+        base_network=pyramid_network(input_shape)
     if net_type=='pyramid_lstm':
         base_network=pyramid_lstm_network(input_shape)
 
@@ -49,36 +49,36 @@ def create_siamese_network(input_shape,net_type):
     return model,base_network
 
 #多任务模型的孪生网络
-def create_mul_task_siamese_network(input_shape):
-    base_network=pyramid_network_based(input_shape)
-    plot_model(base_network,"base_network.png",show_shapes=True)
-    base_network.summary()
-    #user user gesture gesture
-    input_a = Input(shape=input_shape)
-    input_b = Input(shape=input_shape)
-    input_c = Input(shape=input_shape)
-    input_d = Input(shape=input_shape)
-    processed_a = base_network(input_a)
-    processed_b = base_network(input_b)
-    processed_c = base_network(input_c)
-    processed_d = base_network(input_d)
+# def create_mul_task_siamese_network(input_shape):
+#     base_network=pyramid_network_based(input_shape)
+#     plot_model(base_network,"base_network.png",show_shapes=True)
+#     base_network.summary()
+#     #user user gesture gesture
+#     input_a = Input(shape=input_shape)
+#     input_b = Input(shape=input_shape)
+#     input_c = Input(shape=input_shape)
+#     input_d = Input(shape=input_shape)
+#     processed_a = base_network(input_a)
+#     processed_b = base_network(input_b)
+#     processed_c = base_network(input_c)
+#     processed_d = base_network(input_d)
 
-    user_a=Dense(128, activation='relu')(processed_a)
-    user_b=Dense(128, activation='relu')(processed_b)
+#     user_a=Dense(128, activation='relu')(processed_a)
+#     user_b=Dense(128, activation='relu')(processed_b)
 
-    gesture_a=Dense(128, activation='relu')(processed_c)
-    gesture_b=Dense(128, activation='relu')(processed_d)
+#     gesture_a=Dense(128, activation='relu')(processed_c)
+#     gesture_b=Dense(128, activation='relu')(processed_d)
 
-    distance_user = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([user_a, user_b])
-    distance_gesture = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([gesture_a, gesture_b])
+#     distance_user = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([user_a, user_b])
+#     distance_gesture = Lambda(euclidean_distance,output_shape=eucl_dist_output_shape)([gesture_a, gesture_b])
     
-    model = Model([input_a, input_b,input_c, input_d], [distance_user,distance_gesture])
-    model.summary()
+#     model = Model([input_a, input_b,input_c, input_d], [distance_user,distance_gesture])
+#     model.summary()
 
-    rms = optimizers.RMSprop()
-    # model.compile(loss={'distance_user':contrastive_loss_1,'distance_gesture':contrastive_loss_1},
-    model.compile(loss=[contrastive_loss_1,contrastive_loss_1],loss_weights=[0.8, 0.2], optimizer=rms, metrics=[accuracy])
-    return model,base_network
+#     rms = optimizers.RMSprop()
+#     # model.compile(loss={'distance_user':contrastive_loss_1,'distance_gesture':contrastive_loss_1},
+#     model.compile(loss=[contrastive_loss_1,contrastive_loss_1],loss_weights=[0.8, 0.2], optimizer=rms, metrics=[accuracy])
+#     return model,base_network
 
 
 

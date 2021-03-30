@@ -9,11 +9,11 @@ public class combine {
 	Normal_tool nortools = new Normal_tool();
 	MAfind ma = new MAfind();
 	Featurecontrol featurecontrol = new Featurecontrol();
-	// ÇóÊÖÊÆµÄÌØÕ÷£¬360×é
+
 		public void all_madata(String dirpath) {
 			File dirFile = new File(dirpath);
 			File[] objdirName = dirFile.listFiles();
-			// ÎÄ¼ş¼ĞÖĞÌáÈ¡µÄÎÄ¼şÊı
+			// æ–‡ä»¶å¤¹ä¸­æå–çš„æ–‡ä»¶æ•°
 			ArrayList<Integer> filenum = new ArrayList<Integer>();
 			int objnum = 1;
 			for (File objdir : objdirName) {
@@ -28,7 +28,7 @@ public class combine {
 					}
 				}
 				if (madata.size() > 0) {
-					System.out.println("µ±Ç°µÚ" + objnum + "¸öÀà±ğÊÖÊÆÆ¬¶ÎÊı£º" + madata.size());
+					System.out.println("å½“å‰ç¬¬" + objnum + "ä¸ªç±»åˆ«æ‰‹åŠ¿ç‰‡æ®µæ•°ï¼š" + madata.size());
 					filenum.add(madata.size());
 					String featurefile = "./selected_madata/" + objdir.getName() + ".csv";
 					objnum++;
@@ -44,62 +44,58 @@ public class combine {
 		}
 		public combines_class single_data(File filepath) {
 			combines_class single=new combines_class();
-			
 			single.sampledata = null;
 			single.samplefeature = null;
-			
+
 			System.out.println(filepath);
 			PPG ppgs = files.orippgread(filepath);
-			
+
 			if(ppgs.x.length<800||ppgs.y.length<800) {
 				return single;
 			}
-				
+
 			PPG orippg = new PPG();
 			orippg.x=nortools.minmaxscale(ppgs.x);
 			orippg.y=nortools.minmaxscale(ppgs.y);
-			
-			
+
 			PPG butterppg = new PPG();
-//			//¶ÔÔ­Ê¼µÄppgĞÍºÅ×öbutterworthÌáÈ¡
+			//å¯¹åŸå§‹çš„ppgå‹å·åšbutterworthæå–
 			butterppg.x = nortools.butterworth_bandpass(orippg.x, 200, 2,5);
 			butterppg.y = nortools.butterworth_bandpass(orippg.y, 200, 2,5);
 			
 			butterppg.x=nortools.minmaxscale(butterppg.x);
 			butterppg.y=nortools.minmaxscale(butterppg.y);
 			
-			// ×ö¿ìËÙÖ÷³É·Ö·ÖÎö
+			// åšå¿«é€Ÿä¸»æˆåˆ†åˆ†æ
 			PPG icappg = iatools.fastica(butterppg);
 
-			// ¸ù¾İ·åÖµÅĞ¶ÏÄÇÌõÊÖÊÆĞÅºÅºÍÂö³åĞÅºÅ
+			// æ ¹æ®å³°å€¼åˆ¤æ–­é‚£æ¡æ‰‹åŠ¿ä¿¡å·å’Œè„‰å†²ä¿¡å·
 			icappg = iatools.machoice(icappg);
 
 			
 			MAfind ma = new MAfind();
-			// Ï¸Á£¶ÈÊÖÊÆ·ÖÎö£¬ÅĞ¶ÏÊÖÊÆÇø¼ä
+			// ç»†ç²’åº¦æ‰‹åŠ¿åˆ†æï¼Œåˆ¤æ–­æ‰‹åŠ¿åŒºé—´
 			
 			int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
 //			 int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5,0.7);
 //			int finetag = ma.fine_grained_segment_3(icappg.x, 200, 0.3);
 			if (0 == finetag) {
-//				Log.e(">>>", "µ±Ç°Æ¬¶Î²»´æÔÚÊÖÊÆ");
-				System.out.println("µ±Ç°Æ¬¶Î²»´æÔÚÊÖÊÆ");
+//				Log.e(">>>", "ï¿½ï¿½Ç°Æ¬ï¿½Î²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
+				System.out.println("å½“å‰ç‰‡æ®µä¸å­˜åœ¨æ‰‹åŠ¿");
 			} else {
-//				Log.e(">>>","ÊÖÊÆµã£º" + ma.pointstartindex + " " + ma.pointendindex);
-				System.out.println("ÊÖÊÆµã£º" + ma.pointstartindex + " " + ma.pointendindex);
-
+//				Log.e(">>>","ï¿½ï¿½ï¿½Æµã£º" + ma.pointstartindex + " " + ma.pointendindex);
+				System.out.println("æ‰‹åŠ¿ç‚¹ï¼š" + ma.pointstartindex + " " + ma.pointendindex);
 				single.sampledata = new double[8][];
 				ppgs.x = nortools.meanfilt(ppgs.x, 20);
 				ppgs.y = nortools.meanfilt(ppgs.y, 20);
 				ppgs = ma.setsegment(ppgs);
-				
+
 //				ppgs.x=nortools.smallscale(ppgs.x);
 //				ppgs.y=nortools.smallscale(ppgs.y);
-			
+
 				ppgs.x=nortools.minmaxscale(ppgs.x);
 				ppgs.y=nortools.minmaxscale(ppgs.y);
-				
-				
+
 				Motion motion = files.orimotionread(filepath);
 				motion.accx = nortools.meanfilt(motion.accx, 20);
 				motion.accy = nortools.meanfilt(motion.accy, 20);
@@ -110,14 +106,14 @@ public class combine {
 				motion = ma.setsegment(motion);
 				ma = null;
 
-				
+
 				motion.accx=nortools.minmaxscale(motion.accx);
 				motion.accy=nortools.minmaxscale(motion.accy);
 				motion.accz=nortools.minmaxscale(motion.accz);
 				motion.gyrx=nortools.minmaxscale(motion.gyrx);
 				motion.gyry=nortools.minmaxscale(motion.gyry);
-				motion.gyrz=nortools.minmaxscale(motion.gyrz);		
-				
+				motion.gyrz=nortools.minmaxscale(motion.gyrz);
+
 				single.sampledata[0] = ppgs.x;
 				single.sampledata[1] = ppgs.y;
 				single.sampledata[2] = motion.accx;
@@ -126,7 +122,7 @@ public class combine {
 				single.sampledata[5] = motion.gyrx;
 				single.sampledata[6] = motion.gyry;
 				single.sampledata[7] = motion.gyrz;
-				
+
 
 				single.samplefeature = featurecontrol.return_feature(ppgs, motion);
 			}

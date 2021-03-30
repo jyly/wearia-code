@@ -8,62 +8,29 @@ public class dataprocess {
 	IAtool iatools = new IAtool();
 	Normal_tool nortools = new Normal_tool();
 	MAfind ma = new MAfind();
-	Featurecontrol featurecontrol = new Featurecontrol();
 
-	// ÇóÏà¶Ô¾²Ö¹×´Ì¬ÏÂµÄÊı¾İ£¬ÓÃ40×é
-	public void static_data(String dirpath) {
-		File dirFile = new File(dirpath);
-		File[] objdirName = dirFile.listFiles();
-		ArrayList<Integer> filenum = new ArrayList<Integer>();
-		int objnum = 1;
-		// ÎÄ¼ş¼ĞÖĞÌáÈ¡µÄÀà±ğ£¬ÓÃ»§Àà
-		for (File objdir : objdirName) {
-			File[] fileset = objdir.listFiles();
-			int madatasize = 0;
-			// ÎÄ¼ş¼ĞÖĞÌáÈ¡µÄÀà±ğ,ÀúÊ·ÒÅÁôÀà£¬ÊÖÊÆÀà
-			for (File samplefileset : fileset) {
-				File[] samples = samplefileset.listFiles();
-				for (File sample : samples) {
-					double[][] sampledata = single_data(sample);
-					if (sampledata != null) {
-						madatasize = madatasize + 1;
-						String featurefile = "./selected_madata/" + objdir.getName() + "-" + sample.getName();
-						objnum++;
-						files.madatawrite(sampledata, featurefile);
-
-					}
-				}
-			}
-			if (madatasize > 0) {
-				System.out.println("µ±Ç°µÚ" + objnum + "¸öÀà±ğ¾²Ö¹Æ¬¶ÎÊı£º" + madatasize);
-				filenum.add(madatasize);
-				objnum++;
-			}
-		}
-		System.out.println("filenum:");
-		for (int i = 0; i < filenum.size(); i++) {
-			System.out.print(filenum.get(i) + ",");
-		}
-	}
-
-	// ÇóÊÖÊÆµÄÌØÕ÷£¬360×é
+	//éå†æ–‡ä»¶ï¼Œæå–æ‰‹åŠ¿ç‰‡æ®µ
 	public void all_madata(String dirpath) {
+		//éå†æ‰€æœ‰çš„ç±»åˆ«
 		File dirFile = new File(dirpath);
 		File[] objdirName = dirFile.listFiles();
-		// ÎÄ¼ş¼ĞÖĞÌáÈ¡µÄÎÄ¼şÊı
+		// æ–‡ä»¶å¤¹ä¸­æå–çš„æ–‡ä»¶æ•°
 		ArrayList<Integer> filenum = new ArrayList<Integer>();
 		int objnum = 1;
 		for (File objdir : objdirName) {
+			//éå†ç±»åˆ«é‡Œæ‰€æœ‰çš„æ ·æœ¬
 			File[] samplefileset = objdir.listFiles();
 			ArrayList<double[][]> madata = new ArrayList<double[][]>();
 			for (File sample : samplefileset) {
 				double[][] sampledata = single_data(sample);
+				//æŠŠè¯†åˆ«å‡ºæ‰‹åŠ¿çš„ç‰‡æ®µåŠ å…¥åˆ°å½“å‰ç±»åˆ«çš„é›†åˆä¸­
 				if (sampledata != null) {
 					madata.add(sampledata);
 				}
 			}
+			//è®¡ç®—å½“å‰ç±»åˆ«çš„æ‰‹åŠ¿ç‰‡æ®µæ•°é‡å¹¶å…¨éƒ¨è¾“å…¥åˆ°æ–‡ä»¶ä¸­ä¿å­˜
 			if (madata.size() > 0) {
-				System.out.println("µ±Ç°µÚ" + objnum + "¸öÀà±ğÊÖÊÆÆ¬¶ÎÊı£º" + madata.size());
+				System.out.println("å½“å‰ç¬¬" + objnum + "ä¸ªç±»åˆ«æ‰‹åŠ¿ç‰‡æ®µæ•°ï¼š" + madata.size());
 				filenum.add(madata.size());
 				String featurefile = "./selected_madata/" + objdir.getName() + ".csv";
 				objnum++;
@@ -75,16 +42,17 @@ public class dataprocess {
 			System.out.print(filenum.get(i) + ",");
 		}
 	}
-
+	//ä»å•ä¸ªæ–‡ä»¶ä¸­æå–æ‰‹åŠ¿ç‰‡æ®µ
 	public double[][] single_data(File filepath) {
 		double[][] sampledata = null;
 		System.out.println(filepath);
+		//ä»æ–‡ä»¶ä¸­è¯»å‡ºåŸå§‹PPGä¿¡å·
 		PPG ppgs = files.orippgread(filepath);
 
 		if (ppgs.x.length < 800 || ppgs.y.length < 800) {
 			return sampledata;
 		}
-
+		//æ„å»ºPPGä¿¡å·å¤„ç†ä¸­è½¬å˜é‡
 		PPG orippg = new PPG();
 //		orippg.x = nortools.meanfilt(ppgs.x, 20);
 //		orippg.y = nortools.meanfilt(ppgs.y, 20);
@@ -92,76 +60,92 @@ public class dataprocess {
 		orippg.y = nortools.minmaxscale(ppgs.y);
 
 		PPG butterppg = new PPG();
-//		//¶ÔÔ­Ê¼µÄppgĞÍºÅ×öbutterworthÌáÈ¡
+		//å¯¹åŸå§‹çš„ppgå‹å·åšbutterworthæå–
 //		butterppg.x = nortools.butterworth_bandpass(ppgs.x, 200, 2,10);
 //		butterppg.y = nortools.butterworth_bandpass(ppgs.y, 200, 2,10);
 		butterppg.x = nortools.butterworth_bandpass(orippg.x, 200, 2, 5);
 		butterppg.y = nortools.butterworth_bandpass(orippg.y, 200, 2, 5);
-
 		butterppg.x = nortools.minmaxscale(butterppg.x);
 		butterppg.y = nortools.minmaxscale(butterppg.y);
 
-		// ×ö¿ìËÙÖ÷³É·Ö·ÖÎö
+		// åšå¿«é€Ÿä¸»æˆåˆ†åˆ†æ
 		PPG icappg = iatools.fastica(butterppg);
-
-		// ¸ù¾İ·åÖµÅĞ¶ÏÄÇÌõÊÖÊÆĞÅºÅºÍÂö³åĞÅºÅ
+		// æ ¹æ®å³°å€¼åˆ¤æ–­é‚£æ¡æ‰‹åŠ¿ä¿¡å·å’Œè„‰å†²ä¿¡å·
 		icappg = iatools.machoice(icappg);
 
+		//å°†butterworthæ»¤æ³¢åçš„ä¿¡å·ä¿å­˜æ–‡æ–‡ä»¶è¿›è¡ŒæŸ¥çœ‹
 //		String featurefile = "./butter/" + filepath.getName();
 //		files.datawrite(icappg.x, icappg.y, featurefile);
 
-		MAfind ma = new MAfind();
-		// Ï¸Á£¶ÈÊÖÊÆ·ÖÎö£¬ÅĞ¶ÏÊÖÊÆÇø¼ä
-
+		// ç»†ç²’åº¦æ‰‹åŠ¿åˆ†æï¼Œåˆ¤æ–­æ‰‹åŠ¿åŒºé—´
 //		int finetag = ma.fine_grained_segment(icappg.x, 200, 1);
-		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5, 0.7);
-		finetag = 1;
+		int finetag = ma.fine_grained_segment_2(icappg.x, 200, 1.5, 0.7);//æ‰‹åŠ¿ä¿¡å·ç«¯ï¼Œä¿¡å·é¢‘ç‡ã€èµ·å§‹é˜ˆå€¼ã€ç»ˆç»“é˜ˆå€¼
+		// finetag = 1;
 //		int finetag = ma.fine_grained_segment_3(icappg.x, 200, 0.3);
 		if (0 == finetag) {
-//			Log.e(">>>", "µ±Ç°Æ¬¶Î²»´æÔÚÊÖÊÆ");
-			System.out.println("µ±Ç°Æ¬¶Î²»´æÔÚÊÖÊÆ");
+			System.out.println("å½“å‰ç‰‡æ®µä¸å­˜åœ¨æ‰‹åŠ¿");
 		} else {
-			ma.pointstartindex=0;
-			ma.pointendindex=ppgs.x.length-30;
-//			Log.e(">>>","ÊÖÊÆµã£º" + ma.pointstartindex + " " + ma.pointendindex);
-			System.out.println("ÊÖÊÆµã£º" + ma.pointstartindex + " " + ma.pointendindex);
+			System.out.println("æ‰‹åŠ¿ç‚¹ï¼š" + ma.pointstartindex + " " + ma.pointendindex);
 
-//			orippg.x = normal.innerscale(orippg.x);
-//			orippg.y = normal.innerscale(orippg.y);
-
-//			ppgs.x = normal.innerscale(ppgs.x);
-//			ppgs.y = normal.innerscale(ppgs.y);
-//			butterppg.x = nortools.butterworth_highpass(orippg.x, 200, 2);
-//			butterppg.y = nortools.butterworth_highpass(orippg.y, 200, 2);
-
-//			String featurefile = "./butter/" + filepath.getName();
-//			files.datawrite(butterppg.x, butterppg.y, featurefile);
-
-			sampledata = new double[8][];
+			sampledata = new double[2][];
 			ppgs.x = nortools.meanfilt(ppgs.x, 20);
 			ppgs.y = nortools.meanfilt(ppgs.y, 20);
-//			ppgs = ma.setsegment(ppgs);
-
-			Motion motion = files.orimotionread(filepath);
-			motion.accx = nortools.meanfilt(motion.accx, 20);
-			motion.accy = nortools.meanfilt(motion.accy, 20);
-			motion.accz = nortools.meanfilt(motion.accz, 20);
-			motion.gyrx = nortools.meanfilt(motion.gyrx, 20);
-			motion.gyry = nortools.meanfilt(motion.gyry, 20);
-			motion.gyrz = nortools.meanfilt(motion.gyrz, 20);
-//			motion = ma.setsegment(motion);
-			ma = null;
-
+			ppgs = ma.setsegment(ppgs);
 			sampledata[0] = ppgs.x;
 			sampledata[1] = ppgs.y;
-			sampledata[2] = motion.accx;
-			sampledata[3] = motion.accy;
-			sampledata[4] = motion.accz;
-			sampledata[5] = motion.gyrx;
-			sampledata[6] = motion.gyry;
-			sampledata[7] = motion.gyrz;
-		}
 
+			// Motion motion = files.orimotionread(filepath);
+			// motion.accx = nortools.meanfilt(motion.accx, 20);
+			// motion.accy = nortools.meanfilt(motion.accy, 20);
+			// motion.accz = nortools.meanfilt(motion.accz, 20);
+			// motion.gyrx = nortools.meanfilt(motion.gyrx, 20);
+			// motion.gyry = nortools.meanfilt(motion.gyry, 20);
+			// motion.gyrz = nortools.meanfilt(motion.gyrz, 20);
+			// motion = ma.setsegment(motion);
+
+			// sampledata[2] = motion.accx;
+			// sampledata[3] = motion.accy;
+			// sampledata[4] = motion.accz;
+			// sampledata[5] = motion.gyrx;
+			// sampledata[6] = motion.gyry;
+			// sampledata[7] = motion.gyrz;
+		}
 		return sampledata;
 	}
+
+
+	// //æå–ç›¸å¯¹é™æ­¢çš„æ— æ‰‹åŠ¿ç‰‡æ®µ
+	// public void static_data(String dirpath) {
+	// 	File dirFile = new File(dirpath);
+	// 	File[] objdirName = dirFile.listFiles();
+	// 	ArrayList<Integer> filenum = new ArrayList<Integer>();
+	// 	int objnum = 1;
+	// 	// æ–‡ä»¶å¤¹ä¸­æå–çš„ç±»åˆ«ï¼Œç”¨æˆ·ç±»
+	// 	for (File objdir : objdirName) {
+	// 		File[] fileset = objdir.listFiles();
+	// 		int madatasize = 0;
+	// 		// æ–‡ä»¶å¤¹ä¸­æå–çš„ç±»åˆ«,å†å²é—ç•™ç±»ï¼Œæ‰‹åŠ¿ç±»
+	// 		for (File samplefileset : fileset) {
+	// 			File[] samples = samplefileset.listFiles();
+	// 			for (File sample : samples) {
+	// 				double[][] sampledata = single_data(sample);
+	// 				if (sampledata != null) {
+	// 					madatasize = madatasize + 1;
+	// 					String featurefile = "./selected_madata/" + objdir.getName() + "-" + sample.getName();
+	// 					objnum++;
+	// 					files.madatawrite(sampledata, featurefile);
+	// 				}
+	// 			}
+	// 		}
+	// 		if (madatasize > 0) {
+	// 			System.out.println("å½“å‰ç¬¬" + objnum + "ä¸ªç±»åˆ«é™æ­¢ç‰‡æ®µæ•°ï¼š" + madatasize);
+	// 			filenum.add(madatasize);
+	// 			objnum++;
+	// 		}
+	// 	}
+	// 	System.out.println("filenum:");
+	// 	for (int i = 0; i < filenum.size(); i++) {
+	// 		System.out.print(filenum.get(i) + ",");
+	// 	}
+	// }
 }

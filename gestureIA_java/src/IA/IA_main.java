@@ -2,33 +2,30 @@ package IA;
 
 public class IA_main {
 
-	public static dataprocess datapro=new dataprocess();
-	public static featureprocess featurepro=new featureprocess();
-	public static combine combine=new combine();
+	// æå–æ‰‹åŠ¿è¡Œä¸ºç‰‡æ®µçš„æ•°æ®
+	public static dataprocess datapro = new dataprocess();
+	// æå–æ‰‹åŠ¿è¡Œä¸ºç‰‡æ®µçš„ç‰¹å¾
+	// public static featureprocess featurepro = new featureprocess();
+	// public static combine combine = new combine();
+
 	public static void main(String[] args) {
 
-//		²âÊÔÓÃÊı¾İÎÄ¼ş¼Ğ
-//		String dirpath = "./testdataset/";
-//		360¸öÊÖÊÆÀà±ğµÄÎÄ¼ş¼Ğ
-		String dirpath = "./oridata/360dataset/";
-//		40¸öÓÃ»§Àà±ğµÄÎÄ¼ş¼Ğ
-//		String dirpath = "./oridata/40dataset/";
-//		ÎÒ×Ô¼º²»Í¬³¡ºÍµÄ9¸öÊÖÊÆµÄÎÄ¼ş¼Ğ
-		
-		// ÇóÊÖÊÆµÄÌØÕ÷
-//		featurepro.all_feature(dirpath);
-		//ÇóÊÖÊÆµÄÔ­Ê¼Êı¾İ¶Î
-		datapro.all_madata(dirpath);
-		// ÇóÏà¶Ô¾²Ö¹×´Ì¬ÏÂµÄÌØÕ÷
-//		featurepro.static_feature(dirpath);
-		//ÇóÏà¶Ô¾²Ö¹×´Ì¬ÏÂµÄÔ­Ê¼Êı¾İ¶Î
-//		datapro.static_data(dirpath);
-		
-//		ÇóÊÖÊÆµÄ×ÛºÏÊı¾İ
-//		combine.all_madata(dirpath);
-	}
+		// æå–æ•°æ®çš„æ‰‹åŠ¿ç‰‡æ®µæˆ–æ‰‹åŠ¿ç‰‡æ®µçš„ç‰¹å¾
+		String dirpath = "./oridata/";
 
-	
-	
+
+		// æ±‚æ‰‹åŠ¿çš„ç‰¹å¾
+		// featurepro.all_feature(dirpath);
+		// æ±‚æ‰‹åŠ¿çš„åŸå§‹æ•°æ®æ®µ
+		datapro.all_madata(dirpath);
+
+		// æ±‚ç›¸å¯¹é™æ­¢çŠ¶æ€ä¸‹çš„ç‰¹å¾
+		// featurepro.static_feature(dirpath);
+		// æ±‚ç›¸å¯¹é™æ­¢çŠ¶æ€ä¸‹çš„åŸå§‹æ•°æ®æ®µ
+		// datapro.static_data(dirpath);
+
+		// æ±‚æ‰‹åŠ¿çš„ç»¼åˆæ•°æ®
+		// combine.all_madata(dirpath);
+	}
 
 }

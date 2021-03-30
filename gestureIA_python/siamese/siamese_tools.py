@@ -156,7 +156,7 @@ def create_test_pair(test_data, test_target,num_classes,anchornum):
                 labels += [0]
     # print("len(test_pairs):",len(pairs))
     # print("len(test_labels):",len(labels))            
-    return np.array(pairs), np.array下`(labels)
+    return np.array(pairs), np.array(labels)
 
 #对样本对进行额外处理,将测试数据的同锚的距离求均值
 def repro_test_pred(test_pred,test_label,anchornum):
@@ -181,7 +181,10 @@ def dataresize(train_pairs,test_pairs,train_label,test_label):
     return train_pairs,test_pairs,train_label,test_label
 
 
-
+def dataresize(train_pairs,train_label):
+    train_pairs = train_pairs.astype(np.float32)
+    train_label = train_label.astype(np.float32)
+    return train_pairs,train_label
 #两种多任务的配对方案
 # def create_multask_pair(data, target,num_classes):
 #     digit_indices = [np.where(target == i)[0] for i in range(1,num_classes+1)]

@@ -20,7 +20,7 @@ def siamese_data_authentication(sequence,target,targetnum):
 	#训练集个数
 	# traincomnum=28
 	selectk=IAtool.create_rank_testnum(targetnum,iternum,testsetnumber)
-	
+
 	# 写死选择的数据集，方便比较
 	# selectk=[]
 	# for i in range(iternum):
@@ -35,14 +35,13 @@ def siamese_data_authentication(sequence,target,targetnum):
 	for t in range(iternum):
 		print("周期：",t)
 		train_data,test_data,train_target,test_target,trainindex,testindex=IAtool.allot_data(selectk[t],targetnum,tempfeature)
-		
+
 		score,label= siamese_authentication(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
-		# score,label= siamese_weighted_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		# score,label= siamese_mul_model_data(train_data,test_data, train_target, test_target,trainindex,testindex,anchornum)
 		score=[i[0] for i in score]
 		label=[i for i in label]
-		# print('原结果：',label)
-		print('预测分数：',score[:90])
+		print('原结果：',label[:50])
+		print('预测分数：',score[:50])
 		accuracy,far,frr=cal_siamese_eer(label,score)
 		meanacc.append(accuracy)
 		meanfar.append(far)
@@ -51,6 +50,24 @@ def siamese_data_authentication(sequence,target,targetnum):
 	for i in range(len(meanacc)):
 		print("被选择的测试集序号：",selectk[i]) 
 		print("acc:",meanacc[i],"far:",meanfar[i],"frr:",meanfrr[i])
+
+def siamese_data_build_class(train_data,train_target,trainindex):
+	# train_data=IAtool.datatranspose(train_data)
+	siamese_data_build(train_data,train_target,trainindex)
+
+def siamese_data_test_class(test_data,test_target,targetnum,anchornum):
+	# test_data=IAtool.datatranspose(test_data)
+	score,label= siamese_data_test(test_data,test_target,targetnum,anchornum)
+	score=[i[0] for i in score]
+	label=[i for i in label]
+	print('原结果：',label[:50])
+	print('预测分数：',score[:50])
+	accuracy,far,frr=cal_siamese_eer(label,score)
+	print("acc:",accuracy,"far:",far,"frr:",frr)
+	return accuracy,far,frr
+
+
+
 
 #多任务孪生网络，同时识别手势和用户
 # def siamese_data_multask(feature,target,targetnum):
@@ -114,19 +131,7 @@ def siamese_data_authentication(sequence,target,targetnum):
 
 
 
-# def siamese_data_build_class(train_data,train_target,trainindex):
-# 	train_data=IAtool.datatranspose(train_data)
-# 	siamese_data_buildmodel(train_data,train_target,trainindex)
 
-# def siamese_data_final_class(test_data,test_target,targetnum,anchornum):
-# 	test_data=IAtool.datatranspose(test_data)
-# 	score,label= siamese_data_final(test_data,test_target,targetnum,anchornum)
-# 	score=[i[0] for i in score]
-# 	label=[i for i in label]
-# 	print('原结果：',label)
-# 	print('预测分数：',score)
-# 	accuracy,far,frr=cal_siamese_eer(label,score)
-# 	return accuracy,far,frr
 
 
 #多传感器输入的孪生网络分类

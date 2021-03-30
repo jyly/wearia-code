@@ -1,6 +1,6 @@
 # -*- coding=utf-8 -*-
 import numpy as np
-from pywt import wavedec
+# from pywt import wavedec
 from scipy.stats import kurtosis,skew
 import math
 from normal_tool import *

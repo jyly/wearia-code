@@ -9,7 +9,7 @@ public class MAfind {
 	public int pointstartindex = 0;
 	public int pointendindex = 0;
 
-	// pggpass·½°¸ÖĞ¼ÆËãÄÜÁ¿µÄ·½°¸
+	// pggpassæ–¹æ¡ˆä¸­è®¡ç®—èƒ½é‡çš„æ–¹æ¡ˆ
 	public ArrayList<Double> energycal(ArrayList<Double> data, int win, double threshold) {
 		ArrayList<Double> energy = new ArrayList<Double>();
 		int datalens = data.size();
@@ -37,7 +37,7 @@ public class MAfind {
 		return tempdata;
 	}
 
-	// Ñ°ÕÒÆ¬¶ÎÖĞµÄ¿ªÊ¼µãºÍ½áÊøµã
+	// å¯»æ‰¾ç‰‡æ®µä¸­çš„å¼€å§‹ç‚¹å’Œç»“æŸç‚¹
 	public int fine_grained_segment(double[] data, int fre, double threshold) {
 		pointstartindex = 0;
 		pointendindex = 0;
@@ -50,28 +50,27 @@ public class MAfind {
 //		for (int i = 0; i < (datalens - fre); i++) {
 //			energy[i] = std.evaluate(data, i, fre);
 //		}
-//		
+
 		double[] tempdata = incretempdata(data, (int) (fre / 2));
 
 		double[] energy = new double[datalens];
 		for (int i = 0; i < (datalens); i++) {
 			energy[i] = std.evaluate(tempdata, i, fre);
 		}
-		
+
 
 //		System.out.println("energy list");
 //		for (int i = 0; i < energy.length; i++) {
 //			System.out.print(energy[i]+",");
 //		}
 		int i = datalens -   50;
-		int lens = (int) (1 * fre);
 		while (i > fre) {
 //			System.out.println(i);
 			i = i - 1;
-			// ´ÓºóÍùÇ°ÅĞ¶Ï£¬µ±´óÓÚãĞÖµÊ±£¬ÈÏÎª¿ÉÄÜ´æÔÚÊÖÊÆ
+			// ä»åå¾€å‰åˆ¤æ–­ï¼Œå½“å¤§äºé˜ˆå€¼æ—¶ï¼Œè®¤ä¸ºå¯èƒ½å­˜åœ¨æ‰‹åŠ¿
 			if (energy[i] > threshold) {
 				int flag = 0;
-				// ´ÓºóÍùÇ°µÄÒ»¶¨Çø¼äÄÚµÄÖµ¶¼´óÓÚãĞÖµÊ±£¬ÈÏÎª´æÔÚÊÖÊÆ
+				// ä»åå¾€å‰çš„ä¸€å®šåŒºé—´å†…çš„å€¼éƒ½å¤§äºé˜ˆå€¼æ—¶ï¼Œè®¤ä¸ºå­˜åœ¨æ‰‹åŠ¿
 				for (int j = (i - fre); j < i; j++) {
 					if (energy[j] < threshold) {
 						flag = 1;
@@ -94,8 +93,8 @@ public class MAfind {
 							break;
 						}
 					}
-					// ²¹³äÄÜÁ¿ÖµµÄÆ«ÒÆÁ¿
-				
+					// è¡¥å……èƒ½é‡å€¼çš„åç§»é‡
+
 					pointendindex = i;
 					tag = 1;
 					break;
@@ -109,30 +108,30 @@ public class MAfind {
 		return tag;
 	}
 
-	// Ñ°ÕÒÊÖÊÆÆ¬¶ÎÖĞµÄ¿ªÊ¼µãºÍ½áÊøµã
+	// å¯»æ‰¾æ‰‹åŠ¿ç‰‡æ®µä¸­çš„å¼€å§‹ç‚¹å’Œç»“æŸç‚¹
 	public int fine_grained_segment_2(double[] data, int fre, double top, double bottom) {
 		pointstartindex = 0;
 		pointendindex = 0;
 		int tag = 0;
 		int datalens = data.length;
 		StandardDeviation std = new StandardDeviation();
-		// ¼ÆËãÄÜÁ¿Öµ
+		// è®¡ç®—èƒ½é‡å€¼
 		double[] tempdata = incretempdata(data, (int) (fre / 2));
 
 		double[] energy = new double[datalens];
 		for (int i = 0; i < (datalens); i++) {
 			energy[i] = std.evaluate(tempdata, i, fre);
 		}
-		// i´ÓenergyµÄºó¶Ë¿ªÊ¼ÍùÇ°×ß
+		// iä»energyçš„åç«¯å¼€å§‹å¾€å‰èµ°
 		int i = datalens - 100;
 
 		while (i > fre) {
 			i = i - 1;
-			// ´ÓºóÍùÇ°ÅĞ¶Ï£¬µ±´óÓÚãĞÖµÊ±£¬ÈÏÎª¿ÉÄÜ´æÔÚÊÖÊÆ
+			// ä»åå¾€å‰åˆ¤æ–­ï¼Œå½“å¤§äºé˜ˆå€¼æ—¶ï¼Œè®¤ä¸ºå¯èƒ½å­˜åœ¨æ‰‹åŠ¿
 			if (energy[i] > bottom) {
 				int flag = 0;
 				int finalcount = 0;
-				// ºóÃæµÄÒ»¶¨Çø¼äÄÚµÄÖµ¶¼´óÓÚãĞÖµÊ±£¬ÈÏÎª´æÔÚÊÖÊÆ
+				// å­˜åœ¨æ‰‹åŠ¿çš„åé¢çš„ä¸€å®šåŒºé—´å†…çš„å€¼è¦æ±‚éƒ½å°äºé˜ˆå€¼
 				for (int j = 0; j < 100; j++) {
 					if (energy[i + j] < top) {
 						finalcount++;
@@ -141,6 +140,7 @@ public class MAfind {
 				if (finalcount < 80) {
 					flag = 1;
 				}
+//				å‰é¢çš„ä¸€æ®µè¦æ±‚å¤§äºé˜ˆå€¼
 				if (0 == flag) {
 					int gesturecount = 0;
 					for (int j = 0; j < fre; j++) {
@@ -187,7 +187,7 @@ public class MAfind {
 		return tag;
 	}
 
-	// Ñ°ÕÒÆ¬¶ÎÖĞµÄ¿ªÊ¼µãºÍ½áÊøµã//Ñ°ÕÒÎŞÊÖÊÆ¶Î
+	// å¯»æ‰¾ç‰‡æ®µä¸­çš„å¼€å§‹ç‚¹å’Œç»“æŸç‚¹//å¯»æ‰¾æ— æ‰‹åŠ¿æ®µ
 	public int fine_grained_segment_3(double[] data, int fre, double threshold) {
 		pointstartindex = 0;
 		pointendindex = 0;
@@ -195,7 +195,7 @@ public class MAfind {
 		int datalens = data.length;
 		StandardDeviation std = new StandardDeviation();
 
-		// ¼ÆËãÄÜÁ¿Öµ
+		// è®¡ç®—èƒ½é‡å€¼
 		double[] tempdata = incretempdata(data, (int) (fre / 2));
 		double[] energy = new double[datalens];
 		for (int i = 0; i < (datalens); i++) {
@@ -208,7 +208,7 @@ public class MAfind {
 			i = i + 1;
 			if (energy[i] < threshold) {
 				int flag = 0;
-				// Ñ°ÕÒÒ»¸ö3sÄÚµÄÎŞÊÖÊÆ¶Î
+				// å¯»æ‰¾ä¸€ä¸ª3så†…çš„æ— æ‰‹åŠ¿æ®µ
 				for (int j = 0; j < 600; j++) {
 					if (energy[i + j] > threshold) {
 						flag = 1;
@@ -220,7 +220,7 @@ public class MAfind {
 					pointstartindex = i;
 					pointendindex = i + 600;
 
-					// °Ñµ±Ç°Çø¼äÉèÖÃÎªiºÍi+400£¬²¢Íùºó¾¡¿ÉÄÜÑ°ÕÒ¾²Ö¹¶ÎµÄÖÕµã
+					// æŠŠå½“å‰åŒºé—´è®¾ç½®ä¸ºiå’Œi+400ï¼Œå¹¶å¾€åå°½å¯èƒ½å¯»æ‰¾é™æ­¢æ®µçš„ç»ˆç‚¹
 					for (int j = (i + 600); j < lens; j++) {
 						if (energy[j] < threshold) {
 							pointendindex = j;
@@ -241,7 +241,7 @@ public class MAfind {
 		return tag;
 	}
 
-	// Ñ°ÕÒÆ¬¶ÎÖĞµÄ¿ªÊ¼µãºÍ½áÊøµã
+	// å¯»æ‰¾ç‰‡æ®µä¸­çš„å¼€å§‹ç‚¹å’Œç»“æŸç‚¹
 	public int fine_grained_segment_4(double[] data, int fre, double threshold) {
 		pointstartindex = 0;
 		pointendindex = 0;
@@ -260,10 +260,10 @@ public class MAfind {
 		while (i > lens) {
 //				System.out.println(i);
 			i = i - 1;
-			// ´ÓºóÍùÇ°ÅĞ¶Ï£¬µ±´óÓÚãĞÖµÊ±£¬ÈÏÎª¿ÉÄÜ´æÔÚÊÖÊÆ
+			// ä»åå¾€å‰åˆ¤æ–­ï¼Œå½“å¤§äºé˜ˆå€¼æ—¶ï¼Œè®¤ä¸ºå¯èƒ½å­˜åœ¨æ‰‹åŠ¿
 			if (energy[i] > threshold) {
 				int flag = 0;
-				// ´ÓºóÍùÇ°µÄÒ»¶¨Çø¼äÄÚµÄÖµ¶¼´óÓÚãĞÖµÊ±£¬ÈÏÎª´æÔÚÊÖÊÆ
+				// ä»åå¾€å‰çš„ä¸€å®šåŒºé—´å†…çš„å€¼éƒ½å¤§äºé˜ˆå€¼æ—¶ï¼Œè®¤ä¸ºå­˜åœ¨æ‰‹åŠ¿
 				for (int j = (i - lens); j < i; j++) {
 					if (energy[j] < threshold) {
 						flag = 1;
@@ -348,7 +348,7 @@ public class MAfind {
 		return tag;
 	}
 
-	// ¸ù¾İ¿ªÊ¼µãºÍ½áÊøµã£¬ÌáÈ¡³öÓĞÊÖÊÆµÄÆ¬¶Î³öÀ´
+	// æ ¹æ®å¼€å§‹ç‚¹å’Œç»“æŸç‚¹ï¼Œæå–å‡ºæœ‰æ‰‹åŠ¿çš„ç‰‡æ®µå‡ºæ¥
 	public PPG setsegment(PPG ppgs) {
 		int lens = pointendindex - pointstartindex;
 		PPG seppgs = new PPG(lens);
